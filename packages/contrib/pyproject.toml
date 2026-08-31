@@ -1,0 +1,23 @@
+[build-system]
+requires = ["uv_build>=0.12.6,<0.13"]
+build-backend = "uv_build"
+
+[project]
+name = "streamlit-graph-canvas-contrib"
+version = "0.1.0.dev0"
+description = "Stock renderers for streamlit-graph-canvas."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = ["streamlit-graph-canvas>=0.1.0.dev0"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.entry-points."streamlit_graph_canvas.renderers"]
+stock = "streamlit_graph_canvas_contrib:renderer_manifest"
+
+[tool.uv.build-backend]
+module-name = "streamlit_graph_canvas_contrib"

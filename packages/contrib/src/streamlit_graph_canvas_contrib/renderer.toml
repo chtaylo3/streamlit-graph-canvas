@@ -1,0 +1,6 @@
+manifest_schema = 1
+distribution = "streamlit-graph-canvas-contrib"
+version = "0.1.0.dev0"
+renderer_api = ">=1,<2"
+kinds = []
+

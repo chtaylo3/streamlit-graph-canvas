@@ -1,0 +1,35 @@
+[build-system]
+requires = ["uv_build>=0.12.6,<0.13"]
+build-backend = "uv_build"
+
+[project]
+name = "streamlit-graph-canvas"
+version = "0.1.0.dev0"
+description = "A domain-neutral, schema-driven graph canvas for Streamlit."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = ["streamlit>=1.62.0"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.optional-dependencies]
+networkx = ["networkx>=3.6.1"]
+
+[project.urls]
+Documentation = "https://github.com/chtaylo3/streamlit-graph-canvas"
+Repository = "https://github.com/chtaylo3/streamlit-graph-canvas"
+
+[tool.uv.build-backend]
+module-name = "streamlit_graph_canvas"
+source-exclude = ["frontend/node_modules"]
+wheel-exclude = [
+    "frontend/src",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "frontend/tsconfig.json",
+    "frontend/vite.config.ts",
+]
