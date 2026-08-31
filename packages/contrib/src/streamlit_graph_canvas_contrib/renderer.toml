@@ -2,5 +2,10 @@ manifest_schema = 1
 distribution = "streamlit-graph-canvas-contrib"
 version = "0.1.0.dev0"
 renderer_api = ">=1,<2"
-kinds = []
 
+[[renderers]]
+kind = "streamlit-graph-canvas/contrib/count-chip"
+python = "streamlit_graph_canvas_contrib.count_chip:renderer"
+transports = ["prims"]
+
+[assets]

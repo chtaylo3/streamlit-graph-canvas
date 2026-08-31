@@ -5,12 +5,20 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict, cast
 
 from .model import FitView, GraphData, GraphSchema, SelectionMode
+from .renderers import RendererRegistry
 from .serialization import serialize_graph
 
 CanvasHeight = int | Literal["stretch"]
+
+
+class _RevisionState(TypedDict):
+    topology_hash: str
+    presentation_hash: str
+    topology_revision: int
+    presentation_revision: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,6 +41,7 @@ def _revision_state(
 
     state_key = f"_sgc_revisions:{key}"
     previous = st.session_state.get(state_key)
+    current: _RevisionState
     if previous is None:
         current = {
             "topology_hash": topology_hash,
@@ -41,7 +50,7 @@ def _revision_state(
             "presentation_revision": 1,
         }
     else:
-        current = dict(previous)
+        current = cast(_RevisionState, dict(previous))
         if current["topology_hash"] != topology_hash:
             current["topology_hash"] = topology_hash
             current["topology_revision"] += 1
@@ -73,6 +82,7 @@ def graph_canvas(
     selection: SelectionMode = SelectionMode.SINGLE,
     fit_view: FitView = FitView.INITIAL,
     max_elements: int = 700,
+    renderer_registry: RendererRegistry | None = None,
     width: str | int = "stretch",
     height: CanvasHeight = 620,
     on_selected_node_ids_change: Callable[[], None] | None = None,
@@ -83,7 +93,12 @@ def graph_canvas(
 
     if isinstance(height, int) and height <= 0:
         raise ValueError("height must be a positive pixel value or 'stretch'")
-    serialized = serialize_graph(schema, graph, max_elements=max_elements)
+    serialized = serialize_graph(
+        schema,
+        graph,
+        max_elements=max_elements,
+        renderer_registry=renderer_registry,
+    )
     topology_revision, presentation_revision = _revision_state(
         key, serialized.topology_hash, serialized.presentation_hash
     )
@@ -93,7 +108,11 @@ def graph_canvas(
             **serialized.envelope,
             "topologyRevision": topology_revision,
             "presentationRevision": presentation_revision,
-            "config": {"selection": selection.value, "fitView": fit_view.value},
+            "config": {
+                "selection": selection.value,
+                "fitView": fit_view.value,
+                "height": height,
+            },
         },
         default={
             "selected_node_ids": [],

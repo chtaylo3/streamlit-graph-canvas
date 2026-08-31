@@ -2,11 +2,17 @@
 **/__pycache__/
 *.py[cod]
 .pytest_cache/
+.hypothesis/
 .ruff_cache/
 .coverage
 htmlcov/
 dist/
 **/dist/
 **/frontend/node_modules/
+conformance/node_modules/
+conformance/test-results/
+conformance/playwright-report/
+conformance-artifacts/
+.conformance-venv/
 *.egg-info/
 .DS_Store

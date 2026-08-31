@@ -1,0 +1,5 @@
+[sets.core-only]
+packages = []
+
+[sets.stock]
+packages = ["streamlit-graph-canvas-contrib"]

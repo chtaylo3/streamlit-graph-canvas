@@ -4,23 +4,38 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+env:
+  UV_CACHE_DIR: ${{ github.workspace }}/.uv-cache
+
 jobs:
   python:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         python-version: ["3.12", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --locked
       - run: uv run pytest
       - run: uv run ruff check .
-      - run: uv build --package streamlit-graph-canvas
-      - run: uv build --package streamlit-graph-canvas-contrib
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run mypy packages/core/src packages/contrib/src
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: >-
+          uv run pytest
+          --cov=streamlit_graph_canvas
+          --cov=streamlit_graph_canvas_contrib
+          --cov-fail-under=85
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run pip-audit --cache-dir "${{ runner.temp }}/pip-audit"
 
   frontend:
     runs-on: ubuntu-latest
@@ -28,8 +43,8 @@ jobs:
       run:
         working-directory: packages/core/src/streamlit_graph_canvas/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
           cache: npm
@@ -37,3 +52,89 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - run: npm audit --audit-level=high
+
+  wheels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/core/src/streamlit_graph_canvas/frontend/package-lock.json
+      - run: npm ci
+        working-directory: packages/core/src/streamlit_graph_canvas/frontend
+      - run: npm run build
+        working-directory: packages/core/src/streamlit_graph_canvas/frontend
+      - run: uv build --package streamlit-graph-canvas --out-dir wheelhouse
+      - run: uv build --package streamlit-graph-canvas-contrib --out-dir wheelhouse
+      - run: uv run python ci/verify_wheels.py wheelhouse
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: conformance-wheelhouse
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+          retention-days: 7
+
+  chromium-conformance:
+    needs: wheels
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        contrib-set: [core-only, stock]
+    env:
+      CI: "true"
+      SGC_CONTRIB_SET: ${{ matrix.contrib-set }}
+      SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-conformance/bin/python
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: conformance/package-lock.json
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: conformance-wheelhouse
+          path: wheelhouse
+      - run: >-
+          uv run python ci/build_conformance_environment.py
+          --set "${{ matrix.contrib-set }}"
+          --wheelhouse wheelhouse
+          --venv "${{ runner.temp }}/sgc-conformance"
+      - run: npm ci
+        working-directory: conformance
+      - if: matrix.contrib-set == 'core-only'
+        run: npm audit --audit-level=high
+        working-directory: conformance
+      - run: npx playwright install --with-deps chromium
+        working-directory: conformance
+      - run: npm test
+        working-directory: conformance
+      - if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: chromium-${{ matrix.contrib-set }}
+          path: |
+            conformance/test-results/
+            conformance/playwright-report/
+            conformance-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4

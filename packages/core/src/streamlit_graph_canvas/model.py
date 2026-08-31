@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Any
+from typing import Any, Literal
 
 
 def _mapping(value: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -30,6 +30,12 @@ class FitView(StrEnum):
     NEVER = "never"
     INITIAL = "initial"
     TOPOLOGY_CHANGE = "topology-change"
+
+
+class Transport(StrEnum):
+    PRIMS = "prims"
+    JAVASCRIPT = "javascript"
+    ATLAS = "atlas"
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,10 +69,38 @@ class PortSpec:
 
 
 @dataclass(frozen=True, slots=True)
+class Region:
+    x: float
+    y: float
+    width: float
+    height: float
+
+    @classmethod
+    def at(cls, x: float, y: float, width: float, height: float) -> Region:
+        return cls(x, y, width, height)
+
+
+@dataclass(frozen=True, slots=True)
+class BadgeBinding:
+    name: str
+    kind: str
+    region: Region
+    transport: Transport = Transport.PRIMS
+    layer: Literal["under", "over"] = "over"
+    z: int = 0
+    required: bool = False
+    options: Mapping[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "options", _mapping(self.options))
+
+
+@dataclass(frozen=True, slots=True)
 class NodeType:
     name: str
     style: NodeStyle = NodeStyle()
     ports: tuple[PortSpec, ...] = ()
+    badges: tuple[BadgeBinding, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,6 +138,7 @@ class Node:
     type: str
     label: str
     data: Mapping[str, Any] = field(default_factory=dict)
+    badges: Mapping[str, Any] = field(default_factory=dict)
     width: float | None = None
     height: float | None = None
     disabled: bool = False
@@ -111,6 +146,7 @@ class Node:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "data", _mapping(self.data))
+        object.__setattr__(self, "badges", _mapping(self.badges))
 
 
 @dataclass(frozen=True, slots=True)
