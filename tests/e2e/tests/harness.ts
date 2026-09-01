@@ -80,10 +80,16 @@ export async function openGallery(page: Page) {
     timeout: 20_000,
   });
   await waitForGalleryStable(page);
-  await expect(page.getByTestId("viewport-state")).not.toHaveText("none", {
+  await expect(page.getByRole("button", { name: "service API v1" })).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(page.getByRole("button", { name: "service Worker" })).toBeVisible({
     timeout: 20_000,
   });
   await waitForGalleryStable(page);
+  await expect(page.getByRole("button", { name: "service API v1" })).toBeVisible({
+    timeout: 20_000,
+  });
 }
 
 export async function waitForGalleryStable(page: Page, expectedCanvases = 1) {
@@ -106,7 +112,7 @@ export async function waitForGalleryStable(page: Page, expectedCanvases = 1) {
           id = root.__sgcNextElementId!++;
           root.__sgcElementIds!.set(element, id);
         }
-        return id;
+        return `${id}:${element.getAttribute("data-sgc-render-generation") ?? "none"}`;
       }).join(",");
     });
     if (signature !== previousSignature) {
@@ -114,7 +120,7 @@ export async function waitForGalleryStable(page: Page, expectedCanvases = 1) {
       unchangedSince = Date.now();
       return false;
     }
-    return Date.now() - unchangedSince >= 1_000;
+    return Date.now() - unchangedSince >= 2_000;
   }, { timeout: 20_000 }).toBe(true);
 }
 

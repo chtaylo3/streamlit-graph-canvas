@@ -7,7 +7,9 @@ import {
   Position,
   ReactFlow,
   ReactFlowProvider,
+  useNodesInitialized,
   useReactFlow,
+  useUpdateNodeInternals,
   type Edge as FlowEdge,
   type Node as FlowNode,
   type NodeProps,
@@ -417,6 +419,32 @@ const SchemaNode = memo(({ data, selected }: NodeProps<CanvasNode>) => (
 const nodeTypes = { schemaNode: SchemaNode };
 type SetStateValue = FrontendRendererArgs<State, CanvasData>["setStateValue"];
 type SetTriggerValue = FrontendRendererArgs<State, CanvasData>["setTriggerValue"];
+type ManagedRoot = { root: Root; generation: number };
+const managedRoots = new WeakMap<HTMLElement, ManagedRoot>();
+
+function acquireManagedRoot(host: HTMLElement): {
+  entry: ManagedRoot;
+  generation: number;
+} {
+  let entry = managedRoots.get(host);
+  if (!entry) {
+    entry = { root: createRoot(host), generation: 0 };
+    managedRoots.set(host, entry);
+  }
+  entry.generation += 1;
+  return { entry, generation: entry.generation };
+}
+
+function releaseManagedRoot(
+  host: HTMLElement,
+  entry: ManagedRoot,
+  generation: number,
+): void {
+  if (managedRoots.get(host) !== entry || entry.generation !== generation) return;
+  host.dataset.sgcStatus = "unmounted";
+  entry.root.unmount();
+  managedRoots.delete(host);
+}
 
 function CanvasContents({
   componentKey,
@@ -440,6 +468,8 @@ function CanvasContents({
   onFatal: (diagnostic: string) => void;
 }) {
   const flow = useReactFlow();
+  const nodesInitialized = useNodesInitialized();
+  const updateNodeInternals = useUpdateNodeInternals();
   const [selectedNodeIds, setSelectedNodeIds] = useState(initialState.selectedNodeIds);
   const selectedNodeIdsRef = useRef(initialState.selectedNodeIds);
   const viewportRef = useRef(initialState.viewport);
@@ -448,7 +478,8 @@ function CanvasContents({
   const [positions, setPositions] = useState(
     new Map<string, { x: number; y: number }>(),
   );
-  const fitApplied = useRef(false);
+  const [laidOutTopologyHash, setLaidOutTopologyHash] = useState<string | null>(null);
+  const viewportAppliedTopology = useRef<string | null>(null);
 
   const persist = useCallback(
     (updates: Partial<BrowserCanvasState>) => {
@@ -543,6 +574,8 @@ function CanvasContents({
       data.topology.nodes.map((node) => {
         const declaration = data.schema.nodeTypes[node.type];
         const presentation = presentationNodes.get(node.id)!;
+        const width = node.width ?? declaration.style.width;
+        const height = node.height ?? declaration.style.height;
         const accessibleBadgeText = presentation.badges
           .flatMap((badge) => badge.primitives ?? [])
           .filter(
@@ -555,9 +588,11 @@ function CanvasContents({
           id: node.id,
           type: "schemaNode",
           position: positions.get(node.id) ?? { x: 0, y: 0 },
+          width,
+          height,
           style: {
-            width: node.width ?? declaration.style.width,
-            height: node.height ?? declaration.style.height,
+            width,
+            height,
           },
           data: {
             label: presentation.label,
@@ -639,21 +674,45 @@ function CanvasContents({
       if (!active) return;
       setPositions(nextPositions);
       requestAnimationFrame(() => {
-        if (initialState.viewport && !topologyChanged) {
-          void flow.setViewport(initialState.viewport);
-        } else if (
-          data.config.fitView === "topology-change" ||
-          (data.config.fitView === "initial" && !fitApplied.current)
-        ) {
-          void flow.fitView();
-          fitApplied.current = true;
-        }
+        if (!active) return;
+        updateNodeInternals(data.topology.nodes.map((node) => node.id));
+        requestAnimationFrame(() => {
+          if (active) setLaidOutTopologyHash(data.topologyHash);
+        });
       });
     });
     return () => {
       active = false;
     };
   }, [data.topologyHash]);
+
+  useEffect(() => {
+    if (
+      !nodesInitialized
+      || laidOutTopologyHash !== data.topologyHash
+      || viewportAppliedTopology.current === data.topologyHash
+    ) return;
+    const frame = requestAnimationFrame(() => {
+      viewportAppliedTopology.current = data.topologyHash;
+      if (initialState.viewport && !topologyChanged) {
+        void flow.setViewport(initialState.viewport);
+      } else if (
+        data.config.fitView === "topology-change"
+        || data.config.fitView === "initial"
+      ) {
+        void flow.fitView();
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [
+    data.config.fitView,
+    data.topologyHash,
+    flow,
+    initialState.viewport,
+    laidOutTopologyHash,
+    nodesInitialized,
+    topologyChanged,
+  ]);
 
   return (
     <ReactFlow
@@ -857,29 +916,27 @@ const renderer: FrontendRenderer<State, CanvasData> = ({
   if (!host) {
     throw new Error("SGC_MOUNT_ROOT: component root was not found");
   }
+  const { entry, generation } = acquireManagedRoot(host);
   try {
     requireCodecVersion(data.codecVersion);
   } catch (error) {
     host.dataset.sgcStatus = "fatal";
-    const root = createRoot(host);
-    root.render(
+    entry.root.render(
       <div className="sgc-fatal" role="alert">
         {error instanceof Error ? error.message : String(error)}
       </div>,
     );
-    return () => {
-      host.dataset.sgcStatus = "unmounted";
-      root.unmount();
-    };
+    return () => releaseManagedRoot(host, entry, generation);
   }
   host.dataset.sgcStatus = "mounting";
+  host.dataset.sgcRenderGeneration = String(generation);
   host.dataset.sgcTopologyRevision = String(data.topologyRevision);
   host.dataset.sgcPresentationRevision = String(data.presentationRevision);
   host.style.height =
     typeof data.config.height === "number" ? `${data.config.height}px` : "100%";
-  const root: Root = createRoot(host);
-  root.render(
+  entry.root.render(
     <Canvas
+      key={generation}
       componentKey={key}
       data={data}
       setStateValue={setStateValue}
@@ -887,10 +944,7 @@ const renderer: FrontendRenderer<State, CanvasData> = ({
       host={host}
     />,
   );
-  return () => {
-    host.dataset.sgcStatus = "unmounted";
-    root.unmount();
-  };
+  return () => releaseManagedRoot(host, entry, generation);
 };
 
 export default renderer;

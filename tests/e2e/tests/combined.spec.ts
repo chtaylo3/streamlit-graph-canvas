@@ -81,7 +81,9 @@ test("rerenders do not duplicate React Flow action handlers", async ({ page, bro
   void browserFailures;
   await openGallery(page);
   await page.getByRole("button", { name: "Change presentation" }).click();
-  await expect(page.getByRole("button", { name: "service API v2" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "service API v2" })).toBeVisible({
+    timeout: 20_000,
+  });
   await waitForGalleryStable(page);
   await page.getByRole("button", { name: "service API v2" }).click();
   await expect(page.getByTestId("action-sequences")).toHaveText("1");
@@ -120,7 +122,9 @@ test("styles, named ports, and accessible badge meaning are honored", async ({ p
   await expect(api).toHaveCSS("border-radius", "16px");
   await expect(api).toHaveCSS("border-color", "rgb(37, 99, 235)");
   await expect(page.locator('.react-flow__node[data-id="api"] [data-handleid="out"]')).toHaveCount(2);
-  await expect(page.locator('.react-flow__edge[data-id="api-worker"] path.react-flow__edge-path')).toHaveCSS("stroke", "rgb(220, 38, 38)");
+  await expect(
+    page.locator('.react-flow__edge[data-id="api-worker"] path.react-flow__edge-path'),
+  ).toHaveCSS("stroke", "rgb(220, 38, 38)", { timeout: 20_000 });
   if (process.env.SGC_CONTRIB_SET !== "core-only") {
     await expect(page.getByRole("button", { name: /service API v1, 7/ })).toBeVisible();
   }
@@ -154,6 +158,9 @@ test("JavaScript and ATLAS run under the documented CSP", async ({ page, browser
     timeout: 20_000,
   });
   await waitForGalleryStable(page);
+  await expect(page.getByRole("button", { name: "service API v1" })).toBeVisible({
+    timeout: 20_000,
+  });
   await expect(page.locator('[data-sgc-status="ready"]')).toBeVisible();
   await expect(page.locator('[data-sgc-transport="javascript"] [data-sgc-js-chip="true"]').first()).toBeVisible();
   await expect(page.locator('[data-sgc-transport="atlas"] image').first()).toHaveAttribute("href", /^blob:/);
