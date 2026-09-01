@@ -244,7 +244,7 @@ jobs:
         run: |
           title="Automated forward-compatibility failure"
           body="A scheduled forward-compatibility lane failed: ${RUN_URL}"
-          number="$(gh issue list --state open --search \"${title} in:title\" --json number --jq '.[0].number // empty')"
+          number="$(gh issue list --state open --search "${title} in:title" --json number --jq '.[0].number // empty')"
           if [ -n "${number}" ]; then
             gh issue comment "${number}" --body "${body}"
           else

@@ -49,7 +49,7 @@ def test_repository_discovers_stock_and_five_fixture_bootstraps() -> None:
     assets = discover_renderer_javascript_assets(ROOT)
     assert len(assets) == 6
     assert any(
-        "streamlit_graph_canvas_contrib/frontend" in str(path) for path in assets
+        "streamlit_graph_canvas_contrib/frontend" in path.as_posix() for path in assets
     )
     assert sum("tests/e2e/fixtures" in path.as_posix() for path in assets) == 5
 

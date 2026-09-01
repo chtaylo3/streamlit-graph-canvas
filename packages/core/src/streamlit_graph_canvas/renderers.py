@@ -117,7 +117,7 @@ def _manifest_path(dist: importlib.metadata.Distribution) -> Path:
     matches = [
         Path(str(dist.locate_file(file)))
         for file in dist.files or ()
-        if PurePosixPath(str(file)).name == "renderer.toml"
+        if PurePosixPath(str(file).replace("\\", "/")).name == "renderer.toml"
     ]
     # PEP 660 editable installs only record their .pth file. Resolve their local
     # source tree from standardized metadata without importing plugin code.
@@ -686,7 +686,7 @@ def _distribution_module_origin(
     )
     recorded: dict[Path, Path] = {}
     for item in dist.files or ():
-        path = Path(str(item))
+        path = Path(*PurePosixPath(str(item).replace("\\", "/")).parts)
         try:
             located = Path(str(dist.locate_file(item))).resolve()
         except (OSError, RuntimeError, ValueError):

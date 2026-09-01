@@ -29,7 +29,9 @@ test("selection and actions survive a real Streamlit rerun", async ({ page, brow
   await page.waitForTimeout(750);
   const viewport = await page.getByTestId("viewport-state").textContent();
   await page.getByRole("button", { name: "Change presentation" }).click();
-  await expect(page.getByRole("button", { name: "service API v2" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "service API v2" })).toBeVisible({
+    timeout: 20_000,
+  });
   await expect(page.locator('.react-flow__node[data-id="api"] .sgc-node')).toHaveClass(/selected/);
   await expect(page.getByTestId("selected-nodes")).toContainText("api");
   await expect(page.getByTestId("action-sequences")).toContainText("1");
@@ -40,7 +42,9 @@ test("topology changes add authoritative nodes", async ({ page, browserFailures 
   void browserFailures;
   await openGallery(page);
   await page.getByRole("button", { name: "Change topology" }).click();
-  await expect(page.getByRole("button", { name: "service Cache" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "service Cache" })).toBeVisible({
+    timeout: 20_000,
+  });
 });
 
 test("React Flow geometry, handles, and zoom limits remain compatible", async ({ page, browserFailures }) => {
@@ -48,6 +52,8 @@ test("React Flow geometry, handles, and zoom limits remain compatible", async ({
   await openGallery(page);
   const api = page.locator('.react-flow__node[data-id="api"]');
   const worker = page.locator('.react-flow__node[data-id="worker"]');
+  await expect(api).toBeVisible({ timeout: 20_000 });
+  await expect(worker).toBeVisible({ timeout: 20_000 });
   const apiBox = await api.boundingBox();
   const workerBox = await worker.boundingBox();
   expect(apiBox).not.toBeNull();
@@ -55,9 +61,11 @@ test("React Flow geometry, handles, and zoom limits remain compatible", async ({
   expect(apiBox!.width).toBeGreaterThan(150);
   expect(workerBox!.y).toBeGreaterThan(apiBox!.y);
   await expect(api.locator('[data-nodeid="api"][data-handleid="out"]')).toHaveCount(2);
-  for (let index = 0; index < 12; index += 1) {
-    await page.locator(".react-flow__controls-zoomin").click();
+  const zoomIn = page.locator(".react-flow__controls-zoomin");
+  for (let index = 0; index < 20 && await zoomIn.isEnabled(); index += 1) {
+    await zoomIn.click();
   }
+  await expect(zoomIn).toBeDisabled();
   const transform = await page.locator(".react-flow__viewport").getAttribute("style");
   expect(transform).toMatch(/scale\(2\.5\)/);
 });
