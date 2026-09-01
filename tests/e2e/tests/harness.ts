@@ -2,6 +2,22 @@ import { test as base, expect, type Page } from "@playwright/test";
 
 type FailureLog = { browserFailures: string[] };
 
+const CSP_PROBE_URL = new URL("https://example.invalid/sgc-csp-probe");
+
+function containsExactUrl(message: string, expected: URL): boolean {
+  const urlPattern = /(?:^|[\s("'=])((?:https?):\/\/[^\s"'<>]+)/gu;
+  for (const match of message.matchAll(urlPattern)) {
+    const rawUrl = match[1]?.replace(/[),.;\]}]+$/u, "");
+    if (!rawUrl) continue;
+    try {
+      if (new URL(rawUrl).href === expected.href) return true;
+    } catch {
+      // Ignore malformed URL-like text in browser diagnostics.
+    }
+  }
+  return false;
+}
+
 export const test = base.extend<FailureLog>({
   browserFailures: [
     async ({ page }, use, testInfo) => {
@@ -42,7 +58,7 @@ function installFailureSentinel(page: Page, failures: string[]) {
     const expectedFrameBlock = process.env.SGC_CSP_PROXY === "true"
       && message.text().includes("frame-ancestors");
     const expectedCspProbe = process.env.SGC_CSP_PROXY === "true"
-      && message.text().includes("https://example.invalid/sgc-csp-probe");
+      && containsExactUrl(message.text(), CSP_PROBE_URL);
     if (
       message.type() === "error"
       && !expectedCleanup

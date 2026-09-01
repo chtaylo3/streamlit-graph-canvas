@@ -152,7 +152,7 @@ test("JavaScript and ATLAS run under the documented CSP", async ({ page, browser
   });
   const response = await page.goto("/");
   expect(response?.headers()["content-security-policy"]).toContain(
-    "connect-src 'self' ws://127.0.0.1:8514",
+    "connect-src 'self' wss://127.0.0.1:8514",
   );
   await expect(page.getByRole("heading", { name: "Graph Canvas Conformance" })).toBeVisible({
     timeout: 20_000,
@@ -292,15 +292,15 @@ test("CSP frame-ancestors allows self and blocks a different origin @csp-framing
   await page.evaluate(() => {
     const frame = document.createElement("iframe");
     frame.id = "same";
-    frame.src = "http://127.0.0.1:8514/";
+    frame.src = "/";
     document.body.append(frame);
   });
   await expect(page.frameLocator("#same").getByRole("heading", { name: "Graph Canvas Conformance" })).toBeVisible({ timeout: 20_000 });
-  await page.goto("http://localhost:8514/__csp_frame_host");
+  await page.goto("https://localhost:8514/__csp_frame_host");
   await page.evaluate(() => {
     const frame = document.createElement("iframe");
     frame.id = "blocked";
-    frame.src = "http://127.0.0.1:8514/";
+    frame.src = "https://127.0.0.1:8514/";
     document.body.append(frame);
   });
   await expect(page.frameLocator("#blocked").getByRole("heading", { name: "Graph Canvas Conformance" })).toHaveCount(0);

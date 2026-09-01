@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import subprocess
 import sys
 import time
@@ -16,7 +17,7 @@ from websockets.asyncio.client import connect
 
 UPSTREAM_HTTP = "http://127.0.0.1:8513"
 UPSTREAM_WS = "ws://127.0.0.1:8513"
-PROXY_ORIGIN = "http://127.0.0.1:8514"
+PROXY_ORIGIN = "https://127.0.0.1:8514"
 CSP = streamlit_host_csp(
     (Transport.PRIMS, Transport.JAVASCRIPT, Transport.ATLAS),
     app_origin=PROXY_ORIGIN,
@@ -147,6 +148,10 @@ async def app(scope, receive, send) -> None:
 def main() -> None:
     root = Path(__file__).parents[2]
     runner = root / "tests/e2e/run_streamlit.py"
+    certificate = os.environ.get("SGC_CSP_CERTIFICATE")
+    private_key = os.environ.get("SGC_CSP_PRIVATE_KEY")
+    if not certificate or not private_key:
+        raise RuntimeError("Playwright did not provide the ephemeral TLS certificate")
     streamlit = subprocess.Popen([sys.executable, str(runner)])
     try:
         for attempt in range(120):
@@ -168,6 +173,8 @@ def main() -> None:
             port=8514,
             log_level="info",
             access_log=False,
+            ssl_certfile=certificate,
+            ssl_keyfile=private_key,
         )
     finally:
         streamlit.terminate()
