@@ -3,6 +3,7 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -44,6 +45,18 @@ jobs:
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           python-version: ${{ matrix.python-version }}
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        name: Validate GitHub Actions workflows
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/actionlint_1.7.12_linux_amd64.tar.gz"
+          curl --fail --location --silent --show-error \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
+            --output "$archive"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $archive" \
+            | sha256sum --check --strict
+          tar --extract --gzip --file "$archive" --directory "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" .github/workflows/*.yml
       - run: uv sync --locked
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
         run: uv run python -m ci.sync_versions --check
@@ -238,7 +251,6 @@ jobs:
       CI: "true"
       SGC_CONTRIB_SET: ${{ matrix.contrib-set }}
       SGC_CSP_PROXY: ${{ matrix.contrib-set == 'transports' }}
-      SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-conformance/bin/python
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -271,6 +283,8 @@ jobs:
         working-directory: tests/e2e
       - run: npm test
         working-directory: tests/e2e
+        env:
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-conformance/bin/python
       - if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
@@ -305,7 +319,6 @@ jobs:
     env:
       CI: "true"
       SGC_CONTRIB_SET: transports
-      SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-browser-${{ matrix.lane }}/bin/python
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -339,6 +352,8 @@ jobs:
         working-directory: tests/e2e
       - run: npm test
         working-directory: tests/e2e
+        env:
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-browser-${{ matrix.lane }}/bin/python
       - if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:

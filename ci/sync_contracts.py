@@ -85,7 +85,7 @@ def synchronize(root: Path = ROOT, *, write: bool) -> list[str]:
     stale: list[str] = []
     for target, content in zip(targets, expected, strict=True):
         if not target.is_file() or target.read_text(encoding="utf-8") != content:
-            stale.append(str(target.relative_to(root)))
+            stale.append(target.relative_to(root).as_posix())
             if write:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(content, encoding="utf-8")

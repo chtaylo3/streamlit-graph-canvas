@@ -266,7 +266,10 @@ def test_module_ownership_requires_exact_distribution_file(tmp_path: Path) -> No
 def test_module_ownership_accepts_a_record_owned_native_extension(
     tmp_path: Path,
 ) -> None:
-    extension_root = Path(sysconfig.get_config_var("DESTSHARED"))
+    destination = sysconfig.get_config_var("DESTSHARED")
+    if destination is None:
+        pytest.skip("platform does not expose a shared-extension directory")
+    extension_root = Path(destination)
     origin = next(
         path
         for suffix in importlib.machinery.EXTENSION_SUFFIXES

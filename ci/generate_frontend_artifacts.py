@@ -23,10 +23,10 @@ def artifact_differences(
     expected_names = set(expected)
     actual_names = set(actual)
     return {
-        "missing": sorted(str(path) for path in expected_names - actual_names),
-        "obsolete": sorted(str(path) for path in actual_names - expected_names),
+        "missing": sorted(path.as_posix() for path in expected_names - actual_names),
+        "obsolete": sorted(path.as_posix() for path in actual_names - expected_names),
         "changed": sorted(
-            str(path)
+            path.as_posix()
             for path in expected_names & actual_names
             if expected[path] != actual[path]
         ),

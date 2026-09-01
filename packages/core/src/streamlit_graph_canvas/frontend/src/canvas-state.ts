@@ -16,6 +16,14 @@ export type BrowserCanvasState = ServerCanvasState & {
 
 const browserState = new Map<string, BrowserCanvasState>();
 
+export function sameViewport(left: Viewport | null, right: Viewport): boolean {
+  if (left === null) return false;
+  const epsilon = 1e-6;
+  return Math.abs(left.x - right.x) < epsilon
+    && Math.abs(left.y - right.y) < epsilon
+    && Math.abs(left.zoom - right.zoom) < epsilon;
+}
+
 export function loadCanvasState(
   key: string,
   server: ServerCanvasState,

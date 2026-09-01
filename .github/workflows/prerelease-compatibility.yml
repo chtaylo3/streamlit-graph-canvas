@@ -92,7 +92,6 @@ jobs:
       CI: "true"
       SGC_BROWSER_CHANNEL: chrome-beta
       SGC_CONTRIB_SET: transports
-      SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-chrome-beta/bin/python
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -126,6 +125,8 @@ jobs:
         working-directory: tests/e2e
       - run: npm test
         working-directory: tests/e2e
+        env:
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-chrome-beta/bin/python
       - if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
@@ -159,7 +160,6 @@ jobs:
       CI: "true"
       SGC_CONTRIB_SET: transports
       SGC_EXPECT_PILLOW_FAILURE: ${{ matrix.scenario == 'pillow' }}
-      SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-forward-browser/bin/python
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -198,9 +198,13 @@ jobs:
       - if: matrix.scenario != 'pillow'
         run: npm test
         working-directory: tests/e2e
+        env:
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-forward-browser/bin/python
       - if: matrix.scenario == 'pillow'
         run: npx playwright test --grep "@pillow-forward"
         working-directory: tests/e2e
+        env:
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-forward-browser/bin/python
       - if: always()
         run: >-
           echo "### Forward Chromium: ${{ matrix.scenario }} — ${{ job.status }}"
@@ -240,7 +244,7 @@ jobs:
         run: |
           title="Automated forward-compatibility failure"
           body="A scheduled forward-compatibility lane failed: ${RUN_URL}"
-          number="$(gh issue list --state open --search \"${title} in:title\" --json number --jq '.[0].number // empty')"
+          number="$(gh issue list --state open --search "${title} in:title" --json number --jq '.[0].number // empty')"
           if [ -n "${number}" ]; then
             gh issue comment "${number}" --body "${body}"
           else

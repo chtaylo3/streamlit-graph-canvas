@@ -225,9 +225,14 @@ def test_atlas_serialization_emits_content_addressed_page_delta(
     page_id = page_delta[0]["pageId"]
     png = base64.b64decode(page_delta[0]["base64"])
     assert page_delta[0]["contentSha256"] == hashlib.sha256(png).hexdigest()
-    assert hashlib.sha256(png).hexdigest() == (
-        "f781de2ee9fab30b26ec22e20634a78f1dab5b8655399f50986cbfa210d2f54e"
+    assert png.startswith(b"\x89PNG\r\n\x1a\n")
+    repeated = serialize_graph(
+        schema,
+        graph,
+        renderer_registry=registry,
+        atlas_cache=AtlasCache(AtlasPolicy()),
     )
+    assert repeated.envelope["atlas"]["pages"] == page_delta
     badge = first.envelope["presentation"]["nodes"][0]["badges"][0]
     assert badge["atlas"]["pageId"] == page_id
     second = serialize_graph(

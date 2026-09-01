@@ -5,11 +5,11 @@ renderer_api = ">=1,<2"
 
 [[renderers]]
 kind = "streamlit-graph-canvas/fixture/javascript-adversarial"
-javascript = "frontend/renderer-bootstrap.e5487d2b30a2c6cf20e160977706a35c0ed6e795f1ee4e79297edf8519733f3e.js"
+javascript = "frontend/renderer-bootstrap.fb02a22286388569deb67f9bbb5dad9bca62a09a06a2e55b1d568676de14f5b4.js"
 javascript_component = "scg-javascript-adversarial-renderer-fixture.renderer_bootstrap"
-javascript_entry = "renderer-bootstrap.e5487d2b30a2c6cf20e160977706a35c0ed6e795f1ee4e79297edf8519733f3e.js"
-javascript_identity = "b80a462fe72be522ca0abeea3dc1660cdd5cdcf5dc16b235f6718ea4e42ec658"
+javascript_entry = "renderer-bootstrap.fb02a22286388569deb67f9bbb5dad9bca62a09a06a2e55b1d568676de14f5b4.js"
+javascript_identity = "670d6a76183562de264d01c88a8e7838fb291b9946bff97b89f0383c0c228399"
 transports = ["javascript"]
 
 [assets]
-"frontend/renderer-bootstrap.e5487d2b30a2c6cf20e160977706a35c0ed6e795f1ee4e79297edf8519733f3e.js" = "e5487d2b30a2c6cf20e160977706a35c0ed6e795f1ee4e79297edf8519733f3e"
+"frontend/renderer-bootstrap.fb02a22286388569deb67f9bbb5dad9bca62a09a06a2e55b1d568676de14f5b4.js" = "fb02a22286388569deb67f9bbb5dad9bca62a09a06a2e55b1d568676de14f5b4"
