@@ -1,0 +1,11 @@
+manifest_schema = 1
+distribution = "scg-cross-import-renderer-fixture"
+version = "0.1.0"
+renderer_api = ">=1,<2"
+
+[[renderers]]
+kind = "streamlit-graph-canvas/fixture/cross-import"
+python = "scg_shared_namespace.owned:renderer"
+transports = ["prims"]
+
+[assets]

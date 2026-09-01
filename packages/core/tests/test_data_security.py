@@ -1,3 +1,4 @@
+import json
 import math
 
 import pytest
@@ -13,6 +14,10 @@ from streamlit_graph_canvas import (
     ValidationError,
     serialize_graph,
     validate,
+)
+from streamlit_graph_canvas.contract import (
+    MAX_COLLECTION_ITEMS,
+    MAX_DATA_STRING_CHARS,
 )
 
 SCHEMA = GraphSchema(
@@ -47,6 +52,59 @@ def test_serialized_graph_data_size_is_bounded() -> None:
     with pytest.raises(ValidationError) as error:
         validate(SCHEMA, graph, max_data_bytes=50)
     assert error.value.diagnostic.code == "SGC_DATA_SIZE"
+
+
+def test_graph_budget_matches_compact_json_bytes_exactly() -> None:
+    graph = GraphData(nodes=(Node("a", "item", "é", data={"value": "雪"}),), edges=())
+    measured = {
+        "nodes": [
+            {
+                "id": "a",
+                "type": "item",
+                "label": "é",
+                "data": {"value": "雪"},
+                "badges": {},
+            }
+        ],
+        "edges": [],
+    }
+    exact = len(json.dumps(measured, allow_nan=False, separators=(",", ":")).encode())
+    validate(SCHEMA, graph, max_data_bytes=exact)
+    with pytest.raises(ValidationError) as error:
+        validate(SCHEMA, graph, max_data_bytes=exact - 1)
+    assert error.value.diagnostic.code == "SGC_DATA_SIZE"
+
+
+def test_graph_strings_and_collection_breadth_fail_during_budget_walk() -> None:
+    graph = GraphData(
+        nodes=(
+            Node(
+                "a",
+                "item",
+                "A",
+                data={"value": "x" * (MAX_DATA_STRING_CHARS + 1)},
+            ),
+        ),
+        edges=(),
+    )
+    with pytest.raises(ValidationError) as error:
+        validate(SCHEMA, graph)
+    assert error.value.diagnostic.code == "SGC_DATA_STRING_LIMIT"
+
+    broad = GraphData(
+        nodes=(
+            Node(
+                "a",
+                "item",
+                "A",
+                data={"value": [None] * (MAX_COLLECTION_ITEMS + 1)},
+            ),
+        ),
+        edges=(),
+    )
+    with pytest.raises(ValidationError) as error:
+        validate(SCHEMA, broad)
+    assert error.value.diagnostic.code == "SGC_DATA_COLLECTION_LIMIT"
 
 
 @pytest.mark.parametrize("value", [math.nan, math.inf, -math.inf])

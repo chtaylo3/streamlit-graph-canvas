@@ -6,7 +6,9 @@ the core package, renderer ecosystem, atlas transport, and conformance tests.
 The proposal targets Streamlit Components v2 and replaces the
 dependency-specific contract in the GitHub Dependency Explorer.
 
-Status: Proposed
+Status: Proposed long-term architecture. See
+[`beta-contract.md`](beta-contract.md) for the authoritative implementation
+status and deliberately deferred beta scope.
 
 ## Contents
 
@@ -77,12 +79,13 @@ This design makes the following changes to the original proposal:
   edges, and named ports.
 - Removes containment semantics from the canvas schema. Applications own
   relationship meaning and graph windowing.
-- Includes PRIMS, JavaScript, and ATLAS in the first public beta.
+- Includes PRIMS, explicitly enabled trusted JavaScript, and bounded ATLAS in
+  the public beta transport matrix.
 - Loads third-party renderers only from explicitly enabled, installed Python
   wheels with static manifests.
 - Uses Components v2 bootstrap components to register JavaScript renderers in
   a namespaced page-local registry.
-- Replaces public atlas URLs and append-only caches with binary page deltas,
+- Replaces public atlas URLs and append-only caches with bounded page deltas,
   session-scoped bounded caches, and browser Blob URLs.
 - Separates persistent selection and viewport state from ordered action
   triggers.
@@ -162,10 +165,10 @@ The first public release uses the following minimums and test boundaries:
 | --- | --- |
 | Python | 3.12 or later within the tested release matrix |
 | Streamlit | 1.62.0 or later within the tested release matrix |
-| Frontend development | Node.js 24 or later |
-| Streamlit runtime | Windows 11 and Linux x86-64 |
-| End-user operating system | Windows 11 |
-| Browsers | Latest two stable Microsoft Edge and Google Chrome releases |
+| Frontend development | Node.js 24.x |
+| Streamlit server runtime | Windows and Linux x86-64 in the tested matrix |
+| End-user runtime | Standards-capable browser; operating system is not the compatibility boundary |
+| Browsers | Pinned Chromium for beta; Edge/Chrome release claims begin when both join CI |
 | Firefox | Best effort until it joins the automated matrix |
 | ARM64 | Deferred |
 
@@ -461,22 +464,25 @@ is a consent boundary, not a sandbox.
 ATLAS rasterizes the output of a prim-emitting Python renderer. A renderer that
 cannot emit primitives cannot use ATLAS.
 
-The provisional rasterizer is `resvg_py`, isolated behind an internal
-`SvgRasterizer` interface and installed through the `atlas` extra. The beta
-matrix validates its license, wheel availability, output, and failure behavior
-on Windows and Linux x86-64. Its API does not appear in the public contract.
+The beta rasterizer uses Pillow behind an internal function and is installed
+through the `atlas` extra. The matrix validates its supported minimum and latest
+versions, license, wheel availability, output, and failure behavior on Windows
+and Linux. A forward lane detects the next Pillow major. The runtime guard and
+mandatory cache identity are checked against the dependency policy; this API
+does not appear in the public contract.
 
 The atlas pipeline performs the following work:
 
-1. Compute a content key from the canonical kind, renderer version, static
-   options, badge data, resolved palette, theme, dimensions, font resources,
-   and resolution bucket.
+1. Compute a content key from the rasterizer revision, normalized Pillow
+   version, canonical kind, renderer version, static options, badge data,
+   resolved palette, theme, dimensions, font resources, and resolution bucket.
 2. Reuse existing content-addressed tiles from the session cache.
 3. Render missing keys to primitives and serialize them to the supported static
    SVG subset.
-4. Rasterize and pack missing tiles into lossless PNG pages with alpha support.
-5. Send new or changed pages as binary Components v2 data and send mappings as
-   versioned JSON-compatible metadata.
+4. Rasterize missing tiles into lossless one-tile PNG pages with alpha support;
+   multi-tile packing remains a compatible performance optimization.
+5. Send new pages as bounded base64 page deltas and mappings as versioned
+   JSON-compatible metadata.
 6. Create browser-session Blob URLs and revoke each URL when its page leaves
    the browser cache.
 
@@ -617,9 +623,9 @@ The frontend commits viewport state when a pan or zoom interaction ends, not on
 every animation frame. This debounce preserves the final viewport without
 causing a Streamlit rerun during each pointer movement.
 
-Components v2 triggers carry ordered actions that must not coalesce, including
-enabled click, double-click, context-menu, expand, collapse, and badge
-activation actions.
+The beta Components v2 trigger carries ordered node-click actions that must not
+coalesce. Double-click, context-menu, expand, collapse, badge activation, and
+handler routing are deferred to a later protocol version.
 
 ### Handler routing determines emitted actions
 
@@ -641,16 +647,14 @@ Every action uses a common envelope:
 
 ```typescript
 type CanvasAction = {
-  protocolVersion: number
+  protocolVersion: 1
   seq: number
   operationId: string
-  gesture: "click" | "dblclick" | "contextmenu" | "expand" | "collapse" | "badge"
+  gesture: "click"
   nodeId: string
   nodeType: string
   topologyRevision: number
-  target:
-    | { kind: "node" }
-    | { kind: "badge"; binding: string; part: string | null }
+  target: { kind: "node" }
   modifiers: { shift: boolean; meta: boolean; alt: boolean }
 }
 ```
@@ -770,8 +774,9 @@ and [Datadog Python log collection guidance](https://docs.datadoghq.com/logs/log
 both of which accept Python standard-library log records through host-configured
 handlers.
 
-Structured values use `LogRecord.extra` keys with the `sgc_` prefix. Stable
-fields cover:
+Structured values use `LogRecord.extra` keys with the `sgc_` prefix. The beta
+uses a minimal internal subset; the following complete field set remains a
+proposal rather than a stable beta API:
 
 - `sgc_event_code`, `sgc_operation`, and `sgc_status`.
 - `sgc_renderer_kind` and `sgc_transport`.
@@ -789,8 +794,8 @@ Default logs exclude labels, badge values, image content, graph payloads, and
 complete node IDs. Explicit debug mode may include node and binding IDs and
 must warn that these identifiers can contain sensitive application data.
 
-`canvas.explain()` reports renderer resolution, handler routing, transport
-selection, and validation decisions without reporting graph payload values.
+`canvas.explain()` remains deferred until renderer routing and the broader
+action model are implemented.
 
 ## Security and privacy considerations
 
@@ -909,6 +914,8 @@ Acceptance criteria:
 
 ### Milestone 5: complete JavaScript renderer support
 
+Status: **Built and covered by the clean-wheel `transports` Chromium set.**
+
 Implement bootstrap lifecycle, page-local registration, scoped shadow-root
 rendering, capability checks, conflict handling, and a separately packaged
 JavaScript fixture renderer.
@@ -923,9 +930,13 @@ Acceptance criteria:
 
 ### Milestone 6: complete ATLAS
 
-Implement the rasterizer abstraction, provisional `resvg_py` adapter,
-deterministic fonts, static SVG serialization, binary page deltas, Blob URLs,
-bounded caches, theme variants, resolution buckets, and eviction.
+Status: **Built for the beta primitive vocabulary.** The internal beta
+rasterizer is Pillow rather than the provisional `resvg_py`; pages currently
+contain one content-addressed tile, which preserves delta, eviction, and cache
+semantics while leaving multi-tile packing as a performance optimization.
+
+Implement deterministic Pillow rasterization, page deltas, Blob URLs, bounded
+session and tenant caches, theme variants, resolution buckets, and eviction.
 
 Acceptance criteria:
 
@@ -950,9 +961,14 @@ Acceptance criteria:
 - Rollback requires only restoring the explorer's prior dependency and canvas
   integration.
 
-## Test strategy
+## Long-term test strategy
 
-The repository includes:
+The following is the target test plan, not a claim that every item is present
+in the current beta. See [Conformance testing](conformance-testing.md) for the
+gates implemented today and [the beta contract](beta-contract.md) for feature
+status.
+
+The long-term plan includes:
 
 - Python unit tests for models, adapters, validation, serialization, revisions,
   renderer discovery, event deduplication, cache bounds, and diagnostics.
@@ -1068,7 +1084,7 @@ and part-level hit geometry. Applications choose it per binding.
 ### Keep public atlas URLs or generated static assets
 
 Rejected. Public asset locations risk cross-session disclosure and unbounded
-storage. Binary Components v2 deltas, session caches, and Blob URLs keep
+storage. Bounded page deltas, session caches, and Blob URLs keep
 generated data scoped to the application session by default.
 
 ### Accept raw SVG renderers
@@ -1159,9 +1175,5 @@ silent downgrade.
 
 - `TODO(pypi-reservation)`: Reserve or confirm ownership of the two standardized
   PyPI distribution names before publication.
-- `TODO(stock-font)`: Select the exact open-licensed sans-serif font that core
-  and contrib package for deterministic ATLAS rendering and record its license.
 - `TODO(beta-dataset)`: Freeze the representative Dependency Explorer dataset
   and benchmark procedure before beta performance validation.
-- `TODO(atlas-validation)`: Confirm the provisional `resvg_py` version range and
-  golden-image tolerance on the Windows and Linux release matrix.

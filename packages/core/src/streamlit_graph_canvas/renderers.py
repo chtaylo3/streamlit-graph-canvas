@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import importlib.machinery
 import importlib.metadata
 import json
+import logging
 import re
+import threading
 import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -18,11 +21,12 @@ from urllib.parse import unquote, urlparse
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
 
+from .contract import RENDERER_API
 from .errors import Diagnostic, ValidationError
 from .primitives import BadgeContext, Prim
 
-RENDERER_API = 1
 ENTRY_POINT_GROUP = "streamlit_graph_canvas.renderers"
+LOGGER = logging.getLogger("streamlit_graph_canvas")
 _KIND_PATTERN = re.compile(
     r"^[a-z0-9][a-z0-9._-]*/[a-z0-9][a-z0-9._-]*/[a-z0-9][a-z0-9._-]*$"
 )
@@ -31,6 +35,11 @@ _PYTHON_REFERENCE_PATTERN = re.compile(
     r":[A-Za-z_][A-Za-z0-9_]*$"
 )
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+_JAVASCRIPT_IDENTITY_PATTERN = re.compile(rb'const buildIdentity = "([0-9a-f]{64})";')
+_ManifestCacheKey = tuple[str, str, str, str]
+_AssetSignature = tuple[tuple[str, str], ...]
+_MANIFEST_CACHE: dict[_ManifestCacheKey, tuple[RendererManifest, _AssetSignature]] = {}
+_MANIFEST_CACHE_LOCK = threading.RLock()
 
 
 class BadgeRenderer(Protocol):
@@ -48,6 +57,9 @@ class RendererKind:
     python: str | None
     javascript: str | None
     transports: frozenset[str]
+    javascript_component: str | None = None
+    javascript_entry: str | None = None
+    javascript_identity: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +79,7 @@ class EnabledRenderer:
     implementation: BadgeRenderer | None
     distribution: str
     version: str
+    javascript_hash: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,7 +128,19 @@ def _manifest_path(dist: importlib.metadata.Distribution) -> Path:
             editable = metadata.get("dir_info", {}).get("editable") is True
             root = Path(unquote(parsed.path))
             if parsed.scheme == "file" and editable and root.is_dir():
-                matches = list(root.glob("src/*/renderer.toml"))
+                candidates = [
+                    *root.glob("*/renderer.toml"),
+                    *root.glob("src/*/renderer.toml"),
+                ]
+                for entry_point in getattr(dist, "entry_points", ()):
+                    if entry_point.group != ENTRY_POINT_GROUP:
+                        continue
+                    module = entry_point.value.partition(":")[0]
+                    relative = Path(*module.split(".")).with_name("renderer.toml")
+                    candidates.extend((root / relative, root / "src" / relative))
+                matches = sorted(
+                    {item.resolve() for item in candidates if item.is_file()}
+                )
         except (KeyError, TypeError, ValueError, json.JSONDecodeError):
             matches = []
     if len(matches) != 1:
@@ -142,6 +167,66 @@ def _safe_asset_path(value: str, subject: str) -> PurePosixPath:
             subject,
         )
     return path
+
+
+def _validate_javascript_component(
+    package_root: Path,
+    distribution: str,
+    declaration: RendererKind,
+) -> None:
+    if (
+        declaration.javascript is None
+        or declaration.javascript_component is None
+        or declaration.javascript_entry is None
+    ):
+        return
+    component_manifest = package_root / "pyproject.toml"
+    try:
+        raw = tomllib.loads(component_manifest.read_text(encoding="utf-8"))
+        project_name = raw["project"]["name"]
+        components = raw["tool"]["streamlit"]["component"]["components"]
+    except (KeyError, OSError, TypeError, tomllib.TOMLDecodeError) as error:
+        _fail(
+            "SGC_RENDERER_COMPONENT_MANIFEST",
+            f"JavaScript renderer component manifest is invalid: {error}.",
+            "Package a valid pyproject.toml beside renderer.toml.",
+            declaration.kind,
+        )
+    if _normalize(project_name) != _normalize(distribution):
+        _fail(
+            "SGC_RENDERER_COMPONENT_OWNERSHIP",
+            "JavaScript component project does not match its renderer distribution.",
+            "Use a component declared by the explicitly enabled distribution.",
+            declaration.kind,
+        )
+    matches = [
+        item
+        for item in components
+        if f"{project_name}.{item.get('name')}" == declaration.javascript_component
+    ]
+    if len(matches) != 1:
+        _fail(
+            "SGC_RENDERER_COMPONENT_MANIFEST",
+            "JavaScript component key is not declared exactly once.",
+            "Declare the manifest component in the packaged pyproject.toml.",
+            declaration.kind,
+        )
+    asset_root = package_root / _safe_asset_path(
+        matches[0].get("asset_dir", ""), declaration.kind
+    )
+    component_asset = asset_root.joinpath(
+        *_safe_asset_path(declaration.javascript_entry, declaration.kind).parts
+    ).resolve()
+    declared_asset = package_root.joinpath(
+        *_safe_asset_path(declaration.javascript, declaration.kind).parts
+    ).resolve()
+    if component_asset != declared_asset or not component_asset.is_file():
+        _fail(
+            "SGC_RENDERER_COMPONENT_ASSET",
+            "JavaScript component entry does not resolve to the hashed renderer asset.",
+            "Align javascript, javascript_entry, and the component asset directory.",
+            declaration.kind,
+        )
 
 
 def parse_renderer_manifest(
@@ -273,7 +358,16 @@ def parse_renderer_manifest(
                 distribution,
             )
         item_unknown = sorted(
-            item.keys() - {"kind", "python", "javascript", "transports"}
+            item.keys()
+            - {
+                "kind",
+                "python",
+                "javascript",
+                "javascript_component",
+                "javascript_entry",
+                "javascript_identity",
+                "transports",
+            }
         )
         if item_unknown:
             _fail(
@@ -320,6 +414,9 @@ def parse_renderer_manifest(
             )
         python = item.get("python")
         javascript = item.get("javascript")
+        javascript_component = item.get("javascript_component")
+        javascript_entry = item.get("javascript_entry")
+        javascript_identity = item.get("javascript_identity")
         if python is not None and (
             not isinstance(python, str)
             or not _PYTHON_REFERENCE_PATTERN.fullmatch(python)
@@ -337,21 +434,60 @@ def parse_renderer_manifest(
                 "Use a reviewed asset path from the manifest.",
                 kind,
             )
-        if "prims" in transports and python is None:
+        if any(
+            value is not None and (not isinstance(value, str) or not value)
+            for value in (
+                javascript_component,
+                javascript_entry,
+                javascript_identity,
+            )
+        ):
+            _fail(
+                "SGC_RENDERER_REFERENCE",
+                "JavaScript component and entry references must be non-empty strings.",
+                "Declare the installed component key and its asset-dir-relative entry.",
+                kind,
+            )
+        if ({"prims", "atlas"} & transports) and python is None:
             _fail(
                 "SGC_RENDERER_IMPLEMENTATION",
-                "PRIMS renderers require a Python implementation.",
+                "PRIMS and ATLAS renderers require a Python implementation.",
                 "Declare a package module and attribute in the python field.",
                 kind,
             )
-        if "javascript" in transports and javascript is None:
+        if "javascript" in transports and (
+            javascript is None
+            or javascript_component is None
+            or javascript_entry is None
+            or javascript_identity is None
+        ):
             _fail(
                 "SGC_RENDERER_IMPLEMENTATION",
                 "JavaScript renderers require a packaged implementation asset.",
-                "Declare its package-relative path in the javascript field.",
+                "Declare javascript, javascript_component, javascript_entry, and "
+                "javascript_identity.",
                 kind,
             )
-        declarations.append(RendererKind(kind, python, javascript, transports))
+        if javascript_identity is not None and not _SHA256_PATTERN.fullmatch(
+            javascript_identity
+        ):
+            _fail(
+                "SGC_RENDERER_IDENTITY",
+                "JavaScript renderer identity must be a lowercase SHA256 digest.",
+                "Regenerate renderer assets and their immutable identity.",
+                kind,
+            )
+        declarations.append(
+            RendererKind(
+                kind,
+                python,
+                javascript,
+                transports,
+                javascript_component,
+                javascript_entry,
+                javascript_identity,
+            )
+        )
     assets = raw.get("assets", {})
     if not isinstance(assets, dict):
         _fail(
@@ -411,6 +547,28 @@ def parse_renderer_manifest(
                     "Declare the implementation and its SHA256 in assets.",
                     declaration.kind,
                 )
+            asset_hash = verified_assets[javascript_path]
+            asset = package_root / javascript_path
+            if not asset.name.endswith(f".{asset_hash}.js"):
+                _fail(
+                    "SGC_RENDERER_CONTENT_ADDRESS",
+                    "JavaScript renderer filename does not contain its "
+                    "final-byte SHA256.",
+                    "Regenerate the content-addressed renderer asset.",
+                    declaration.kind,
+                )
+            identities = _JAVASCRIPT_IDENTITY_PATTERN.findall(asset.read_bytes())
+            expected_identity = declaration.javascript_identity
+            if expected_identity is None or identities != [expected_identity.encode()]:
+                _fail(
+                    "SGC_RENDERER_IDENTITY",
+                    "JavaScript renderer embedded identity differs from its manifest.",
+                    "Regenerate the immutable renderer build identity.",
+                    declaration.kind,
+                )
+            if declaration.javascript_entry is not None:
+                _safe_asset_path(declaration.javascript_entry, declaration.kind)
+            _validate_javascript_component(package_root, distribution, declaration)
     return RendererManifest(
         distribution,
         version,
@@ -422,20 +580,137 @@ def parse_renderer_manifest(
     )
 
 
+def _cached_renderer_manifest(
+    dist: importlib.metadata.Distribution,
+) -> RendererManifest:
+    with _MANIFEST_CACHE_LOCK:
+        path = _manifest_path(dist)
+        manifest_digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        key = (
+            _normalize(dist.metadata["Name"]),
+            dist.version,
+            str(path.resolve()),
+            manifest_digest,
+        )
+        cached = _MANIFEST_CACHE.get(key)
+        manifest: RendererManifest | None = None
+        if cached is not None:
+            manifest, expected_assets = cached
+            try:
+                current_assets = tuple(
+                    (
+                        asset,
+                        hashlib.sha256(
+                            (manifest.path.parent / asset).read_bytes()
+                        ).hexdigest(),
+                    )
+                    for asset in sorted(manifest.assets)
+                )
+            except OSError:
+                current_assets = ()
+            if current_assets != expected_assets:
+                del _MANIFEST_CACHE[key]
+                manifest = None
+        if manifest is None:
+            for stale in tuple(_MANIFEST_CACHE):
+                if stale[0] == key[0] and stale[2] == key[2]:
+                    del _MANIFEST_CACHE[stale]
+            try:
+                manifest = parse_renderer_manifest(dist)
+            except ValidationError as error:
+                LOGGER.warning(
+                    "Renderer manifest validation failed",
+                    extra={
+                        "sgc_event_code": error.diagnostic.code,
+                        "sgc_renderer_distribution": dist.metadata["Name"],
+                    },
+                )
+                raise
+            asset_signature = tuple(sorted(manifest.assets.items()))
+            _MANIFEST_CACHE[key] = (manifest, asset_signature)
+        return manifest
+
+
 def discover_renderer_manifests() -> tuple[RendererManifest, ...]:
     """Discover installed renderer metadata without loading entry-point values."""
 
+    distributions = _renderer_distributions()
+    return tuple(
+        _cached_renderer_manifest(distributions[name]) for name in sorted(distributions)
+    )
+
+
+def _renderer_distributions() -> dict[str, importlib.metadata.Distribution]:
     distributions: dict[str, importlib.metadata.Distribution] = {}
     for entry_point in importlib.metadata.entry_points(group=ENTRY_POINT_GROUP):
         dist = entry_point.dist
         if dist is not None:
             distributions[_normalize(dist.metadata["Name"])] = dist
-    return tuple(
-        parse_renderer_manifest(distributions[name]) for name in sorted(distributions)
+    return distributions
+
+
+def discover_renderer_diagnostics() -> tuple[Diagnostic, ...]:
+    """Return non-fatal diagnostics for malformed installed renderer packages."""
+
+    diagnostics: list[Diagnostic] = []
+    for _, dist in sorted(_renderer_distributions().items()):
+        try:
+            _cached_renderer_manifest(dist)
+        except ValidationError as error:
+            diagnostics.append(error.diagnostic)
+    return tuple(diagnostics)
+
+
+def _editable_project_root(
+    dist: importlib.metadata.Distribution,
+) -> Path | None:
+    try:
+        direct = json.loads(dist.read_text("direct_url.json") or "{}")
+        if not direct.get("dir_info", {}).get("editable"):
+            return None
+        parsed = urlparse(direct["url"])
+        return Path(unquote(parsed.path)).resolve()
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+        return None
+
+
+def _distribution_module_origin(
+    dist: importlib.metadata.Distribution, module_name: str
+) -> Path | None:
+    """Resolve a concrete leaf module from files owned by the selected distribution."""
+
+    relative = Path(*module_name.split("."))
+    suffixes = (".py", *importlib.machinery.EXTENSION_SUFFIXES)
+    candidates = tuple(relative.with_suffix(suffix) for suffix in suffixes) + tuple(
+        relative / f"__init__{suffix}" for suffix in suffixes
     )
+    recorded: dict[Path, Path] = {}
+    for item in dist.files or ():
+        path = Path(str(item))
+        try:
+            located = Path(str(dist.locate_file(item))).resolve()
+        except (OSError, RuntimeError, ValueError):
+            continue
+        recorded[path] = located
+    for candidate in candidates:
+        for recorded_path, located in recorded.items():
+            if recorded_path == candidate and located.is_file():
+                return located
+    editable = _editable_project_root(dist)
+    if editable is not None:
+        for root in (editable / "src", editable):
+            for candidate in candidates:
+                origin = (root / candidate).resolve()
+                if origin.is_relative_to(root.resolve()) and origin.is_file():
+                    return origin
+    return None
 
 
-def _load_implementation(reference: str, expected_kind: str) -> BadgeRenderer:
+def _load_implementation(
+    reference: str,
+    expected_kind: str,
+    dist: importlib.metadata.Distribution,
+) -> BadgeRenderer:
     if ":" not in reference:
         _fail(
             "SGC_RENDERER_REFERENCE",
@@ -444,7 +719,26 @@ def _load_implementation(reference: str, expected_kind: str) -> BadgeRenderer:
             expected_kind,
         )
     module_name, attribute = reference.split(":", 1)
-    implementation = getattr(importlib.import_module(module_name), attribute)
+    expected_origin = _distribution_module_origin(dist, module_name)
+    if expected_origin is None:
+        _fail(
+            "SGC_RENDERER_MODULE_OWNERSHIP",
+            f"Renderer implementation module {module_name!r} is not owned by "
+            f"distribution {dist.metadata['Name']!r}.",
+            "Reference a module packaged by the explicitly enabled distribution.",
+            expected_kind,
+        )
+    module = importlib.import_module(module_name)
+    actual_origin = getattr(getattr(module, "__spec__", None), "origin", None)
+    if actual_origin is None or Path(actual_origin).resolve() != expected_origin:
+        _fail(
+            "SGC_RENDERER_MODULE_OWNERSHIP",
+            f"Imported renderer module {module_name!r} did not resolve to its "
+            "distribution-owned file.",
+            "Remove namespace or import-path shadowing before enablement.",
+            expected_kind,
+        )
+    implementation = getattr(module, attribute)
     renderer = implementation() if isinstance(implementation, type) else implementation
     if (
         getattr(renderer, "kind", None) != expected_kind
@@ -463,10 +757,7 @@ def enable_renderers(distributions: Sequence[str]) -> RendererRegistry:
     """Validate and explicitly load only the named installed renderer packages."""
 
     requested = {_normalize(name) for name in distributions}
-    available = {
-        _normalize(manifest.distribution): manifest
-        for manifest in discover_renderer_manifests()
-    }
+    available = _renderer_distributions()
     missing = sorted(requested - available.keys())
     if missing:
         _fail(
@@ -474,9 +765,13 @@ def enable_renderers(distributions: Sequence[str]) -> RendererRegistry:
             f"Renderer distributions are not installed: {missing}.",
             "Install the wheels before explicitly enabling them.",
         )
-    selected: dict[str, tuple[RendererKind, RendererManifest]] = {}
+    selected: dict[
+        str,
+        tuple[RendererKind, RendererManifest, importlib.metadata.Distribution],
+    ] = {}
     for name in sorted(requested):
-        manifest = available[name]
+        dist = available[name]
+        manifest = _cached_renderer_manifest(dist)
         for declaration in manifest.kinds:
             if declaration.kind in selected:
                 _fail(
@@ -485,16 +780,22 @@ def enable_renderers(distributions: Sequence[str]) -> RendererRegistry:
                     "Enable only one provider for a canonical renderer kind.",
                     declaration.kind,
                 )
-            selected[declaration.kind] = (declaration, manifest)
+            selected[declaration.kind] = (declaration, manifest, dist)
     enabled: dict[str, EnabledRenderer] = {}
     for kind in sorted(selected):
-        declaration, manifest = selected[kind]
+        declaration, manifest, dist = selected[kind]
         implementation = (
-            _load_implementation(declaration.python, declaration.kind)
+            _load_implementation(declaration.python, declaration.kind, dist)
             if declaration.python
             else None
         )
         enabled[declaration.kind] = EnabledRenderer(
-            declaration, implementation, manifest.distribution, manifest.version
+            declaration,
+            implementation,
+            manifest.distribution,
+            manifest.version,
+            manifest.assets.get(declaration.javascript)
+            if declaration.javascript is not None
+            else None,
         )
     return RendererRegistry(MappingProxyType(enabled))

@@ -1,0 +1,185 @@
+[toolchains]
+python_min = "3.12"
+python_locked = ["3.12", "3.13", "3.14"]
+python_forward = "3.15"
+node_locked = "24"
+node_supported = ">=24 <25"
+node_forward = "26"
+browser = "chromium"
+
+[python.streamlit]
+minimum = "1.62.0"
+supported = ">=1.62.0"
+forward = "streamlit>=1.62.0"
+risk = "critical"
+reason = "Component v2 host protocol and rerun lifecycle"
+support_url = "https://docs.streamlit.io/develop/concepts/custom-components/components-v2"
+
+[python.packaging]
+minimum = "26.0"
+supported = ">=26.0"
+risk = "high"
+reason = "Runtime validation of renderer and rasterizer version ranges"
+support_url = "https://packaging.pypa.io/"
+
+[python.Pillow]
+minimum = "12.3.0"
+supported = ">=12.3.0,<13"
+forward = "Pillow>=13.0.0a0"
+rasterizer_revision = 1
+risk = "critical"
+reason = "ATLAS raster output and image-decoder security"
+support_url = "https://pillow.readthedocs.io/en/latest/releasenotes/index.html"
+
+[python.networkx]
+minimum = "3.6.1"
+supported = ">=3.6.1"
+forward = "networkx>=3.6.1"
+risk = "medium"
+reason = "Optional graph adapter input behavior"
+support_url = "https://networkx.org/documentation/stable/release/index.html"
+
+[internal.core_contrib]
+supported = ">=0.1.0.dev0,<0.2"
+risk = "critical"
+reason = "Pre-1.0 renderer API and manifest compatibility boundary"
+
+[python_tooling.uv_build]
+supported = ">=0.12.6,<0.13"
+locked = "0.12.6"
+risk = "high"
+
+[python_tooling.hypothesis]
+supported = ">=6.0.0"
+risk = "medium"
+
+[python_tooling.mypy]
+supported = ">=2.3.1"
+risk = "medium"
+
+[python_tooling.pip-audit]
+supported = ">=2.9.0"
+risk = "high"
+
+[python_tooling.pytest]
+supported = ">=9.0.0"
+risk = "medium"
+
+[python_tooling.pytest-cov]
+supported = ">=7.0.0"
+risk = "low"
+
+[python_tooling.pyyaml]
+supported = ">=6.0.3"
+risk = "high"
+
+[python_tooling.ruff]
+supported = ">=0.14.0"
+risk = "medium"
+
+[python_tooling.types-pyyaml]
+supported = ">=6.0.12.20250915"
+risk = "low"
+
+[npm.runtime."@streamlit/component-v2-lib"]
+minimum = "0.2.0"
+supported = "^0.2.0"
+forward = "next"
+risk = "critical"
+coupling = "streamlit"
+
+[npm.runtime."@xyflow/react"]
+minimum = "12.11.3"
+supported = "^12.11.3"
+forward = "next"
+risk = "critical"
+coupling = "react,react-dom"
+
+[npm.runtime.elkjs]
+minimum = "0.12.0"
+supported = "^0.12.0"
+forward = "next"
+risk = "critical"
+coupling = "@xyflow/react"
+
+[npm.runtime.react]
+minimum = "19.2.0"
+supported = "^19.2.0"
+forward = "canary"
+risk = "critical"
+coupling = "react-dom,@xyflow/react"
+
+[npm.runtime."react-dom"]
+minimum = "19.2.0"
+supported = "^19.2.0"
+forward = "canary"
+risk = "critical"
+coupling = "react,@xyflow/react"
+
+[npm.build."@vitejs/plugin-react"]
+minimum = "6.1.0"
+supported = "^6.1.0"
+risk = "high"
+
+[npm.build."@types/react"]
+minimum = "19.2.0"
+supported = "^19.2.0"
+risk = "high"
+coupling = "react,react-dom,@types/react-dom,@xyflow/react"
+
+[npm.build."@types/react-dom"]
+minimum = "19.2.0"
+supported = "^19.2.0"
+risk = "high"
+coupling = "react,react-dom,@types/react,@xyflow/react"
+
+[npm.build.typescript]
+minimum = "7.0.2"
+supported = "^7.0.2"
+risk = "high"
+
+[npm.build.vite]
+minimum = "8.2.0"
+supported = "^8.2.0"
+risk = "high"
+
+[npm.build.vitest]
+minimum = "4.1.0"
+supported = "^4.1.0"
+risk = "medium"
+
+[npm.test."@playwright/test"]
+minimum = "1.52.0"
+supported = "^1.52.0"
+risk = "high"
+
+[npm.test."@axe-core/playwright"]
+minimum = "4.13.0"
+supported = "^4.13.0"
+risk = "medium"
+
+[npm.test."@types/node"]
+minimum = "24.0.0"
+supported = "^24.0.0"
+risk = "low"
+
+[npm.test.typescript]
+minimum = "7.0.2"
+supported = "^7.0.2"
+risk = "medium"
+
+[ci]
+blocking_lanes = ["locked", "release-artifact", "minimum", "latest", "security"]
+advisory_lanes = ["forward", "browser-beta"]
+playwright_projects = ["chromium"]
+required_contrib_sets = [
+  "core-only",
+  "stock",
+  "transports",
+  "hostile",
+  "javascript-stale",
+  "javascript-conflict",
+  "javascript-adversarial",
+  "multi-canvas",
+]
+release_required_workflows = ["ci.yml", "codeql.yml"]

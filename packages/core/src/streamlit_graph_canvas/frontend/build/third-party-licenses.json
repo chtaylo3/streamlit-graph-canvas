@@ -1,0 +1,153 @@
+{
+  "packages": [
+    {
+      "declared_license": "MIT",
+      "license_file": "LICENSE",
+      "license_sha256": "afdbdf326065131fd5b3dc06457b77a241bba5c6714c856c0e978d254469b045",
+      "name": "@xyflow/react",
+      "selected_license": "MIT",
+      "version": "12.11.5"
+    },
+    {
+      "declared_license": "MIT",
+      "license_file": "LICENSE",
+      "license_sha256": "afdbdf326065131fd5b3dc06457b77a241bba5c6714c856c0e978d254469b045",
+      "name": "@xyflow/system",
+      "selected_license": "MIT",
+      "version": "0.0.81"
+    },
+    {
+      "declared_license": "MIT",
+      "license_file": "LICENSE.md",
+      "license_sha256": "3f0294834ce7f59f1da67bb873ba381e6b549dd289e86088d479ec5c1627f666",
+      "name": "classcat",
+      "selected_license": "MIT",
+      "version": "5.0.5"
+    },
+    {
+      "declared_license": "ISC",
+      "license_file": "LICENSE",
+      "license_sha256": "4f4f9997e3d96636b08171484bf3e2b5a8a46745e2b0dd4d4f86b0e5cfa632e8",
+      "name": "d3-color",
+      "selected_license": "ISC",
+      "version": "3.1.0"
+    },
+    {
+      "declared_license": "ISC",
+      "license_file": "LICENSE",
+      "license_sha256": "6019bf3451952141c4561a8a814c965b71166df316a8c7f3f435f090b3c329c1",
+      "name": "d3-dispatch",
+      "selected_license": "ISC",
+      "version": "3.0.1"
+    },
+    {
+      "declared_license": "ISC",
+      "license_file": "LICENSE",
+      "license_sha256": "6019bf3451952141c4561a8a814c965b71166df316a8c7f3f435f090b3c329c1",
+      "name": "d3-drag",
+      "selected_license": "ISC",
+      "version": "3.0.0"
+    },
+    {
+      "declared_license": "BSD-3-Clause",
+      "license_file": "LICENSE",
+      "license_sha256": "69af84a0cb486bc97d578ea76f0aea3ad628ad97147551d2a898902941bd6db6",
+      "name": "d3-ease",
+      "selected_license": "BSD-3-Clause",
+      "version": "3.0.1"
+    },
+    {
+      "declared_license": "ISC",
+      "license_file": "LICENSE",
+      "license_sha256": "6019bf3451952141c4561a8a814c965b71166df316a8c7f3f435f090b3c329c1",
+      "name": "d3-interpolate",
+      "selected_license": "ISC",
+      "version": "3.0.1"
+    },
+    {
+      "declared_license": "ISC",
+      "license_file": "LICENSE",
+      "license_sha256": "6019bf3451952141c4561a8a814c965b71166df316a8c7f3f435f090b3c329c1",
+      "name": "d3-selection",
+      "selected_license": "ISC",
+      "version": "3.0.0"
+    },
+    {
+      "declared_license": "ISC",
+      "license_file": "LICENSE",
+      "license_sha256": "6019bf3451952141c4561a8a814c965b71166df316a8c7f3f435f090b3c329c1",
+      "name": "d3-timer",
+      "selected_license": "ISC",
+      "version": "3.0.1"
+    },
+    {
+      "declared_license": "ISC",
+      "license_file": "LICENSE",
+      "license_sha256": "6019bf3451952141c4561a8a814c965b71166df316a8c7f3f435f090b3c329c1",
+      "name": "d3-transition",
+      "selected_license": "ISC",
+      "version": "3.0.1"
+    },
+    {
+      "declared_license": "ISC",
+      "license_file": "LICENSE",
+      "license_sha256": "6019bf3451952141c4561a8a814c965b71166df316a8c7f3f435f090b3c329c1",
+      "name": "d3-zoom",
+      "selected_license": "ISC",
+      "version": "3.0.0"
+    },
+    {
+      "declared_license": "EPL-2.0 OR GPL-3.0-or-later",
+      "license_file": "LICENSE.md",
+      "license_sha256": "0c6ad647e32f97588866d90290059bd358f6635b38e841a74438e2b714fe9f17",
+      "name": "elkjs",
+      "selected_license": "EPL-2.0",
+      "version": "0.12.0"
+    },
+    {
+      "declared_license": "MIT",
+      "license_file": "LICENSE",
+      "license_sha256": "cf9b17822d1fcd4ff32ccbe14183386fb3adf6f2ff92dc184130823f7fc28173",
+      "name": "react",
+      "selected_license": "MIT",
+      "version": "19.2.8"
+    },
+    {
+      "declared_license": "MIT",
+      "license_file": "LICENSE",
+      "license_sha256": "cf9b17822d1fcd4ff32ccbe14183386fb3adf6f2ff92dc184130823f7fc28173",
+      "name": "react-dom",
+      "selected_license": "MIT",
+      "version": "19.2.8"
+    },
+    {
+      "declared_license": "MIT",
+      "license_file": "LICENSE",
+      "license_sha256": "cf9b17822d1fcd4ff32ccbe14183386fb3adf6f2ff92dc184130823f7fc28173",
+      "name": "scheduler",
+      "selected_license": "MIT",
+      "version": "0.27.0"
+    },
+    {
+      "declared_license": "MIT",
+      "license_file": "LICENSE",
+      "license_sha256": "cf9b17822d1fcd4ff32ccbe14183386fb3adf6f2ff92dc184130823f7fc28173",
+      "name": "use-sync-external-store",
+      "selected_license": "MIT",
+      "version": "1.6.0"
+    },
+    {
+      "declared_license": "MIT",
+      "license_file": "LICENSE",
+      "license_sha256": "384a8fa756d4ca7e5df8639719e5ee7e279b2b27d2ccecbbe4222733050d4423",
+      "name": "zustand",
+      "selected_license": "MIT",
+      "version": "4.5.7"
+    }
+  ],
+  "schema": 1,
+  "source": [
+    "build/bundled-packages.json",
+    "package-lock.json"
+  ]
+}

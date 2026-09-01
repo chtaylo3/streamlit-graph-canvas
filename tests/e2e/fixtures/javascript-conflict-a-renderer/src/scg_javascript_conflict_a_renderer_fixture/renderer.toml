@@ -1,0 +1,15 @@
+manifest_schema = 1
+distribution = "scg-javascript-conflict-a-renderer-fixture"
+version = "0.1.0"
+renderer_api = ">=1,<2"
+
+[[renderers]]
+kind = "streamlit-graph-canvas/fixture/javascript-conflict"
+javascript = "frontend/renderer-bootstrap.979cd774c17f5f03fa39960987e8d0004948297dbc95b5440867bea6b0336d45.js"
+javascript_component = "scg-javascript-conflict-a-renderer-fixture.renderer_bootstrap"
+javascript_entry = "renderer-bootstrap.979cd774c17f5f03fa39960987e8d0004948297dbc95b5440867bea6b0336d45.js"
+javascript_identity = "48be058ed2c7728d7b4612d4d2bdf3ea9a0359649ccac2dc6b72d465bb07efdf"
+transports = ["javascript"]
+
+[assets]
+"frontend/renderer-bootstrap.979cd774c17f5f03fa39960987e8d0004948297dbc95b5440867bea6b0336d45.js" = "979cd774c17f5f03fa39960987e8d0004948297dbc95b5440867bea6b0336d45"

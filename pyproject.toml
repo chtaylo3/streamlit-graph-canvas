@@ -26,12 +26,15 @@ dev = [
     "pip-audit>=2.9.0",
     "pytest>=9.0.0",
     "pytest-cov>=7.0.0",
+    "pyyaml>=6.0.3",
     "ruff>=0.14.0",
+    "types-pyyaml>=6.0.12.20250915",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "packages/core/tests", "packages/contrib/tests"]
-addopts = "--strict-markers"
+pythonpath = ["."]
+addopts = "--strict-config --strict-markers --ignore=tests/e2e/"
 
 [tool.ruff]
 line-length = 88

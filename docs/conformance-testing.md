@@ -12,11 +12,35 @@ The initial matrix contains:
 | Set | Installed project packages | Purpose |
 | --- | --- | --- |
 | `core-only` | core | Detect accidental contrib coupling |
-| `stock` | core and stock contrib | Exercise public composition and PRIMS |
+| `stock` | core and stock contrib | Exercise PRIMS, JavaScript, ATLAS, tenant limits, and CSP |
+| `transports` | core, stock contrib, and JavaScript-only fixture | Prove a wheel can provide browser code without a Python renderer implementation |
+| `hostile` | core, stock contrib, and deliberately malformed/cross-import fixtures | Prove unrequested failures and module-ownership violations are isolated |
+| `javascript-stale` | core and an installed stale-identity JavaScript renderer | Prove immutable identity mismatch prevents readiness and renderer execution |
+| `javascript-conflict` | core and two installed packages claiming one JavaScript kind | Prove conflicts fail before rendering in either package order |
+| `javascript-adversarial` | core and a trusted-code contract-abuse fixture | Detect listener leaks and out-of-scope mutation; isolate factory, render, and cleanup failures |
+| `multi-canvas` | core and stock contrib rendered in two component instances | Prove one canvas cannot revoke another canvas's ATLAS Blob URLs |
 
 Every renderer distribution in `packages/` must occur in a set. Sets should be
 chosen to cover meaningful renderer combinations without creating an
 unbounded all-subsets matrix.
+
+The projects immediately below `tests/e2e/fixtures/` intentionally remain
+outside the uv workspace. CI discovers them from their project metadata, builds
+them as independent wheels, and installs selected combinations so conformance
+exercises the same third-party packaging boundary users encounter. Adding an
+immediate-child fixture automatically enrolls it in version-range
+synchronization and the full `wheels`-job fixture build, but its author must
+also assign it to at least one set in `ci/contrib-sets.toml`. Release and
+compatibility workflows deliberately continue to build only the positive-path
+fixture required by their narrower scenario.
+
+The required compatibility jobs also build fresh minimum and latest-supported
+Python/frontend stacks, package those generated browser bundles, and run the
+`transports` set in Chromium. Scheduled advisory jobs probe Python-next,
+dependency prereleases, React/React Flow next, ELK next, Component v2 next,
+Node-next, and Chrome Beta. See
+[`dependency-lifecycle.md`](dependency-lifecycle.md) for the support and
+promotion policy.
 
 ## Browser failure policy
 
@@ -28,6 +52,13 @@ one worker in CI. The suite fails on:
 - any browser request to a non-local host;
 - missing component readiness markers or expected renderer output;
 - selection/rerun and topology-update regressions;
+- serious or critical automated accessibility violations;
+- CSP violations, missing JavaScript registration, external code fetches, or
+missing/revoked ATLAS Blob pages;
+- stale/conflicting installed JavaScript identities, trusted-renderer listener
+  leaks or out-of-scope DOM mutation, and non-isolated renderer exceptions;
+- cross-canvas ATLAS Blob revocation and unsupported-Pillow raster output;
+- malformed unrequested contrib or cross-distribution import isolation failures;
 - empty or implausibly sized canvas screenshots;
 - fatal traceback, app-execution, or component-error signatures in the
   Streamlit server log;
@@ -46,19 +77,35 @@ Build wheels and prepare a selected environment:
 mkdir -p wheelhouse
 uv build --package streamlit-graph-canvas --out-dir wheelhouse
 uv build --package streamlit-graph-canvas-contrib --out-dir wheelhouse
-uv run python ci/verify_wheels.py wheelhouse
-uv run python ci/build_conformance_environment.py \
+uv run python -m ci.verify_wheels wheelhouse
+uv run python -m ci.build_conformance_environment \
   --set stock --wheelhouse wheelhouse --venv .conformance-venv
 ```
+
+Exercise declared direct dependency bounds without changing project metadata:
+
+```bash
+uv run python ci/run_compatibility.py python \
+  --lane minimum --python 3.12 --venv .compat-min \
+  --output compatibility-minimum.json
+uv run python ci/run_compatibility.py frontend \
+  --lane latest --output compatibility-frontend-latest.json \
+  --output-tree /tmp/sgc-core-latest
+```
+
+The frontend command builds in a temporary workspace and never changes the
+committed output directory. `--output-tree` optionally materializes a complete
+core package containing that selected dependency build for wheel and Chromium
+conformance testing.
 
 Then install and run Playwright:
 
 ```bash
-cd conformance
+cd tests/e2e
 npm ci
 npx playwright install --with-deps chromium
 SGC_CONTRIB_SET=stock \
-SGC_CONFORMANCE_PYTHON=../.conformance-venv/bin/python \
+SGC_CONFORMANCE_PYTHON=../../.conformance-venv/bin/python \
 npm test
 ```
 

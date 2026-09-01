@@ -12,3 +12,13 @@ browser output; it does not sandbox Python.
 
 Reports should include the affected commit or wheel version, reproduction,
 impact, and whether untrusted graph data alone can trigger the behavior.
+
+Every push and pull request is scanned for committed credentials across Git
+history. If a credential is found, revoke and rotate it before removing it from
+the repository; rewriting the current file does not invalidate a leaked secret.
+Security reports and scheduled compatibility reports must not include graph
+payloads, tenant identifiers, environment dumps, tokens, or private URLs.
+
+Hosted activation requirements for private reporting, protected release
+environments, and trusted publishing are listed in
+`docs/release-activation.md`.

@@ -1,0 +1,7 @@
+[project]
+name = "streamlit-graph-canvas-contrib"
+version = "0.1.0.dev0"
+
+[[tool.streamlit.component.components]]
+name = "renderer_bootstrap"
+asset_dir = "frontend"

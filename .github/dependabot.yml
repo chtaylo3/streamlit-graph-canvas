@@ -1,0 +1,57 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      actions-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: uv
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      python-development-minor-patch:
+        dependency-type: development
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: npm
+    directory: "/packages/core/src/streamlit_graph_canvas/frontend"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 15
+    groups:
+      react-family-minor-patch:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+        update-types: ["minor", "patch"]
+      react-flow-minor-patch:
+        patterns: ["@xyflow/react", "@xyflow/system"]
+        update-types: ["minor", "patch"]
+      elk-minor-patch:
+        patterns: ["elkjs"]
+        update-types: ["minor", "patch"]
+      streamlit-component-minor-patch:
+        patterns: ["@streamlit/component-v2-lib"]
+        update-types: ["minor", "patch"]
+      frontend-build-minor-patch:
+        patterns: ["vite", "@vitejs/plugin-react", "vitest", "typescript"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: npm
+    directory: "/tests/e2e"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      playwright-minor-patch:
+        patterns: ["@playwright/test"]
+        update-types: ["minor", "patch"]
+      conformance-tools-minor-patch:
+        patterns: ["@axe-core/playwright", "@types/node", "typescript"]
+        update-types: ["minor", "patch"]

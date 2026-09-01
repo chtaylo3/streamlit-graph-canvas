@@ -6,6 +6,32 @@ export type LayoutEdge = { id: string; source: string; target: string };
 const elk = new ELK();
 
 export async function layoutGraph(nodes: LayoutNode[], edges: LayoutEdge[]) {
+  const ids = new Set<string>();
+  for (const node of nodes) {
+    if (
+      !node.id ||
+      ids.has(node.id) ||
+      !Number.isFinite(node.width) ||
+      !Number.isFinite(node.height) ||
+      node.width <= 0 ||
+      node.height <= 0
+    ) {
+      throw new Error(`SGC_LAYOUT_NODE_INVALID: ${node.id || "<empty>"}`);
+    }
+    ids.add(node.id);
+  }
+  const edgeIds = new Set<string>();
+  for (const edge of edges) {
+    if (
+      !edge.id ||
+      edgeIds.has(edge.id) ||
+      !ids.has(edge.source) ||
+      !ids.has(edge.target)
+    ) {
+      throw new Error(`SGC_LAYOUT_EDGE_INVALID: ${edge.id || "<empty>"}`);
+    }
+    edgeIds.add(edge.id);
+  }
   const result = await elk.layout({
     id: "root",
     layoutOptions: {
@@ -29,4 +55,3 @@ export async function layoutGraph(nodes: LayoutNode[], edges: LayoutEdge[]) {
     ]) ?? [],
   );
 }
-

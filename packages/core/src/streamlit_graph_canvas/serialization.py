@@ -2,18 +2,27 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 from dataclasses import asdict, dataclass
+from functools import partial
 from typing import Any
 
+from .atlas import (
+    AtlasCache,
+    AtlasPolicy,
+    atlas_content_key,
+    rasterize_primitives,
+    resolution_bucket,
+    tenant_subject,
+)
+from .contract import CODEC_VERSION, RENDERER_API
 from .errors import Diagnostic, ValidationError
-from .model import AnyNodeType, GraphData, GraphSchema, Transport
+from .model import BUILTIN_PALETTE, AnyNodeType, GraphData, GraphSchema, Transport
 from .primitives import BadgeContext, validate_primitives
 from .renderers import RendererRegistry
 from .validation import validate
-
-CODEC_VERSION = 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +47,12 @@ def serialize_graph(
     *,
     max_elements: int = 700,
     renderer_registry: RendererRegistry | None = None,
+    atlas_cache: AtlasCache | None = None,
+    atlas_policy: AtlasPolicy | None = None,
+    atlas_tenant: str = "session",
+    atlas_theme: str = "light",
+    atlas_resolution: float = 1.0,
+    atlas_known_pages: frozenset[str] = frozenset(),
 ) -> SerializedGraph:
     """Validate and serialize stable topology separately from presentation."""
 
@@ -79,7 +94,8 @@ def serialize_graph(
             for name, kind in sorted(schema.edge_types.items())
         },
         "palette": {
-            name: asdict(tone) for name, tone in sorted(schema.palette.items())
+            **BUILTIN_PALETTE,
+            **{name: asdict(tone) for name, tone in sorted(schema.palette.items())},
         },
     }
     topology = {
@@ -105,6 +121,60 @@ def serialize_graph(
         ],
     }
 
+    if atlas_theme not in {"light", "dark"}:
+        raise ValueError("atlas_theme must be 'light' or 'dark'")
+    if not atlas_tenant or len(atlas_tenant) > 128:
+        raise ValueError("atlas_tenant must be a non-empty string of at most 128 chars")
+    policy = atlas_policy or AtlasPolicy()
+    cache = atlas_cache or AtlasCache(policy)
+    bucket = resolution_bucket(atlas_resolution)
+    atlas_pages: dict[str, dict[str, Any]] = {}
+    removed_atlas_pages: set[str] = set()
+    referenced_atlas_pages: set[str] = set()
+    javascript_renderers: dict[str, dict[str, Any]] = {}
+    resolved_palette = {
+        name: (
+            tone["dark"] if atlas_theme == "dark" and tone["dark"] else tone["light"]
+        )
+        for name, tone in {
+            **BUILTIN_PALETTE,
+            **{name: asdict(tone) for name, tone in schema.palette.items()},
+        }.items()
+    }
+
+    def rendered_primitives(
+        node: Any, binding: Any, renderer: Any, context: BadgeContext
+    ) -> tuple[dict[str, Any], ...]:
+        if renderer.implementation is None:
+            raise ValidationError(
+                Diagnostic(
+                    "SGC_RENDERER_IMPLEMENTATION",
+                    "Enabled raster/vector renderer has no Python implementation.",
+                    "Correct the installed renderer manifest.",
+                    binding.kind,
+                )
+            )
+        try:
+            primitives = renderer.implementation.render(
+                node.badges[binding.name], binding.options, context
+            )
+            return validate_primitives(
+                primitives,
+                context,
+                subject=f"{node.id}.{binding.name}",
+            )
+        except ValidationError:
+            raise
+        except Exception as error:
+            raise ValidationError(
+                Diagnostic(
+                    "SGC_RENDERER_EXECUTION",
+                    f"Renderer failed with {type(error).__name__}: {error}.",
+                    "Disable or correct the explicitly enabled renderer.",
+                    binding.kind,
+                )
+            ) from error
+
     def badges_for(node: Any) -> list[dict[str, Any]]:
         result: list[dict[str, Any]] = []
         for binding in sorted(
@@ -124,58 +194,97 @@ def serialize_graph(
                 "z": binding.z,
             }
             if binding.transport is Transport.PRIMS:
-                if renderer.implementation is None:
-                    raise ValidationError(
-                        Diagnostic(
-                            "SGC_RENDERER_IMPLEMENTATION",
-                            "Enabled PRIMS renderer has no Python implementation.",
-                            "Correct the installed renderer manifest.",
-                            binding.kind,
-                        )
-                    )
                 context = BadgeContext(
                     binding.region.width,
                     binding.region.height,
-                    frozenset(schema.palette),
+                    frozenset(BUILTIN_PALETTE.keys() | schema.palette.keys()),
                 )
-                try:
-                    primitives = renderer.implementation.render(
-                        node.badges[binding.name], binding.options, context
-                    )
-                    badge["primitives"] = validate_primitives(
-                        primitives,
-                        context,
-                        subject=f"{node.id}.{binding.name}",
-                    )
-                except ValidationError:
-                    raise
-                except Exception as error:
+                badge["primitives"] = rendered_primitives(
+                    node, binding, renderer, context
+                )
+            elif binding.transport is Transport.JAVASCRIPT:
+                declaration = renderer.declaration
+                if (
+                    declaration.javascript_component is None
+                    or declaration.javascript_entry is None
+                    or renderer.javascript_hash is None
+                ):
                     raise ValidationError(
                         Diagnostic(
-                            "SGC_RENDERER_EXECUTION",
-                            f"Renderer failed with {type(error).__name__}: {error}.",
-                            "Disable or correct the explicitly enabled renderer.",
+                            "SGC_JAVASCRIPT_REGISTRATION",
+                            "JavaScript renderer registration metadata is incomplete.",
+                            "Rebuild the renderer wheel with component and entry "
+                            "metadata.",
                             binding.kind,
                         )
-                    ) from error
-            elif binding.transport is Transport.JAVASCRIPT:
-                raise ValidationError(
-                    Diagnostic(
-                        "SGC_JAVASCRIPT_NOT_IMPLEMENTED",
-                        "JavaScript transport is not available in this release.",
-                        "Use PRIMS until the trusted bootstrap milestone is complete.",
-                        binding.kind,
                     )
-                )
+                javascript_renderers[binding.kind] = {
+                    "kind": binding.kind,
+                    "component": declaration.javascript_component,
+                    "entry": declaration.javascript_entry,
+                    "version": renderer.version,
+                    "rendererApi": RENDERER_API,
+                    "assetHash": renderer.javascript_hash,
+                    "buildIdentity": declaration.javascript_identity,
+                }
+                badge["data"] = node.badges[binding.name]
+                badge["options"] = dict(binding.options)
             else:
-                raise ValidationError(
-                    Diagnostic(
-                        "SGC_ATLAS_NOT_IMPLEMENTED",
-                        "ATLAS transport is not available in this release.",
-                        "Use PRIMS until the ATLAS milestone is complete.",
-                        binding.kind,
-                    )
+                context = BadgeContext(
+                    binding.region.width,
+                    binding.region.height,
+                    frozenset(BUILTIN_PALETTE.keys() | schema.palette.keys()),
                 )
+                primitives = rendered_primitives(node, binding, renderer, context)
+                content_key = atlas_content_key(
+                    {
+                        "kind": binding.kind,
+                        "rendererVersion": renderer.version,
+                        "options": dict(binding.options),
+                        "data": node.badges[binding.name],
+                        "palette": resolved_palette,
+                        "theme": atlas_theme,
+                        "width": binding.region.width,
+                        "height": binding.region.height,
+                        "resolution": bucket,
+                        "primitives": primitives,
+                    },
+                    subject=f"{node.id}.{binding.name}",
+                )
+                lookup = cache.get_or_create(
+                    tenant=atlas_tenant,
+                    content_key=content_key,
+                    create=partial(
+                        rasterize_primitives,
+                        primitives,
+                        width=binding.region.width,
+                        height=binding.region.height,
+                        palette=resolved_palette,
+                        bucket=bucket,
+                        policy=policy,
+                        subject=f"{node.id}.{binding.name}",
+                    ),
+                )
+                removed_atlas_pages.update(lookup.evicted_page_ids)
+                page = lookup.page
+                referenced_atlas_pages.add(page.page_id)
+                if page.page_id not in atlas_known_pages:
+                    atlas_pages[page.page_id] = {
+                        "pageId": page.page_id,
+                        "contentSha256": hashlib.sha256(page.content).hexdigest(),
+                        "mediaType": page.media_type,
+                        "base64": base64.b64encode(page.content).decode("ascii"),
+                        "width": page.width,
+                        "height": page.height,
+                    }
+                badge["atlas"] = {
+                    "pageId": page.page_id,
+                    "x": 0,
+                    "y": 0,
+                    "width": page.width,
+                    "height": page.height,
+                    "resolution": bucket,
+                }
             result.append(badge)
         return result
 
@@ -201,6 +310,16 @@ def serialize_graph(
             for edge in graph.edges
         ],
     }
+    if evicted_active := referenced_atlas_pages & removed_atlas_pages:
+        raise ValidationError(
+            Diagnostic(
+                "SGC_ATLAS_WORKING_SET_LIMIT",
+                f"ATLAS cache limits evicted {len(evicted_active)} pages still "
+                "required by the current graph.",
+                "Increase the reviewed tenant limits or reduce ATLAS cardinality.",
+                tenant_subject(atlas_tenant),
+            )
+        )
     topology_hash = _hash({"schema": schema_data, "topology": topology})
     presentation_hash = _hash(presentation)
     return SerializedGraph(
@@ -209,6 +328,18 @@ def serialize_graph(
             "schema": schema_data,
             "topology": topology,
             "presentation": presentation,
+            "javascriptRenderers": list(javascript_renderers.values()),
+            "atlas": {
+                "pages": list(atlas_pages.values()),
+                "removedPageIds": sorted(removed_atlas_pages),
+                "policy": {
+                    "maxPages": policy.max_pages,
+                    "maxBytes": policy.max_bytes,
+                    "scope": policy.scope.value,
+                },
+                "theme": atlas_theme,
+                "resolution": bucket,
+            },
             "topologyHash": topology_hash,
             "presentationHash": presentation_hash,
         },

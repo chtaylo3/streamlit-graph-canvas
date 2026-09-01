@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "codecVersion": 2,
+  "actionProtocolVersion": 1,
+  "rendererApiVersion": 1,
+  "rendererRegistrySymbol": "streamlit-graph-canvas.renderers.v1",
+  "rendererRegistrationEvent": "sgc-renderer-registered-v1",
+  "limits": {
+    "maxActionBatch": 256,
+    "maxSelection": 700,
+    "maxIdentifierChars": 512,
+    "maxBrowserStateBytes": 262144,
+    "maxDataDepth": 20,
+    "maxDataStringChars": 65536,
+    "maxCollectionItems": 10000,
+    "maxDataValues": 100000,
+    "maxAtlasDimension": 4096,
+    "maxAtlasDecodedPixels": 262144,
+    "maxAtlasPageBytes": 2097152,
+    "maxPrimitiveCount": 200,
+    "maxPrimitiveTextChars": 1024
+  }
+}

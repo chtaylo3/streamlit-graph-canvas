@@ -1,0 +1,149 @@
+name: Publish release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/core/src/streamlit_graph_canvas/frontend/package-lock.json
+      - run: uv sync --locked
+      - run: uv run python -m ci.sync_versions --check
+      - run: uv run python ci/verify_dependency_policy.py
+      - run: uv run python ci/verify_release_tag.py "${GITHUB_REF_NAME}"
+      - run: >-
+          uv run python ci/verify_release_gate.py
+          --output release-gate.json
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - run: npm ci
+        working-directory: packages/core/src/streamlit_graph_canvas/frontend
+      - run: npm test
+        working-directory: packages/core/src/streamlit_graph_canvas/frontend
+      - run: uv run python ci/generate_frontend_artifacts.py --check
+      - run: uv run pytest
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy packages/core/src packages/contrib/src
+      - run: uv build --package streamlit-graph-canvas --out-dir direct-dist
+      - run: uv build --package streamlit-graph-canvas-contrib --out-dir direct-dist
+      - run: >-
+          uv run python -m pip download --only-binary=:all:
+          --dest build-wheelhouse uv_build==0.12.6
+      - run: >-
+          uv run python ci/verify_release_artifacts.py direct-dist dist
+          --build-wheelhouse build-wheelhouse
+          --build-requirement uv_build==0.12.6
+      - run: uv run python -m ci.verify_wheels dist
+      - run: uv build tests/e2e/fixtures/javascript-renderer --out-dir conformance-wheelhouse
+      - run: >-
+          uv export --locked --all-packages --all-extras --no-dev
+          --no-emit-workspace --no-hashes
+          --output-file locked-constraints.txt
+      - name: Add the exact publishable wheels to the conformance wheelhouse
+        run: cp dist/*.whl conformance-wheelhouse/
+      - run: >-
+          uv run python -m ci.build_conformance_environment
+          --set transports
+          --wheelhouse conformance-wheelhouse
+          --constraints locked-constraints.txt
+          --venv "${{ runner.temp }}/sgc-release-conformance"
+          --output release-conformance.json
+      - run: npm ci
+        working-directory: tests/e2e
+      - run: npm audit --audit-level=high
+        working-directory: tests/e2e
+      - run: npx playwright install --with-deps chromium
+        working-directory: tests/e2e
+      - run: npm test
+        working-directory: tests/e2e
+        env:
+          CI: "true"
+          SGC_CONTRIB_SET: transports
+          SGC_CSP_PROXY: "true"
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-release-conformance/bin/python
+      - run: >-
+          uv run python ci/stage_release_bundle.py dist release-bundle
+          --repository "${GITHUB_REPOSITORY}"
+          --run-id "${GITHUB_RUN_ID}"
+          --sha "${GITHUB_SHA}"
+          --tag "${GITHUB_REF_NAME}"
+          --evidence release-gate.json
+      - if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: release-evidence-${{ github.run_id }}-${{ github.sha }}-${{ github.ref_name }}
+          path: |
+            release-conformance.json
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
+            tests/e2e/artifacts/
+          if-no-files-found: warn
+          retention-days: 90
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: release-bundle-${{ github.run_id }}-${{ github.sha }}-${{ github.ref_name }}
+          path: release-bundle/
+          if-no-files-found: error
+          retention-days: 90
+
+  attest:
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: release-bundle-${{ github.run_id }}-${{ github.sha }}-${{ github.ref_name }}
+          path: release-bundle
+      - run: cd release-bundle && sha256sum --check SHA256SUMS
+      - uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: release-bundle/publish/*
+
+  publish:
+    needs: [build-and-verify, attest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/streamlit-graph-canvas/
+    permissions:
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: release-bundle-${{ github.run_id }}-${{ github.sha }}-${{ github.ref_name }}
+          path: release-bundle
+      - run: cd release-bundle && sha256sum --check SHA256SUMS
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14
+        with:
+          packages-dir: release-bundle/publish/

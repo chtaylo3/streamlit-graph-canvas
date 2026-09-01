@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from typing import Any, Literal
 
+from .contract import MAX_PRIMITIVE_COUNT, MAX_PRIMITIVE_TEXT_CHARS
 from .errors import Diagnostic, ValidationError
 
 
@@ -62,8 +63,13 @@ def _invalid(code: str, message: str, subject: str | None = None) -> None:
     )
 
 
-def _finite(*values: float) -> bool:
-    return all(math.isfinite(value) for value in values)
+def _finite(*values: object) -> bool:
+    return all(
+        not isinstance(value, bool)
+        and isinstance(value, (int, float))
+        and math.isfinite(value)
+        for value in values
+    )
 
 
 def validate_primitives(
@@ -71,14 +77,17 @@ def validate_primitives(
     context: BadgeContext,
     *,
     subject: str | None = None,
-    max_primitives: int = 200,
-    max_text_length: int = 1024,
+    max_primitives: int = MAX_PRIMITIVE_COUNT,
+    max_text_length: int = MAX_PRIMITIVE_TEXT_CHARS,
 ) -> tuple[dict[str, Any], ...]:
     """Validate renderer output and return its JSON-compatible representation."""
 
-    if len(primitives) > max_primitives:
+    primitive_limit = min(max_primitives, MAX_PRIMITIVE_COUNT)
+    text_limit = min(max_text_length, MAX_PRIMITIVE_TEXT_CHARS)
+    if len(primitives) > primitive_limit:
         message = (
-            f"Renderer emitted {len(primitives)} primitives; limit is {max_primitives}."
+            f"Renderer emitted {len(primitives)} primitives; limit is "
+            f"{primitive_limit}."
         )
         _invalid(
             "SGC_PRIMS_LIMIT",
@@ -88,13 +97,19 @@ def validate_primitives(
     encoded: list[dict[str, Any]] = []
     for index, primitive in enumerate(primitives):
         item_subject = f"{subject or 'renderer'}#{index}"
-        if not isinstance(primitive, (RectPrim, CirclePrim, TextPrim)):
+        if type(primitive) not in (RectPrim, CirclePrim, TextPrim):
             _invalid(
                 "SGC_PRIMS_TYPE",
                 f"Unsupported primitive type {type(primitive).__name__!r}.",
                 item_subject,
             )
         if isinstance(primitive, RectPrim):
+            if primitive.kind != "rect":
+                _invalid(
+                    "SGC_PRIMS_TYPE",
+                    "Rectangle primitive kind must be 'rect'.",
+                    item_subject,
+                )
             if (
                 not _finite(
                     primitive.x,
@@ -112,6 +127,12 @@ def validate_primitives(
                 )
             tone = primitive.fill
         elif isinstance(primitive, CirclePrim):
+            if primitive.kind != "circle":
+                _invalid(
+                    "SGC_PRIMS_TYPE",
+                    "Circle primitive kind must be 'circle'.",
+                    item_subject,
+                )
             if (
                 not _finite(primitive.cx, primitive.cy, primitive.radius)
                 or primitive.radius < 0
@@ -123,6 +144,16 @@ def validate_primitives(
                 )
             tone = primitive.fill
         else:
+            if primitive.kind != "text" or primitive.anchor not in {
+                "start",
+                "middle",
+                "end",
+            }:
+                _invalid(
+                    "SGC_PRIMS_TYPE",
+                    "Text primitive kind and anchor are invalid.",
+                    item_subject,
+                )
             if (
                 not _finite(primitive.x, primitive.y, primitive.size)
                 or primitive.size <= 0
@@ -132,13 +163,25 @@ def validate_primitives(
                     "Text geometry must be finite and its size must be positive.",
                     item_subject,
                 )
-            if len(primitive.text) > max_text_length:
+            if not isinstance(primitive.text, str):
+                _invalid(
+                    "SGC_PRIMS_TYPE",
+                    "Text primitive content must be a string.",
+                    item_subject,
+                )
+            if len(primitive.text) > text_limit:
                 _invalid(
                     "SGC_PRIMS_TEXT_LIMIT",
-                    f"Text exceeds the {max_text_length}-character limit.",
+                    f"Text exceeds the {text_limit}-character limit.",
                     item_subject,
                 )
             tone = primitive.fill
+        if not isinstance(tone, str):
+            _invalid(
+                "SGC_PRIMS_TYPE",
+                "Primitive fill must be a symbolic palette string.",
+                item_subject,
+            )
         if tone not in context.palette:
             _invalid(
                 "SGC_PRIMS_TONE",

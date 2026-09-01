@@ -1,0 +1,15 @@
+manifest_schema = 1
+distribution = "scg-javascript-adversarial-renderer-fixture"
+version = "0.1.0"
+renderer_api = ">=1,<2"
+
+[[renderers]]
+kind = "streamlit-graph-canvas/fixture/javascript-adversarial"
+javascript = "frontend/renderer-bootstrap.e5487d2b30a2c6cf20e160977706a35c0ed6e795f1ee4e79297edf8519733f3e.js"
+javascript_component = "scg-javascript-adversarial-renderer-fixture.renderer_bootstrap"
+javascript_entry = "renderer-bootstrap.e5487d2b30a2c6cf20e160977706a35c0ed6e795f1ee4e79297edf8519733f3e.js"
+javascript_identity = "b80a462fe72be522ca0abeea3dc1660cdd5cdcf5dc16b235f6718ea4e42ec658"
+transports = ["javascript"]
+
+[assets]
+"frontend/renderer-bootstrap.e5487d2b30a2c6cf20e160977706a35c0ed6e795f1ee4e79297edf8519733f3e.js" = "e5487d2b30a2c6cf20e160977706a35c0ed6e795f1ee4e79297edf8519733f3e"

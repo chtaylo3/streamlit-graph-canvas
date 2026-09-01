@@ -1,10 +1,11 @@
 """Stock renderers for Streamlit Graph Canvas."""
 
+from importlib.metadata import version as distribution_version
 from importlib.resources import files
 from pathlib import Path
 
 __all__ = ["renderer_manifest"]
-__version__ = "0.1.0.dev0"
+__version__ = distribution_version("streamlit-graph-canvas-contrib")
 
 
 def renderer_manifest() -> Path:

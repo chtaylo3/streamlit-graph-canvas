@@ -7,25 +7,59 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   UV_CACHE_DIR: ${{ github.workspace }}/.uv-cache
 
 jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   python:
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --locked
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run python -m ci.sync_versions --check
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run python ci/sync_contracts.py --check
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run python -m ci.sync_renderer_assets --check
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run python ci/verify_dependency_policy.py
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run python ci/generate_dependency_docs.py --check
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run python ci/verify_workflow_security.py
       - run: uv run pytest
       - run: uv run ruff check .
+      - run: uv run ruff format --check .
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
         run: uv run mypy packages/core/src packages/contrib/src
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
@@ -36,28 +70,115 @@ jobs:
           --cov-fail-under=85
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
         run: uv run pip-audit --cache-dir "${{ runner.temp }}/pip-audit"
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run python benchmarks/benchmark_serialization.py > serialization-benchmark.json
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: serialization-benchmark
+          path: serialization-benchmark.json
+          retention-days: 14
+
+  python-compatibility:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            lane: minimum
+            python-version: "3.12"
+          - os: windows-latest
+            lane: minimum
+            python-version: "3.12"
+          - os: ubuntu-latest
+            lane: latest
+            python-version: "3.12"
+          - os: windows-latest
+            lane: latest
+            python-version: "3.12"
+          - os: ubuntu-latest
+            lane: latest
+            python-version: "3.14"
+          - os: windows-latest
+            lane: latest
+            python-version: "3.14"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: >-
+          python ci/run_compatibility.py python
+          --lane "${{ matrix.lane }}"
+          --python "${{ matrix.python-version }}"
+          --venv "${{ runner.temp }}/sgc-${{ matrix.lane }}"
+          --output "compatibility-${{ matrix.lane }}-${{ matrix.python-version }}.json"
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: python-${{ matrix.os }}-${{ matrix.lane }}-${{ matrix.python-version }}
+          path: compatibility-*.json
+          retention-days: 14
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: packages/core/src/streamlit_graph_canvas/frontend
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: packages/core/src/streamlit_graph_canvas/frontend/package-lock.json
+      - run: python -m ci.check_renderer_javascript
+        working-directory: ${{ github.workspace }}
       - run: npm ci
       - run: npm test
-      - run: npm run build
       - run: npm audit --audit-level=high
+      - run: python ci/generate_frontend_artifacts.py --check
+        working-directory: ${{ github.workspace }}
+
+  frontend-compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [minimum, latest]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/core/src/streamlit_graph_canvas/frontend/package-lock.json
+      - run: >-
+          python3 ci/run_compatibility.py frontend
+          --lane "${{ matrix.lane }}"
+          --output "frontend-${{ matrix.lane }}.json"
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: frontend-${{ matrix.lane }}
+          path: frontend-${{ matrix.lane }}.json
+          retention-days: 14
 
   wheels:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           python-version: "3.12"
@@ -66,33 +187,62 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: packages/core/src/streamlit_graph_canvas/frontend/package-lock.json
-      - run: npm ci
-        working-directory: packages/core/src/streamlit_graph_canvas/frontend
-      - run: npm run build
-        working-directory: packages/core/src/streamlit_graph_canvas/frontend
-      - run: uv build --package streamlit-graph-canvas --out-dir wheelhouse
-      - run: uv build --package streamlit-graph-canvas-contrib --out-dir wheelhouse
-      - run: uv run python ci/verify_wheels.py wheelhouse
+      - run: uv run python ci/generate_frontend_artifacts.py --check
+      - run: uv build --package streamlit-graph-canvas --out-dir direct-dist
+      - run: uv build --package streamlit-graph-canvas-contrib --out-dir direct-dist
+      - run: >-
+          uv run python -m pip download --only-binary=:all:
+          --dest build-wheelhouse uv_build==0.12.6
+      - run: >-
+          uv run python ci/verify_release_artifacts.py direct-dist wheelhouse
+          --build-wheelhouse build-wheelhouse
+          --build-requirement uv_build==0.12.6
+      - run: uv run python -m ci.build_fixture_wheels --out-dir wheelhouse
+      - run: >-
+          uv export --locked --all-packages --all-extras --no-dev
+          --no-emit-workspace --no-hashes
+          --output-file wheelhouse/locked-constraints.txt
+      - run: uv run python -m ci.verify_wheels wheelhouse
+      - run: >-
+          uv run python -m ci.verify_wheel_typing wheelhouse
+          --constraints wheelhouse/locked-constraints.txt
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: conformance-wheelhouse
-          path: wheelhouse/*.whl
+          path: |
+            wheelhouse/*.whl
+            wheelhouse/*.tar.gz
+            wheelhouse/*.cdx.json
+            wheelhouse/SHA256SUMS
+            wheelhouse/locked-constraints.txt
           if-no-files-found: error
           retention-days: 7
 
   chromium-conformance:
     needs: wheels
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        contrib-set: [core-only, stock]
+        contrib-set:
+          - core-only
+          - stock
+          - transports
+          - hostile
+          - javascript-stale
+          - javascript-conflict
+          - javascript-adversarial
+          - multi-canvas
     env:
       CI: "true"
       SGC_CONTRIB_SET: ${{ matrix.contrib-set }}
+      SGC_CSP_PROXY: ${{ matrix.contrib-set == 'transports' }}
       SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-conformance/bin/python
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           python-version: "3.12"
@@ -100,41 +250,104 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: conformance/package-lock.json
+          cache-dependency-path: tests/e2e/package-lock.json
       - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: conformance-wheelhouse
           path: wheelhouse
       - run: >-
-          uv run python ci/build_conformance_environment.py
+          uv run python -m ci.build_conformance_environment
           --set "${{ matrix.contrib-set }}"
           --wheelhouse wheelhouse
+          --constraints wheelhouse/locked-constraints.txt
           --venv "${{ runner.temp }}/sgc-conformance"
+          --output "conformance-${{ matrix.contrib-set }}.json"
       - run: npm ci
-        working-directory: conformance
+        working-directory: tests/e2e
       - if: matrix.contrib-set == 'core-only'
         run: npm audit --audit-level=high
-        working-directory: conformance
+        working-directory: tests/e2e
       - run: npx playwright install --with-deps chromium
-        working-directory: conformance
+        working-directory: tests/e2e
       - run: npm test
-        working-directory: conformance
+        working-directory: tests/e2e
       - if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: chromium-${{ matrix.contrib-set }}
           path: |
-            conformance/test-results/
-            conformance/playwright-report/
-            conformance-artifacts/
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
+            tests/e2e/artifacts/
+            conformance-${{ matrix.contrib-set }}.json
           if-no-files-found: warn
           retention-days: 14
 
   dependency-review:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+
+  chromium-compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [minimum, latest]
+    env:
+      CI: "true"
+      SGC_CONTRIB_SET: transports
+      SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-browser-${{ matrix.lane }}/bin/python
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - run: >-
+          python ci/run_compatibility.py frontend
+          --lane "${{ matrix.lane }}"
+          --output-tree "${{ runner.temp }}/sgc-core-${{ matrix.lane }}"
+          --output "browser-frontend-${{ matrix.lane }}.json"
+      - run: >-
+          uv build "${{ runner.temp }}/sgc-core-${{ matrix.lane }}"
+          --out-dir compatibility-wheelhouse
+      - run: uv build --package streamlit-graph-canvas-contrib --out-dir compatibility-wheelhouse
+      - run: uv build tests/e2e/fixtures/javascript-renderer --out-dir compatibility-wheelhouse
+      - run: >-
+          python -m ci.build_conformance_environment
+          --set transports
+          --dependency-lane "${{ matrix.lane }}"
+          --wheelhouse compatibility-wheelhouse
+          --venv "${{ runner.temp }}/sgc-browser-${{ matrix.lane }}"
+          --output "browser-python-${{ matrix.lane }}.json"
+      - run: npm ci
+        working-directory: tests/e2e
+      - run: npx playwright install --with-deps chromium
+        working-directory: tests/e2e
+      - run: npm test
+        working-directory: tests/e2e
+      - if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: chromium-compatibility-${{ matrix.lane }}
+          path: |
+            browser-frontend-${{ matrix.lane }}.json
+            browser-python-${{ matrix.lane }}.json
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
+            tests/e2e/artifacts/
+          if-no-files-found: warn
+          retention-days: 14

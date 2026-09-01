@@ -7,6 +7,7 @@ from streamlit_graph_canvas import (
     Node,
     NodeStyle,
     NodeType,
+    PaletteTone,
     graph_canvas,
 )
 
@@ -19,6 +20,7 @@ schema = GraphSchema(
         "store": NodeType("store", NodeStyle(fill="surface", stroke="border")),
     },
     edge_types={"uses": EdgeType("uses")},
+    palette={"accent": PaletteTone("var(--st-primary-color)")},
 )
 graph = GraphData(
     nodes=(

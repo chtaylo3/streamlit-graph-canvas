@@ -1,0 +1,248 @@
+name: Forward compatibility
+
+on:
+  schedule:
+    - cron: "17 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-forward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.12"
+            scenario: streamlit
+          - python-version: "3.12"
+            scenario: pillow
+          - python-version: "3.12"
+            scenario: networkx
+          - python-version: "3.15"
+            scenario: supported
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: >-
+          python ci/run_compatibility.py python
+          --lane forward
+          --scenario "${{ matrix.scenario }}"
+          --python "${{ matrix.python-version }}"
+          --venv "${{ runner.temp }}/sgc-forward-${{ matrix.scenario }}"
+          --output "forward-${{ matrix.scenario }}.json"
+      - if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: python-forward-${{ matrix.scenario }}
+          path: forward-${{ matrix.scenario }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  frontend-forward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - node-version: 24
+            scenario: component
+          - node-version: 24
+            scenario: react-flow
+          - node-version: 24
+            scenario: elk
+          - node-version: 26
+            scenario: all
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: >-
+          python3 ci/run_compatibility.py frontend
+          --lane forward
+          --scenario "${{ matrix.scenario }}"
+          --output "forward-frontend-${{ matrix.scenario }}.json"
+      - if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: frontend-forward-${{ matrix.scenario }}
+          path: forward-frontend-${{ matrix.scenario }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  chrome-beta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "true"
+      SGC_BROWSER_CHANNEL: chrome-beta
+      SGC_CONTRIB_SET: transports
+      SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-chrome-beta/bin/python
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - run: npm ci
+        working-directory: packages/core/src/streamlit_graph_canvas/frontend
+      - run: uv run python ci/generate_frontend_artifacts.py --check
+      - run: uv build --package streamlit-graph-canvas --out-dir forward-wheelhouse
+      - run: uv build --package streamlit-graph-canvas-contrib --out-dir forward-wheelhouse
+      - run: uv build tests/e2e/fixtures/javascript-renderer --out-dir forward-wheelhouse
+      - run: >-
+          uv export --locked --all-packages --all-extras --no-dev
+          --no-emit-workspace --no-hashes
+          --output-file locked-constraints.txt
+      - run: >-
+          python -m ci.build_conformance_environment
+          --set transports
+          --wheelhouse forward-wheelhouse
+          --constraints locked-constraints.txt
+          --venv "${{ runner.temp }}/sgc-chrome-beta"
+          --output chrome-beta-environment.json
+      - run: npm ci
+        working-directory: tests/e2e
+      - run: npx playwright install --with-deps chrome-beta
+        working-directory: tests/e2e
+      - run: npm test
+        working-directory: tests/e2e
+      - if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: chrome-beta
+          path: |
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
+            tests/e2e/artifacts/
+            chrome-beta-environment.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  chromium-forward-stacks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scenario: component
+            surface: frontend
+          - scenario: react-flow
+            surface: frontend
+          - scenario: elk
+            surface: frontend
+          - scenario: streamlit
+            surface: python
+          - scenario: pillow
+            surface: python
+    env:
+      CI: "true"
+      SGC_CONTRIB_SET: transports
+      SGC_EXPECT_PILLOW_FAILURE: ${{ matrix.scenario == 'pillow' }}
+      SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-forward-browser/bin/python
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - if: matrix.surface == 'frontend'
+        run: >-
+          python ci/run_compatibility.py frontend
+          --lane forward
+          --scenario "${{ matrix.scenario }}"
+          --output-tree "${{ runner.temp }}/sgc-forward-core"
+          --output "forward-stack-${{ matrix.scenario }}.json"
+      - if: matrix.surface == 'frontend'
+        run: echo "SGC_CORE_PACKAGE=${{ runner.temp }}/sgc-forward-core" >> "$GITHUB_ENV"
+      - if: matrix.surface == 'python'
+        run: echo "SGC_CORE_PACKAGE=packages/core" >> "$GITHUB_ENV"
+      - run: uv build "$SGC_CORE_PACKAGE" --out-dir forward-stack-wheelhouse
+      - run: uv build --package streamlit-graph-canvas-contrib --out-dir forward-stack-wheelhouse
+      - run: uv build tests/e2e/fixtures/javascript-renderer --out-dir forward-stack-wheelhouse
+      - run: >-
+          python -m ci.build_conformance_environment
+          --set transports
+          --wheelhouse forward-stack-wheelhouse
+          --venv "${{ runner.temp }}/sgc-forward-browser"
+          --output "forward-stack-environment-${{ matrix.scenario }}.json"
+          ${{ matrix.surface == 'python' && format('--forward-scenario {0}', matrix.scenario) || '' }}
+      - run: npm ci
+        working-directory: tests/e2e
+      - run: npx playwright install --with-deps chromium
+        working-directory: tests/e2e
+      - if: matrix.scenario != 'pillow'
+        run: npm test
+        working-directory: tests/e2e
+      - if: matrix.scenario == 'pillow'
+        run: npx playwright test --grep "@pillow-forward"
+        working-directory: tests/e2e
+      - if: always()
+        run: >-
+          echo "### Forward Chromium: ${{ matrix.scenario }} — ${{ job.status }}"
+          >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: chromium-forward-${{ matrix.scenario }}
+          path: |
+            forward-stack-${{ matrix.scenario }}.json
+            forward-stack-environment-${{ matrix.scenario }}.json
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
+            tests/e2e/artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+  report-forward-failure:
+    if: >-
+      always() && github.event_name == 'schedule' &&
+      (needs.python-forward.result == 'failure' ||
+       needs.frontend-forward.result == 'failure' ||
+       needs.chrome-beta.result == 'failure' ||
+       needs.chromium-forward-stacks.result == 'failure')
+    needs: [python-forward, frontend-forward, chrome-beta, chromium-forward-stacks]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Open or update forward-compatibility issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Automated forward-compatibility failure"
+          body="A scheduled forward-compatibility lane failed: ${RUN_URL}"
+          number="$(gh issue list --state open --search \"${title} in:title\" --json number --jq '.[0].number // empty')"
+          if [ -n "${number}" ]; then
+            gh issue comment "${number}" --body "${body}"
+          else
+            gh issue create --title "${title}" --body "${body}" --label dependencies
+          fi

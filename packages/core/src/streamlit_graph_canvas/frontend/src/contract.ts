@@ -1,0 +1,20 @@
+// Generated cross-language protocol authority. Do not edit directly.
+export const CONTRACT_SCHEMA_VERSION = 1 as const;
+export const CODEC_VERSION = 2 as const;
+export const PROTOCOL_VERSION = 1 as const;
+export const RENDERER_API = 1 as const;
+export const RENDERER_REGISTRY_SYMBOL = "streamlit-graph-canvas.renderers.v1" as const;
+export const RENDERER_REGISTRATION_EVENT = "sgc-renderer-registered-v1" as const;
+export const MAX_ACTION_BATCH = 256 as const;
+export const MAX_SELECTION = 700 as const;
+export const MAX_IDENTIFIER_CHARS = 512 as const;
+export const MAX_BROWSER_STATE_BYTES = 262144 as const;
+export const MAX_DATA_DEPTH = 20 as const;
+export const MAX_DATA_STRING_CHARS = 65536 as const;
+export const MAX_COLLECTION_ITEMS = 10000 as const;
+export const MAX_DATA_VALUES = 100000 as const;
+export const MAX_ATLAS_DIMENSION = 4096 as const;
+export const MAX_ATLAS_DECODED_PIXELS = 262144 as const;
+export const MAX_ATLAS_PAGE_BYTES = 2097152 as const;
+export const MAX_PRIMITIVE_COUNT = 200 as const;
+export const MAX_PRIMITIVE_TEXT_CHARS = 1024 as const;

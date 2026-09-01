@@ -8,15 +8,18 @@ version = "0.1.0.dev0"
 description = "A domain-neutral, schema-driven graph canvas for Streamlit."
 readme = "README.md"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md"]
 requires-python = ">=3.12"
 dependencies = ["packaging>=26.0", "streamlit>=1.62.0"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.optional-dependencies]
+atlas = ["Pillow>=12.3.0,<13"]
 networkx = ["networkx>=3.6.1"]
 
 [project.urls]

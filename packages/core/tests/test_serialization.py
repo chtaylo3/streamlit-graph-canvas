@@ -7,6 +7,7 @@ from streamlit_graph_canvas import (
     NodeType,
     serialize_graph,
 )
+from streamlit_graph_canvas.contract import CODEC_VERSION
 
 
 def test_presentation_change_does_not_change_topology_hash() -> None:
@@ -26,3 +27,4 @@ def test_presentation_change_does_not_change_topology_hash() -> None:
     right = serialize_graph(schema, after)
     assert left.topology_hash == right.topology_hash
     assert left.presentation_hash != right.presentation_hash
+    assert left.envelope["codecVersion"] == CODEC_VERSION

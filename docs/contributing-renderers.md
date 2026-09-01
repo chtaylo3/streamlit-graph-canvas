@@ -9,11 +9,11 @@ carefully as any other application dependency.
 
 ## Supported contract
 
-This development release executes only the `prims` transport. JavaScript and
-ATLAS declarations are parsed for forward compatibility but serialization
-fails closed until their trusted bootstrap and bounded-cache implementations
-land. Graph data can never choose a distribution, module, asset, or renderer
-kind that was not statically declared and explicitly enabled.
+This development release executes `prims`, trusted `javascript`, and `atlas`
+transports. Graph data can never choose a distribution, module, asset, or
+renderer kind that was not statically declared, hash-verified, and explicitly
+enabled. JavaScript is trusted page-level code. ATLAS is available only to a
+renderer with a Python PRIMS implementation.
 
 A package must:
 
@@ -29,7 +29,42 @@ A package must:
 
 The stock manifest in
 [`packages/contrib/src/streamlit_graph_canvas_contrib/renderer.toml`](../packages/contrib/src/streamlit_graph_canvas_contrib/renderer.toml)
-is the minimal PRIMS example.
+demonstrates all three transports.
+
+For JavaScript, also package a Components v2 `pyproject.toml`, declare
+`javascript_component` and its asset-dir-relative `javascript_entry`, and hash
+the package-relative `javascript` file. Registration must use the versioned
+global symbol and must be idempotent for the exact values Python supplies. See
+the stock bootstrap and the JavaScript-only conformance fixture. Runtime npm
+installation, dynamic import from remote origins, evaluated strings, and Blob
+scripts are prohibited.
+
+### JavaScript bootstrap authoring
+
+Renderer bootstraps are trusted, currently hand-authored ES modules. The
+repository uses several complementary checks rather than treating any one
+static check as a sandbox or runtime proof:
+
+- `uv run python -m ci.check_renderer_javascript` asks Node 24 to parse every
+  JavaScript asset declared by a parseable renderer manifest in ESM mode. This
+  is syntax validation only; it does not provide static typing, lint/style
+  enforcement, or behavioral analysis.
+- `uv run python -m ci.sync_renderer_assets --check` verifies immutable build
+  identities, content-addressed filenames, hashes, and manifest/component
+  agreement without changing files.
+- Wheel verification validates the packaged bytes and metadata.
+- The selected installed-wheel Chromium contrib set is the runtime contract
+  and remains required even when all static checks pass.
+
+Before submitting a bootstrap change, run both commands above, the frontend
+Vitest suite, and the specialized `tests/e2e` contrib set that installs the
+affected renderer. Intentional regeneration uses
+`uv run python -m ci.sync_renderer_assets` followed by another check; it should
+be reviewed like any other executable artifact change.
+
+ATLAS renderer authors must emit deterministic PRIMS, use literal colors for
+both theme variants, and test high-cardinality behavior under cache limits. See
+[`transports-and-csp.md`](transports-and-csp.md) for the tenant and CSP contract.
 
 ## PRIMS safety boundary
 
@@ -55,6 +90,14 @@ data, boundary sizes, and deterministic output. It must also appear in at least
 one set in [`ci/contrib-sets.toml`](../ci/contrib-sets.toml); CI rejects renderer
 packages omitted from all sets.
 
+Conformance fixtures under `tests/e2e/fixtures/` are intentionally independent
+projects rather than uv workspace members. An immediate-child fixture is
+automatically discovered for compatibility-range synchronization and the full
+CI fixture-wheel build, which models third-party and hostile package behavior.
+Its author must still assign the distribution to a suitable contrib set.
+Specialized release and compatibility workflows intentionally build only the
+positive fixture needed for their scenario rather than the hostile inventory.
+
 Before review, run:
 
 ```bash
@@ -64,7 +107,7 @@ uv run ruff check .
 uv run mypy packages/core/src packages/contrib/src
 uv build --package streamlit-graph-canvas
 uv build --package streamlit-graph-canvas-contrib
-uv run python ci/verify_wheels.py dist
+uv run python -m ci.verify_wheels dist
 ```
 
 The final compatibility decision comes from the clean-wheel Chromium matrix,

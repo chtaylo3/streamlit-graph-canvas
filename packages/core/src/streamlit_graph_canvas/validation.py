@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
-import json
 import math
+import re
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, NoReturn
 
+from .contract import (
+    MAX_COLLECTION_ITEMS,
+    MAX_DATA_DEPTH,
+    MAX_DATA_STRING_CHARS,
+    MAX_DATA_VALUES,
+)
 from .errors import Diagnostic, ValidationError
-from .model import AnyNodeType, EdgeType, GraphData, GraphSchema
+from .json_budget import JsonBudget, JsonLimitError, bounded_json_size
+from .model import BUILTIN_PALETTE, AnyNodeType, EdgeType, GraphData, GraphSchema
 
 if TYPE_CHECKING:
     from .renderers import RendererRegistry
@@ -28,55 +35,85 @@ def _duplicates(values: Iterable[str]) -> set[str]:
     return duplicates
 
 
-def _json_value(value: Any, *, subject: str, depth: int = 0) -> None:
-    if depth > 20:
-        _fail(
-            "SGC_DATA_DEPTH",
-            "Graph data exceeds the maximum nesting depth of 20.",
-            "Flatten or summarize the graph data.",
-            subject,
-        )
-    if value is None or isinstance(value, (str, bool)):
-        return
-    if isinstance(value, int):
-        if not -(2**53 - 1) <= value <= 2**53 - 1:
-            _fail(
-                "SGC_DATA_INTEGER",
-                "Graph data contains an integer outside JavaScript's safe range.",
-                "Encode the identifier as a string or use a safe integer.",
-                subject,
-            )
-        return
-    if isinstance(value, float):
-        if not math.isfinite(value):
-            _fail(
-                "SGC_DATA_NUMBER",
-                "Graph data contains a non-finite number.",
-                "Replace NaN or infinity with a finite value or null.",
-                subject,
-            )
-        return
-    if isinstance(value, (list, tuple)):
-        for item in value:
-            _json_value(item, subject=subject, depth=depth + 1)
-        return
-    if isinstance(value, dict) or hasattr(value, "items"):
-        for key, item in value.items():
-            if not isinstance(key, str):
-                _fail(
-                    "SGC_DATA_KEY",
-                    "Graph data mapping keys must be strings.",
-                    "Convert every mapping key to a string.",
-                    subject,
-                )
-            _json_value(item, subject=subject, depth=depth + 1)
-        return
+_DATA_CODES = {
+    "depth": "SGC_DATA_DEPTH",
+    "integer": "SGC_DATA_INTEGER",
+    "number": "SGC_DATA_NUMBER",
+    "key": "SGC_DATA_KEY",
+    "type": "SGC_DATA_TYPE",
+    "string": "SGC_DATA_STRING_LIMIT",
+    "collection": "SGC_DATA_COLLECTION_LIMIT",
+    "values": "SGC_DATA_VALUES_LIMIT",
+    "size": "SGC_DATA_SIZE",
+}
+
+
+def _data_error(error: JsonLimitError, *, subject: str) -> NoReturn:
     _fail(
-        "SGC_DATA_TYPE",
-        f"Graph data contains non-JSON type {type(value).__name__!r}.",
-        "Use null, booleans, finite numbers, strings, lists, or string-keyed mappings.",
+        _DATA_CODES[error.kind],
+        f"Graph data is outside the supported JSON budget: {error.detail}.",
+        "Window, flatten, or summarize graph data before rendering.",
         subject,
     )
+
+
+def _json_value(value: Any, *, subject: str, max_bytes: int = 2_000_000) -> None:
+    try:
+        bounded_json_size(
+            value,
+            max_bytes=max_bytes,
+            max_depth=MAX_DATA_DEPTH,
+            max_string_chars=MAX_DATA_STRING_CHARS,
+            max_collection_items=MAX_COLLECTION_ITEMS,
+            max_values=MAX_DATA_VALUES,
+        )
+    except JsonLimitError as error:
+        _data_error(error, subject=subject)
+
+
+def _validate_graph_data(graph: GraphData, *, max_data_bytes: int) -> None:
+    budget = JsonBudget(
+        max_data_bytes,
+        MAX_DATA_DEPTH,
+        MAX_DATA_STRING_CHARS,
+        MAX_COLLECTION_ITEMS,
+        MAX_DATA_VALUES,
+    )
+    try:
+        budget.token('{"nodes":[')
+        for index, node in enumerate(graph.nodes):
+            if index:
+                budget.token(",")
+            budget.object_fields(
+                (
+                    ("id", node.id),
+                    ("type", node.type),
+                    ("label", node.label),
+                    ("data", node.data),
+                    ("badges", node.badges),
+                ),
+                depth=2,
+            )
+        budget.token('],"edges":[')
+        for index, edge in enumerate(graph.edges):
+            if index:
+                budget.token(",")
+            budget.object_fields(
+                (
+                    ("id", edge.id),
+                    ("source", edge.source),
+                    ("target", edge.target),
+                    ("type", edge.type),
+                    ("source_port", edge.source_port),
+                    ("target_port", edge.target_port),
+                    ("label", edge.label),
+                    ("data", edge.data),
+                ),
+                depth=2,
+            )
+        budget.token("]}")
+    except JsonLimitError as error:
+        _data_error(error, subject="graph")
 
 
 def _validate_endpoint_types(edge_type: EdgeType, schema: GraphSchema) -> None:
@@ -94,6 +131,42 @@ def _validate_endpoint_types(edge_type: EdgeType, schema: GraphSchema) -> None:
                 "Declare those node types or remove them from the edge type.",
                 edge_type.name,
             )
+
+
+_COLOR_FUNCTION = re.compile(
+    r"(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\([0-9a-zA-Z.,%+\-/ ]+\)"
+)
+_THEME_VARIABLE = re.compile(r"var\(--st-[a-z0-9-]+\)")
+_COLOR_KEYWORD = re.compile(r"[a-zA-Z]+")
+_HEX_COLOR = re.compile(r"#[0-9a-fA-F]{3,8}")
+
+
+def _validate_palette_color(value: object, *, subject: str) -> None:
+    if not isinstance(value, str) or value != value.strip() or len(value) > 128:
+        _fail(
+            "SGC_SCHEMA_PALETTE_COLOR",
+            "Palette colors must be short, trimmed CSS color strings.",
+            "Use a literal CSS color or a --st-* theme variable.",
+            subject,
+        )
+    lowered = value.casefold()
+    if any(token in lowered for token in ("url(", "image(", "image-set(", "attr(")):
+        _fail(
+            "SGC_SCHEMA_PALETTE_REFERENCE",
+            "Palette colors cannot contain external or document paint references.",
+            "Use a literal CSS color or a --st-* theme variable.",
+            subject,
+        )
+    if not any(
+        pattern.fullmatch(value)
+        for pattern in (_HEX_COLOR, _COLOR_KEYWORD, _COLOR_FUNCTION, _THEME_VARIABLE)
+    ):
+        _fail(
+            "SGC_SCHEMA_PALETTE_COLOR",
+            f"Unsupported CSS color syntax {value!r}.",
+            "Use hex, a named color, a supported color function, or var(--st-*).",
+            subject,
+        )
 
 
 def validate(
@@ -125,12 +198,38 @@ def validate(
             f"exceeding the {max_elements}-element budget.",
             "Window the graph in the host application or increase max_elements.",
         )
+    _validate_graph_data(graph, max_data_bytes=max_data_bytes)
+    for name, tone in schema.palette.items():
+        if not name or not re.fullmatch(r"[a-z][a-z0-9_-]*", name):
+            _fail(
+                "SGC_SCHEMA_PALETTE_NAME",
+                f"Palette tone name {name!r} is invalid.",
+                "Use a lowercase CSS-safe symbolic tone name.",
+                name,
+            )
+        _validate_palette_color(tone.light, subject=f"palette:{name}.light")
+        if tone.dark is not None:
+            _validate_palette_color(tone.dark, subject=f"palette:{name}.dark")
     for key, node_declaration in schema.node_types.items():
         if not key or key != node_declaration.name:
             _fail(
                 "SGC_SCHEMA_NODE_TYPE_NAME",
                 "Node type mapping keys must be non-empty and match their names.",
                 "Use the same stable name for the mapping key and declaration.",
+                key,
+            )
+        palette_names = BUILTIN_PALETTE.keys() | schema.palette.keys()
+        node_tones = {
+            node_declaration.style.fill,
+            node_declaration.style.stroke,
+            node_declaration.style.text,
+        }
+        if unknown_tones := node_tones - palette_names:
+            _fail(
+                "SGC_SCHEMA_STYLE_TONE",
+                "Node style references unknown palette tones: "
+                f"{sorted(unknown_tones)}.",
+                "Declare each symbolic tone in the schema palette.",
                 key,
             )
         if (
@@ -215,6 +314,16 @@ def validate(
                 "Set a finite positive edge width.",
                 key,
             )
+        if edge_declaration.style.stroke not in (
+            BUILTIN_PALETTE.keys() | schema.palette.keys()
+        ):
+            _fail(
+                "SGC_SCHEMA_STYLE_TONE",
+                "Edge style references unknown palette tone "
+                f"{edge_declaration.style.stroke!r}.",
+                "Declare the symbolic tone in the schema palette.",
+                key,
+            )
         _validate_endpoint_types(edge_declaration, schema)
 
     node_ids = [node.id for node in graph.nodes]
@@ -246,8 +355,6 @@ def validate(
                 "Declare the node type in GraphSchema.",
                 node.id,
             )
-        _json_value(node.data, subject=f"node:{node.id}.data")
-        _json_value(node.badges, subject=f"node:{node.id}.badges")
         bindings = {
             binding.name: binding for binding in schema.node_types[node.type].badges
         }
@@ -305,7 +412,6 @@ def validate(
                 "Declare the edge type in GraphSchema.",
                 edge.id,
             )
-        _json_value(edge.data, subject=f"edge:{edge.id}.data")
         edge_declaration = schema.edge_types[edge.type]
         source = nodes[edge.source]
         target = nodes[edge.target]
@@ -341,39 +447,3 @@ def validate(
                     "Declare the port on the node type or correct the edge.",
                     edge.id,
                 )
-    serialized_data = {
-        "nodes": [
-            {
-                "id": node.id,
-                "type": node.type,
-                "label": node.label,
-                "data": dict(node.data),
-                "badges": dict(node.badges),
-            }
-            for node in graph.nodes
-        ],
-        "edges": [
-            {
-                "id": edge.id,
-                "source": edge.source,
-                "target": edge.target,
-                "type": edge.type,
-                "source_port": edge.source_port,
-                "target_port": edge.target_port,
-                "label": edge.label,
-                "data": dict(edge.data),
-            }
-            for edge in graph.edges
-        ],
-    }
-    size = len(
-        json.dumps(serialized_data, allow_nan=False, separators=(",", ":")).encode(
-            "utf-8"
-        )
-    )
-    if size > max_data_bytes:
-        _fail(
-            "SGC_DATA_SIZE",
-            f"Graph instance data is {size} bytes; limit is {max_data_bytes}.",
-            "Window or summarize graph and badge data before rendering.",
-        )

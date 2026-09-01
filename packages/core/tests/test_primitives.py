@@ -29,6 +29,10 @@ def test_valid_primitives_become_json_compatible() -> None:
         (RectPrim(0, 0, 40, 20, "missing"), "SGC_PRIMS_TONE"),
         (TextPrim(0, 0, "x" * 1025, "accent"), "SGC_PRIMS_TEXT_LIMIT"),
         ({"kind": "script", "value": "alert(1)"}, "SGC_PRIMS_TYPE"),
+        (RectPrim(0, 0, "wide", 20, "accent"), "SGC_PRIMS_GEOMETRY"),
+        (RectPrim(0, 0, 40, 20, ["accent"]), "SGC_PRIMS_TYPE"),
+        (TextPrim(0, 0, 7, "accent"), "SGC_PRIMS_TYPE"),
+        (TextPrim(0, 0, "x", "accent", anchor="invalid"), "SGC_PRIMS_TYPE"),
     ],
 )
 def test_unsafe_primitives_are_rejected(primitive, code: str) -> None:

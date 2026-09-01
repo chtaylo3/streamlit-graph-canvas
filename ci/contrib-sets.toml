@@ -3,3 +3,32 @@ packages = []
 
 [sets.stock]
 packages = ["streamlit-graph-canvas-contrib"]
+
+[sets.transports]
+packages = [
+  "streamlit-graph-canvas-contrib",
+  "scg-javascript-renderer-fixture",
+]
+
+[sets.hostile]
+packages = [
+  "streamlit-graph-canvas-contrib",
+  "scg-malformed-renderer-fixture",
+  "scg-cross-import-renderer-fixture",
+  "scg-namespace-owner-fixture",
+]
+
+[sets.javascript-stale]
+packages = ["scg-javascript-stale-renderer-fixture"]
+
+[sets.javascript-conflict]
+packages = [
+  "scg-javascript-conflict-a-renderer-fixture",
+  "scg-javascript-conflict-b-renderer-fixture",
+]
+
+[sets.javascript-adversarial]
+packages = ["scg-javascript-adversarial-renderer-fixture"]
+
+[sets.multi-canvas]
+packages = ["streamlit-graph-canvas-contrib"]

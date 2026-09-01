@@ -6,6 +6,11 @@ renderer_api = ">=1,<2"
 [[renderers]]
 kind = "streamlit-graph-canvas/contrib/count-chip"
 python = "streamlit_graph_canvas_contrib.count_chip:renderer"
-transports = ["prims"]
+javascript = "frontend/renderer-bootstrap.08cb9ba042db7b7652f33afcc9ae4d7264abd23be856e0cdd65d0efb4e49669f.js"
+javascript_component = "streamlit-graph-canvas-contrib.renderer_bootstrap"
+javascript_entry = "renderer-bootstrap.08cb9ba042db7b7652f33afcc9ae4d7264abd23be856e0cdd65d0efb4e49669f.js"
+javascript_identity = "dcd4641d0bb6fbfcb3f234261ccfcf388f6cd68e456e20380e7a6cdba7936b49"
+transports = ["prims", "javascript", "atlas"]
 
 [assets]
+"frontend/renderer-bootstrap.08cb9ba042db7b7652f33afcc9ae4d7264abd23be856e0cdd65d0efb4e49669f.js" = "08cb9ba042db7b7652f33afcc9ae4d7264abd23be856e0cdd65d0efb4e49669f"

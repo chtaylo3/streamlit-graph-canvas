@@ -8,6 +8,13 @@ from enum import StrEnum
 from types import MappingProxyType
 from typing import Any, Literal
 
+BUILTIN_PALETTE = {
+    "surface": {"light": "var(--st-secondary-background-color)", "dark": None},
+    "border": {"light": "var(--st-border-color)", "dark": None},
+    "text": {"light": "var(--st-text-color)", "dark": None},
+    "muted": {"light": "var(--st-gray-color)", "dark": None},
+}
+
 
 def _mapping(value: Mapping[str, Any]) -> Mapping[str, Any]:
     return MappingProxyType(dict(value))

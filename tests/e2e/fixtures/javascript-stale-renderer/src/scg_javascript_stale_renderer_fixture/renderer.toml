@@ -1,0 +1,15 @@
+manifest_schema = 1
+distribution = "scg-javascript-stale-renderer-fixture"
+version = "0.1.0"
+renderer_api = ">=1,<2"
+
+[[renderers]]
+kind = "streamlit-graph-canvas/fixture/javascript-stale"
+javascript = "frontend/renderer-bootstrap.3f1a5b9be45c3d9133c34c2a70b6b7ed89f4e9e2e3fbd1c643a8d64c295489b5.js"
+javascript_component = "scg-javascript-stale-renderer-fixture.renderer_bootstrap"
+javascript_entry = "renderer-bootstrap.3f1a5b9be45c3d9133c34c2a70b6b7ed89f4e9e2e3fbd1c643a8d64c295489b5.js"
+javascript_identity = "c521c2647cd54409d7a911c6162081660d58f90996d5082fe68d637f8a08ad5b"
+transports = ["javascript"]
+
+[assets]
+"frontend/renderer-bootstrap.3f1a5b9be45c3d9133c34c2a70b6b7ed89f4e9e2e3fbd1c643a8d64c295489b5.js" = "3f1a5b9be45c3d9133c34c2a70b6b7ed89f4e9e2e3fbd1c643a8d64c295489b5"
