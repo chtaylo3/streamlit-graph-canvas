@@ -46,6 +46,10 @@ def test_repository_workflows_keep_publication_fail_closed() -> None:
             "      - uses: pypa/gh-action-pypi-publish@abc\n",
             "privileged release action is misplaced",
         ),
+        (
+            "jobs:\n  test:\n    env:\n      TEMP_PATH: ${{ runner.temp }}/output\n",
+            "job env TEMP_PATH cannot use the runner context",
+        ),
     ],
 )
 def test_workflow_security_guard_rejects_unsafe_mutations(

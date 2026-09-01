@@ -14,6 +14,7 @@ ATTEST = "actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc
 PUBLISH = "pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33"
 DIGEST = "cd release-bundle && sha256sum --check SHA256SUMS"
 PUBLISH_COMMAND = re.compile(r"(?:^|\s)uv\s+publish(?:\s|$)")
+RUNNER_CONTEXT = re.compile(r"\$\{\{[^}]*\brunner\.")
 
 
 def _mapping(value: object) -> dict[str, Any]:
@@ -100,6 +101,11 @@ def verify_workflows(directory: Path) -> list[str]:
         for job_name, raw_job in _mapping(workflow.get("jobs")).items():
             job = _mapping(raw_job)
             subject = f"{path.name}:{job_name}"
+            for key, value in _mapping(job.get("env")).items():
+                if isinstance(value, str) and RUNNER_CONTEXT.search(value):
+                    errors.append(
+                        f"{subject}: job env {key} cannot use the runner context"
+                    )
             privileged = path.name == "release.yml" and job_name in {
                 "attest",
                 "publish",
