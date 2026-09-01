@@ -1,8 +1,19 @@
-import { describe, expect, it } from "vitest";
-import { BrowserAtlasCache, type AtlasPageDelta } from "./atlas-cache";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  acquireBrowserAtlasCache,
+  BrowserAtlasCache,
+  clearSharedAtlasCachesForTests,
+  releaseBrowserAtlasCache,
+  type AtlasPageDelta,
+} from "./atlas-cache";
 
 const PNG_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
 const PNG_SHA256 = "431ced6916a2a21a156e38701afe55bbd7f88969fbbfc56d7fe099d47f265460";
+
+afterEach(() => {
+  clearSharedAtlasCachesForTests();
+  vi.useRealTimers();
+});
 
 function page(id: string): AtlasPageDelta {
   return {
@@ -16,6 +27,27 @@ function page(id: string): AtlasPageDelta {
 }
 
 describe("browser atlas cache", () => {
+  it("preserves URLs across brief same-key remounts and clears removed canvases", async () => {
+    vi.useFakeTimers();
+    const revoked: string[] = [];
+    const create = () => new BrowserAtlasCache(
+      () => "blob:shared",
+      (url) => revoked.push(url),
+    );
+    const first = acquireBrowserAtlasCache("canvas", create);
+    await first.apply([page("a")], []);
+    releaseBrowserAtlasCache("canvas");
+    await vi.advanceTimersByTimeAsync(1_000);
+    const remounted = acquireBrowserAtlasCache("canvas", create);
+    expect(remounted).toBe(first);
+    expect(remounted.get(page("a").pageId)).toBe("blob:shared");
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(revoked).toEqual([]);
+    releaseBrowserAtlasCache("canvas");
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(revoked).toEqual(["blob:shared"]);
+  });
+
   it("deduplicates validated pages and revokes removed Blob URLs", async () => {
     const revoked: string[] = [];
     let sequence = 0;

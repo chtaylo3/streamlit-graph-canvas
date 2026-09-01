@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   clearCanvasStateForTests,
   loadCanvasState,
+  sameViewport,
   selectNode,
   storeCanvasState,
 } from "./canvas-state";
@@ -10,6 +11,18 @@ import { clickAction } from "./events";
 beforeEach(clearCanvasStateForTests);
 
 describe("persistent canvas state", () => {
+  it("distinguishes meaningful viewport changes from restoration noise", () => {
+    expect(sameViewport(null, { x: 0, y: 0, zoom: 1 })).toBe(false);
+    expect(sameViewport(
+      { x: 4, y: 5, zoom: 1.2 },
+      { x: 4 + 1e-8, y: 5, zoom: 1.2 },
+    )).toBe(true);
+    expect(sameViewport(
+      { x: 4, y: 5, zoom: 1.2 },
+      { x: 5, y: 5, zoom: 1.2 },
+    )).toBe(false);
+  });
+
   it("restores browser state and reconciles removed nodes", () => {
     storeCanvasState("canvas", {
       selectedNodeIds: ["a", "removed"],

@@ -1,9 +1,9 @@
 const symbol = Symbol.for("streamlit-graph-canvas.renderers.v1");
 const eventName = "sgc-renderer-registered-v1";
 const namespace = "http://www.w3.org/2000/svg";
-const buildIdentity = "b80a462fe72be522ca0abeea3dc1660cdd5cdcf5dc16b235f6718ea4e42ec658";
+const buildIdentity = "670d6a76183562de264d01c88a8e7838fb291b9946bff97b89f0383c0c228399";
 
-function render({ target, data }) {
+function render({ target, data, region }) {
   if (data === "listener-leak") {
     const listener = () => {
       globalThis.__sgcLeakedListenerCalls = (globalThis.__sgcLeakedListenerCalls ?? 0) + 1;
@@ -20,6 +20,8 @@ function render({ target, data }) {
   }
   const marker = document.createElementNS(namespace, "circle");
   marker.dataset.sgcAdversarialBehavior = String(data);
+  marker.setAttribute("cx", String(region.width / 2));
+  marker.setAttribute("cy", String(region.height / 2));
   marker.setAttribute("r", "4");
   target.append(marker);
   if (data === "render-throw") {

@@ -18,6 +18,7 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "
 import { createRoot, type Root } from "react-dom/client";
 import {
   loadCanvasState,
+  sameViewport,
   selectNode,
   storeCanvasState,
   type BrowserCanvasState,
@@ -26,7 +27,8 @@ import {
 import { requireCodecVersion } from "./codec";
 import { appendPendingAction, clickAction, type CanvasAction } from "./events";
 import {
-  BrowserAtlasCache,
+  acquireBrowserAtlasCache,
+  releaseBrowserAtlasCache,
   type AtlasPageDelta,
 } from "./atlas-cache";
 import {
@@ -673,6 +675,7 @@ function CanvasContents({
         });
       }}
       onMoveEnd={(_, viewport) => {
+        if (sameViewport(viewportRef.current, viewport)) return;
         viewportRef.current = viewport;
         persist({ viewport });
         setStateValue("viewport", viewport);
@@ -708,9 +711,7 @@ function Canvas(props: {
       ),
     [props.componentKey],
   );
-  const atlasRef = useRef<BrowserAtlasCache | null>(null);
-  atlasRef.current ??= new BrowserAtlasCache();
-  const atlas = atlasRef.current;
+  const [atlas] = useState(() => acquireBrowserAtlasCache(props.componentKey));
   useEffect(() => {
     let current = true;
     const protectedPageIds = new Set(
@@ -751,7 +752,10 @@ function Canvas(props: {
     props.data.presentation.nodes,
   ]);
 
-  useEffect(() => () => atlas.clear(), [atlas]);
+  useEffect(
+    () => () => releaseBrowserAtlasCache(props.componentKey),
+    [props.componentKey],
+  );
 
   useEffect(() => {
     const media = matchMedia("(prefers-color-scheme: dark)");

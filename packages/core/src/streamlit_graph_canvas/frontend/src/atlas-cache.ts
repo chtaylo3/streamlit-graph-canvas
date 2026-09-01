@@ -28,6 +28,14 @@ const PAGE_FIELDS = [
   "width",
 ].sort();
 const PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
+const CACHE_RELEASE_GRACE_MS = 5_000;
+
+type SharedCache = {
+  cache: BrowserAtlasCache;
+  leases: number;
+  releaseTimer?: ReturnType<typeof setTimeout>;
+};
+const sharedCaches = new Map<string, SharedCache>();
 
 async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -220,4 +228,42 @@ export class BrowserAtlasCache {
   clear(): void {
     for (const pageId of this.ids()) this.remove(pageId);
   }
+}
+
+export function acquireBrowserAtlasCache(
+  componentKey: string,
+  create: () => BrowserAtlasCache = () => new BrowserAtlasCache(),
+): BrowserAtlasCache {
+  let entry = sharedCaches.get(componentKey);
+  if (!entry) {
+    entry = { cache: create(), leases: 0 };
+    sharedCaches.set(componentKey, entry);
+  }
+  if (entry.releaseTimer !== undefined) {
+    clearTimeout(entry.releaseTimer);
+    entry.releaseTimer = undefined;
+  }
+  entry.leases += 1;
+  return entry.cache;
+}
+
+export function releaseBrowserAtlasCache(componentKey: string): void {
+  const entry = sharedCaches.get(componentKey);
+  if (!entry) return;
+  entry.leases = Math.max(0, entry.leases - 1);
+  if (entry.leases > 0 || entry.releaseTimer !== undefined) return;
+  entry.releaseTimer = setTimeout(() => {
+    const current = sharedCaches.get(componentKey);
+    if (current !== entry || current.leases > 0) return;
+    current.cache.clear();
+    sharedCaches.delete(componentKey);
+  }, CACHE_RELEASE_GRACE_MS);
+}
+
+export function clearSharedAtlasCachesForTests(): void {
+  for (const entry of sharedCaches.values()) {
+    if (entry.releaseTimer !== undefined) clearTimeout(entry.releaseTimer);
+    entry.cache.clear();
+  }
+  sharedCaches.clear();
 }

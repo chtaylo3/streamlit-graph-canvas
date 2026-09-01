@@ -17,6 +17,7 @@ from pathlib import Path, PurePosixPath
 from types import MappingProxyType
 from typing import NoReturn, Protocol
 from urllib.parse import unquote, urlparse
+from urllib.request import url2pathname
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
@@ -126,7 +127,7 @@ def _manifest_path(dist: importlib.metadata.Distribution) -> Path:
             metadata = json.loads(direct_url)
             parsed = urlparse(metadata["url"])
             editable = metadata.get("dir_info", {}).get("editable") is True
-            root = Path(unquote(parsed.path))
+            root = Path(url2pathname(unquote(parsed.path)))
             if parsed.scheme == "file" and editable and root.is_dir():
                 candidates = [
                     *root.glob("*/renderer.toml"),
@@ -669,7 +670,7 @@ def _editable_project_root(
         if not direct.get("dir_info", {}).get("editable"):
             return None
         parsed = urlparse(direct["url"])
-        return Path(unquote(parsed.path)).resolve()
+        return Path(url2pathname(unquote(parsed.path))).resolve()
     except (KeyError, TypeError, ValueError, json.JSONDecodeError):
         return None
 

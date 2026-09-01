@@ -80,14 +80,29 @@ async def _proxy_websocket(scope, receive, send) -> None:
         key.decode("latin1"): value.decode("latin1")
         for key, value in scope["headers"]
         if key.lower() not in {b"host", b"connection", b"upgrade", b"origin"}
+        and not key.lower().startswith(b"sec-websocket-")
     }
+    requested_subprotocols = [
+        protocol.strip()
+        for key, value in scope["headers"]
+        if key.lower() == b"sec-websocket-protocol"
+        for protocol in value.decode("latin1").split(",")
+        if protocol.strip()
+    ]
     await receive()
     async with connect(
         UPSTREAM_WS + path,
         additional_headers=headers,
         origin=PROXY_ORIGIN,
+        subprotocols=requested_subprotocols or None,
+        proxy=None,
     ) as upstream:
-        await send({"type": "websocket.accept"})
+        await send(
+            {
+                "type": "websocket.accept",
+                "subprotocol": upstream.subprotocol,
+            }
+        )
 
         async def client_to_upstream() -> None:
             while True:
@@ -107,6 +122,23 @@ async def _proxy_websocket(scope, receive, send) -> None:
 
 async def app(scope, receive, send) -> None:
     if scope["type"] == "http":
+        if scope["raw_path"] == b"/__csp_frame_host":
+            body = (
+                b"<!doctype html><title>CSP frame host</title>"
+                b'<main id="frame-host">CSP frame host</main>'
+            )
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 200,
+                    "headers": [
+                        (b"content-type", b"text/html; charset=utf-8"),
+                        (b"content-length", str(len(body)).encode()),
+                    ],
+                }
+            )
+            await send({"type": "http.response.body", "body": body})
+            return
         await _proxy_http(scope, receive, send)
     elif scope["type"] == "websocket":
         await _proxy_websocket(scope, receive, send)
@@ -130,7 +162,13 @@ def main() -> None:
                 if attempt == 119:
                     raise RuntimeError("Streamlit health check timed out") from None
                 time.sleep(0.25)
-        uvicorn.run(app, host="127.0.0.1", port=8514, log_level="info")
+        uvicorn.run(
+            app,
+            host="127.0.0.1",
+            port=8514,
+            log_level="info",
+            access_log=False,
+        )
     finally:
         streamlit.terminate()
         streamlit.wait(timeout=15)

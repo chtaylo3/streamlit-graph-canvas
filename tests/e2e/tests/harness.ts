@@ -41,7 +41,14 @@ function installFailureSentinel(page: Page, failures: string[]) {
       && message.text().includes("SGC_JAVASCRIPT_CLEANUP_FIXTURE");
     const expectedFrameBlock = process.env.SGC_CSP_PROXY === "true"
       && message.text().includes("frame-ancestors");
-    if (message.type() === "error" && !expectedCleanup && !expectedFrameBlock) {
+    const expectedCspProbe = process.env.SGC_CSP_PROXY === "true"
+      && message.text().includes("https://example.invalid/sgc-csp-probe");
+    if (
+      message.type() === "error"
+      && !expectedCleanup
+      && !expectedFrameBlock
+      && !expectedCspProbe
+    ) {
       failures.push(`console: ${message.text()}`);
     }
   });
@@ -72,9 +79,43 @@ export async function openGallery(page: Page) {
   await expect(page.getByRole("heading", { name: "Graph Canvas Conformance" })).toBeVisible({
     timeout: 20_000,
   });
-  await expect(page.locator('[data-sgc-status="ready"]')).toBeVisible({
+  await waitForGalleryStable(page);
+  await expect(page.getByTestId("viewport-state")).not.toHaveText("none", {
     timeout: 20_000,
   });
+  await waitForGalleryStable(page);
+}
+
+export async function waitForGalleryStable(page: Page, expectedCanvases = 1) {
+  const ready = page.locator('[data-sgc-status="ready"]');
+  await expect(ready).toHaveCount(expectedCanvases, { timeout: 20_000 });
+  let previousSignature = "";
+  let unchangedSince = Date.now();
+  await expect.poll(async () => {
+    const signature = await ready.evaluateAll((elements) => {
+      type IdentityWindow = Window & {
+        __sgcElementIds?: WeakMap<Element, number>;
+        __sgcNextElementId?: number;
+      };
+      const root = window as IdentityWindow;
+      root.__sgcElementIds ??= new WeakMap();
+      root.__sgcNextElementId ??= 1;
+      return elements.map((element) => {
+        let id = root.__sgcElementIds!.get(element);
+        if (id === undefined) {
+          id = root.__sgcNextElementId!++;
+          root.__sgcElementIds!.set(element, id);
+        }
+        return id;
+      }).join(",");
+    });
+    if (signature !== previousSignature) {
+      previousSignature = signature;
+      unchangedSince = Date.now();
+      return false;
+    }
+    return Date.now() - unchangedSince >= 1_000;
+  }, { timeout: 20_000 }).toBe(true);
 }
 
 export { expect };

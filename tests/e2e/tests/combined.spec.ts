@@ -1,4 +1,4 @@
-import { test, expect, openGallery } from "./harness";
+import { test, expect, openGallery, waitForGalleryStable } from "./harness";
 import AxeBuilder from "@axe-core/playwright";
 
 test("core and selected contrib render without Chromium failures", async ({ page, browserFailures }) => {
@@ -26,7 +26,7 @@ test("selection and actions survive a real Streamlit rerun", async ({ page, brow
   await expect(page.getByTestId("action-sequences")).toContainText("1");
   await page.locator(".react-flow__controls-zoomin").click();
   await expect(page.getByTestId("viewport-state")).not.toContainText("none");
-  await page.waitForTimeout(750);
+  await waitForGalleryStable(page);
   const viewport = await page.getByTestId("viewport-state").textContent();
   await page.getByRole("button", { name: "Change presentation" }).click();
   await expect(page.getByRole("button", { name: "service API v2" })).toBeVisible({
@@ -54,12 +54,19 @@ test("React Flow geometry, handles, and zoom limits remain compatible", async ({
   const worker = page.locator('.react-flow__node[data-id="worker"]');
   await expect(api).toBeVisible({ timeout: 20_000 });
   await expect(worker).toBeVisible({ timeout: 20_000 });
-  const apiBox = await api.boundingBox();
-  const workerBox = await worker.boundingBox();
-  expect(apiBox).not.toBeNull();
-  expect(workerBox).not.toBeNull();
-  expect(apiBox!.width).toBeGreaterThan(150);
-  expect(workerBox!.y).toBeGreaterThan(apiBox!.y);
+  await expect.poll(async () => {
+    const [apiBox, workerBox] = await Promise.all([
+      api.evaluate((element) => {
+        const { width, y } = element.getBoundingClientRect();
+        return { width, y };
+      }),
+      worker.evaluate((element) => {
+        const { y } = element.getBoundingClientRect();
+        return { y };
+      }),
+    ]);
+    return apiBox.width > 150 && workerBox.y > apiBox.y;
+  }).toBe(true);
   await expect(api.locator('[data-nodeid="api"][data-handleid="out"]')).toHaveCount(2);
   const zoomIn = page.locator(".react-flow__controls-zoomin");
   for (let index = 0; index < 20 && await zoomIn.isEnabled(); index += 1) {
@@ -74,6 +81,8 @@ test("rerenders do not duplicate React Flow action handlers", async ({ page, bro
   void browserFailures;
   await openGallery(page);
   await page.getByRole("button", { name: "Change presentation" }).click();
+  await expect(page.getByRole("button", { name: "service API v2" })).toBeVisible();
+  await waitForGalleryStable(page);
   await page.getByRole("button", { name: "service API v2" }).click();
   await expect(page.getByTestId("action-sequences")).toHaveText("1");
 });
@@ -92,6 +101,11 @@ test("nodes support keyboard activation", async ({ page, browserFailures }) => {
   await worker.focus();
   await worker.press("Enter");
   await expect(page.getByTestId("selected-nodes")).toContainText("worker");
+});
+
+test("nodes support Space keyboard activation", async ({ page, browserFailures }) => {
+  void browserFailures;
+  await openGallery(page);
   const api = page.getByRole("button", { name: "service API v1" });
   await api.focus();
   await expect(api).toHaveCSS("outline-style", "solid");
@@ -136,7 +150,10 @@ test("JavaScript and ATLAS run under the documented CSP", async ({ page, browser
   expect(response?.headers()["content-security-policy"]).toContain(
     "connect-src 'self' ws://127.0.0.1:8514",
   );
-  await expect(page.getByRole("heading", { name: "Graph Canvas Conformance" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Graph Canvas Conformance" })).toBeVisible({
+    timeout: 20_000,
+  });
+  await waitForGalleryStable(page);
   await expect(page.locator('[data-sgc-status="ready"]')).toBeVisible();
   await expect(page.locator('[data-sgc-transport="javascript"] [data-sgc-js-chip="true"]').first()).toBeVisible();
   await expect(page.locator('[data-sgc-transport="atlas"] image').first()).toHaveAttribute("href", /^blob:/);
@@ -233,15 +250,18 @@ test("SR-T7 unmounting one canvas does not revoke another canvas URL @multi-canv
   test.skip(process.env.SGC_CONTRIB_SET !== "multi-canvas", "multi-canvas fixture set only");
   void browserFailures;
   await page.goto("/");
-  await expect(page.locator('[data-sgc-status="ready"]')).toHaveCount(2, { timeout: 20_000 });
+  await waitForGalleryStable(page, 2);
   const primaryImage = page.locator('[data-sgc-transport="atlas"] image').first();
   const primaryUrl = await primaryImage.getAttribute("href");
   expect(primaryUrl).toMatch(/^blob:/);
-  await page.getByRole("checkbox", { name: "Mount secondary canvas" }).uncheck();
-  await expect(page.locator('[data-sgc-status="ready"]')).toHaveCount(1);
+  const mountSecondary = page.getByRole("checkbox", { name: "Mount secondary canvas" });
+  await page.locator("label").filter({ has: mountSecondary }).click();
+  await expect(mountSecondary).not.toBeChecked();
+  await waitForGalleryStable(page);
   await expect(page.locator('[data-sgc-transport="atlas"] image').first()).toHaveAttribute(
     "href",
     primaryUrl!,
+    { timeout: 20_000 },
   );
 });
 
@@ -262,13 +282,20 @@ test("CSP frame-ancestors allows self and blocks a different origin @csp-framing
   void browserFailures;
   const response = await page.goto("/");
   expect(response?.headers()["content-security-policy"]).toContain("frame-ancestors 'self'");
-  await page.setContent(`
-    <iframe id="same" src="http://127.0.0.1:8514/"></iframe>
-    <iframe id="cross" src="http://127.0.0.1:8514/"></iframe>
-  `);
+  await page.evaluate(() => {
+    const frame = document.createElement("iframe");
+    frame.id = "same";
+    frame.src = "http://127.0.0.1:8514/";
+    document.body.append(frame);
+  });
   await expect(page.frameLocator("#same").getByRole("heading", { name: "Graph Canvas Conformance" })).toBeVisible({ timeout: 20_000 });
-  await page.goto("http://localhost:8514/");
-  await page.setContent('<iframe id="blocked" src="http://127.0.0.1:8514/"></iframe>');
+  await page.goto("http://localhost:8514/__csp_frame_host");
+  await page.evaluate(() => {
+    const frame = document.createElement("iframe");
+    frame.id = "blocked";
+    frame.src = "http://127.0.0.1:8514/";
+    document.body.append(frame);
+  });
   await expect(page.frameLocator("#blocked").getByRole("heading", { name: "Graph Canvas Conformance" })).toHaveCount(0);
 });
 
