@@ -9,9 +9,9 @@ documentation.
 
 ## System architecture
 
-[![Streamlit Graph Canvas system architecture](diagrams/system-architecture.svg)](diagrams/system-architecture.html)
+[![Streamlit Graph Canvas system architecture](diagrams/system-architecture.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/system-architecture.html)
 
-Open the [interactive system architecture diagram](diagrams/system-architecture.html).
+Open the [interactive system architecture diagram](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/system-architecture.html).
 Its editable source is
 [`system-architecture.json`](diagrams/system-architecture.json).
 
@@ -41,9 +41,9 @@ The trust model and deployment requirements are detailed in
 
 ## Request lifecycle
 
-[![graph_canvas request lifecycle](diagrams/request-lifecycle.svg)](diagrams/request-lifecycle.html)
+[![graph_canvas request lifecycle](diagrams/request-lifecycle.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/request-lifecycle.html)
 
-Open the [interactive request lifecycle diagram](diagrams/request-lifecycle.html).
+Open the [interactive request lifecycle diagram](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/request-lifecycle.html).
 Its editable source is
 [`request-lifecycle.json`](diagrams/request-lifecycle.json).
 

@@ -69,9 +69,9 @@ documented in [`docs/architecture.md`](docs/architecture.md). The interactive
 diagrams are generated from editable Archify specifications committed beside
 the rendered files.
 
-[![Streamlit Graph Canvas architecture](docs/diagrams/system-architecture.svg)](docs/diagrams/system-architecture.html)
+[![Streamlit Graph Canvas architecture](docs/diagrams/system-architecture.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/system-architecture.html)
 
-Select the diagram to open the interactive version.
+Select the diagram to open the interactive GitHub Pages version.
 
 ## Documentation
 
