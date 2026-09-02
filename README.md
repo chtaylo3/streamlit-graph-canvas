@@ -81,6 +81,7 @@ Select the diagram to open the interactive GitHub Pages version.
 - [JavaScript, ATLAS, multi-tenancy, and CSP](docs/transports-and-csp.md)
 - [Conformance testing](docs/conformance-testing.md)
 - [Dependency lifecycle](docs/dependency-lifecycle.md)
+- [Build and release process](docs/release-process.md)
 - [Release activation](docs/release-activation.md)
 - [Long-term design](docs/generalized-node-canvas-design.md)
 
