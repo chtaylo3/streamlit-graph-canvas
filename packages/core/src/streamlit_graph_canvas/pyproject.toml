@@ -1,6 +1,6 @@
 [project]
 name = "streamlit-graph-canvas"
-version = "0.1.0.dev0"
+version = "0.1.0rc1"
 
 [[tool.streamlit.component.components]]
 name = "graph_canvas"

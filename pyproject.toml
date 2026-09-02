@@ -1,6 +1,6 @@
 [project]
 name = "streamlit-graph-canvas-workspace"
-version = "0.1.0.dev0"
+version = "0.1.0rc1"
 description = "Development workspace for streamlit-graph-canvas and its renderer ecosystem."
 requires-python = ">=3.12"
 dependencies = [

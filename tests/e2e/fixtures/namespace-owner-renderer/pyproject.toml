@@ -9,7 +9,7 @@ description = "Owned shared-namespace leaf used by hostile provenance tests."
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
-dependencies = ["streamlit-graph-canvas>=0.1.0.dev0,<0.2"]
+dependencies = ["streamlit-graph-canvas>=0.1.0rc1,<0.2"]
 
 [tool.uv.build-backend]
 module-name = "scg_shared_namespace"
