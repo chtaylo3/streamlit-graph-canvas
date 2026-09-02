@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "codecVersion": 2,
+  "codecVersion": 3,
   "actionProtocolVersion": 1,
   "rendererApiVersion": 1,
   "rendererRegistrySymbol": "streamlit-graph-canvas.renderers.v1",
@@ -17,6 +17,15 @@
     "maxAtlasDimension": 4096,
     "maxAtlasDecodedPixels": 262144,
     "maxAtlasPageBytes": 2097152,
+    "maxAtlasPages": 512,
+    "maxAtlasAggregateBytes": 67108864,
+    "maxSpriteSourceBytes": 8388608,
+    "maxSpriteSourceDimension": 4096,
+    "maxSpriteSourceDecodedPixels": 16777216,
+    "maxSpriteCatalogEntries": 4096,
+    "maxSpriteCatalogBytes": 67108864,
+    "maxSpriteCatalogDecodedPixels": 134217728,
+    "maxPreparedTileDecodedPixels": 262144,
     "maxPrimitiveCount": 200,
     "maxPrimitiveTextChars": 1024
   }

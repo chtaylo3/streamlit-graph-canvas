@@ -6,7 +6,10 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from .sprites import SpriteBinding, SpriteRef
 
 BUILTIN_PALETTE = {
     "surface": {"light": "var(--st-secondary-background-color)", "dark": None},
@@ -42,6 +45,8 @@ class FitView(StrEnum):
 class Transport(StrEnum):
     PRIMS = "prims"
     JAVASCRIPT = "javascript"
+    RASTER = "raster"
+    # Compatibility name/value retained for the 0.1 release-candidate series.
     ATLAS = "atlas"
 
 
@@ -108,6 +113,7 @@ class NodeType:
     style: NodeStyle = NodeStyle()
     ports: tuple[PortSpec, ...] = ()
     badges: tuple[BadgeBinding, ...] = ()
+    sprites: tuple[SpriteBinding, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,10 +156,12 @@ class Node:
     height: float | None = None
     disabled: bool = False
     dimmed: bool = False
+    sprites: Mapping[str, SpriteRef] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "data", _mapping(self.data))
         object.__setattr__(self, "badges", _mapping(self.badges))
+        object.__setattr__(self, "sprites", _mapping(self.sprites))
 
 
 @dataclass(frozen=True, slots=True)

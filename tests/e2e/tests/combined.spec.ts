@@ -1,5 +1,35 @@
 import { test, expect, openGallery, waitForGalleryStable } from "./harness";
 import AxeBuilder from "@axe-core/playwright";
+import type { Locator } from "@playwright/test";
+
+async function spriteSample(sprite: Locator) {
+  return sprite.evaluate(async (svg) => {
+    const image = svg.querySelector("image");
+    const href = image?.getAttribute("href");
+    const viewBox = svg.getAttribute("viewBox")?.split(/\s+/u).map(Number);
+    if (!href || !viewBox || viewBox.length !== 4) throw new Error("sprite is incomplete");
+    const [x, y, width, height] = viewBox;
+    const bitmap = await createImageBitmap(await (await fetch(href)).blob());
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("2D context is unavailable");
+    context.drawImage(
+      bitmap,
+      x + width * 0.2,
+      y + height * 0.5,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+    );
+    bitmap.close();
+    return [...context.getImageData(0, 0, 1, 1).data];
+  });
+}
 
 test("core and selected contrib render without Chromium failures", async ({ page, browserFailures }) => {
   void browserFailures;
@@ -11,6 +41,23 @@ test("core and selected contrib render without Chromium failures", async ({ page
     await expect(page.locator('[data-sgc-badge="count-prims"] text').first()).toHaveText("7");
     await expect(page.locator('[data-sgc-transport="javascript"] [data-sgc-js-chip="true"]')).toHaveCount(2);
     await expect(page.locator('[data-sgc-transport="atlas"] image').first()).toHaveAttribute("href", /^blob:/);
+    const staticSprites = page.locator('[data-sgc-transport="sprite"]');
+    await expect(staticSprites).toHaveCount(2);
+    const staticImages = staticSprites.locator("image");
+    await expect(staticImages.nth(0)).toHaveAttribute("href", /^blob:/);
+    await expect(staticImages.nth(1)).toHaveAttribute("href", /^blob:/);
+    expect(await staticImages.nth(0).getAttribute("href")).toBe(
+      await staticImages.nth(1).getAttribute("href"),
+    );
+    expect(await staticSprites.nth(0).getAttribute("viewBox")).not.toBe(
+      await staticSprites.nth(1).getAttribute("viewBox"),
+    );
+    const [apiPixel, workerPixel] = await Promise.all([
+      spriteSample(staticSprites.nth(0)),
+      spriteSample(staticSprites.nth(1)),
+    ]);
+    expect(apiPixel[0]).toBeGreaterThan(apiPixel[2]);
+    expect(workerPixel[1]).toBeGreaterThan(workerPixel[0]);
     if (process.env.SGC_CONTRIB_SET === "transports") {
       await expect(page.locator('[data-sgc-javascript-only-fixture="true"]')).toHaveCount(2);
     }
@@ -136,6 +183,18 @@ test("dark palette variants render in Chromium", async ({ page, browserFailures 
   await page.emulateMedia({ colorScheme: "dark" });
   await openGallery(page);
   await expect(page.locator('[data-sgc-badge="count-prims"] rect').first()).toHaveCSS("fill", "rgb(96, 165, 250)");
+  const apiSprite = page.locator('.react-flow__node[data-id="api"] [data-sgc-transport="sprite"]');
+  const workerSprite = page.locator('.react-flow__node[data-id="worker"] [data-sgc-transport="sprite"]');
+  await expect(apiSprite.locator("image")).toHaveAttribute("href", /^blob:/);
+  await expect(workerSprite.locator("image")).toHaveAttribute("href", /^blob:/);
+  await expect.poll(async () => {
+    const pixel = await spriteSample(apiSprite);
+    return pixel[2] > pixel[0];
+  }, { timeout: 20_000 }).toBe(true);
+  await expect.poll(async () => {
+    const pixel = await spriteSample(workerSprite);
+    return pixel[1] > pixel[0];
+  }, { timeout: 20_000 }).toBe(true);
 });
 
 test("JavaScript and ATLAS run under the documented CSP", async ({ page, browserFailures }) => {

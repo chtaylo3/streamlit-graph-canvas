@@ -1,6 +1,6 @@
 // Generated cross-language protocol authority. Do not edit directly.
 export const CONTRACT_SCHEMA_VERSION = 1 as const;
-export const CODEC_VERSION = 2 as const;
+export const CODEC_VERSION = 3 as const;
 export const PROTOCOL_VERSION = 1 as const;
 export const RENDERER_API = 1 as const;
 export const RENDERER_REGISTRY_SYMBOL = "streamlit-graph-canvas.renderers.v1" as const;
@@ -16,5 +16,14 @@ export const MAX_DATA_VALUES = 100000 as const;
 export const MAX_ATLAS_DIMENSION = 4096 as const;
 export const MAX_ATLAS_DECODED_PIXELS = 262144 as const;
 export const MAX_ATLAS_PAGE_BYTES = 2097152 as const;
+export const MAX_ATLAS_PAGES = 512 as const;
+export const MAX_ATLAS_AGGREGATE_BYTES = 67108864 as const;
+export const MAX_SPRITE_SOURCE_BYTES = 8388608 as const;
+export const MAX_SPRITE_SOURCE_DIMENSION = 4096 as const;
+export const MAX_SPRITE_SOURCE_DECODED_PIXELS = 16777216 as const;
+export const MAX_SPRITE_CATALOG_ENTRIES = 4096 as const;
+export const MAX_SPRITE_CATALOG_BYTES = 67108864 as const;
+export const MAX_SPRITE_CATALOG_DECODED_PIXELS = 134217728 as const;
+export const MAX_PREPARED_TILE_DECODED_PIXELS = 262144 as const;
 export const MAX_PRIMITIVE_COUNT = 200 as const;
 export const MAX_PRIMITIVE_TEXT_CHARS = 1024 as const;

@@ -24,7 +24,8 @@ The policy covers five dependency surfaces:
    license inventory/text, renderer assets, and release wheels.
 
 Critical dependencies can change runtime protocol, graph interaction/layout,
-raster output, or security boundaries. High-risk dependencies affect builds or
+raster output, image normalization/packing, or security boundaries. High-risk
+dependencies affect builds or
 compatibility validation. Medium/low-risk entries remain inventoried but do not
 define a user-facing minimum unless they ship or run in user environments.
 
@@ -32,7 +33,7 @@ define a user-facing minimum unless they ship or run in user environments.
 
 | Lane | Resolution | Platforms | Required |
 | --- | --- | --- | --- |
-| Locked | exact `uv.lock` and npm locks | Ubuntu and Windows, Python 3.12–3.14; Node 24 | yes |
+| Locked | exact `uv.lock` and npm locks | Ubuntu and Windows, Python 3.12–3.14; Node 24.x | yes |
 | Release artifact | exact wheel bytes later passed to `uv publish` | Ubuntu + Chromium | yes |
 | Minimum | exact supported direct minimums; coherent coupled stacks | Ubuntu and Windows; Chromium transports set | yes |
 | Latest | fresh resolution inside declared ranges | Ubuntu and Windows on oldest/newest Python; Chromium transports set | yes |
@@ -47,9 +48,10 @@ locked version but is not part of the user compatibility contract.
 
 Every compatibility run records the resolved inventory. Browser failures retain
 traces, screenshots, video, Streamlit logs, and JUnit output. The Chromium
-`transports` set combines core, stock contrib, JavaScript transport, ATLAS, the
-tenant-scoped cache path, and CSP checks. Tenant isolation and eviction are
-separately exercised with deterministic Python tests.
+`transports` set combines core, stock contrib, JavaScript and raster transports,
+static sprites, packed atlas delivery, the tenant-scoped cache path, and CSP
+checks. Tenant isolation and eviction are separately exercised with
+deterministic Python tests.
 
 ## Dependency-specific behavioral contracts
 
@@ -66,10 +68,11 @@ stack; functional geometry uses tolerances.
 
 Streamlit/Component v2 updates must preserve registration, mount/state/trigger
 semantics, rerun restoration, cleanup, theme propagation, asset loading, and CSP.
-Pillow updates must preserve contractual raster output for fixtures evaluated
-under that version. Page IDs intentionally change between Pillow versions: the
-normalized version and explicit ATLAS rasterizer revision are mandatory inputs
-to every cache key, preventing stale cross-version reuse. Runtime rejects
+Pillow updates must preserve contractual raster output and static PNG
+normalization for fixtures evaluated under that version. Page and tile IDs
+intentionally change between Pillow versions: the normalized version and
+explicit normalizer/rasterizer revisions are mandatory cache-key inputs,
+preventing stale cross-version reuse. Runtime rejects
 versions outside `>=12.3,<13`, and the policy verifier keeps that guard, package
 metadata, and revision synchronized. Minimum and latest-supported lanes exercise
 the guard on Windows and Linux; the advisory forward lane probes Pillow 13.
