@@ -1,7 +1,9 @@
 import {
+  MAX_ATLAS_AGGREGATE_BYTES,
   MAX_ATLAS_DECODED_PIXELS,
   MAX_ATLAS_DIMENSION,
   MAX_ATLAS_PAGE_BYTES,
+  MAX_ATLAS_PAGES,
 } from "./contract";
 
 export type AtlasPageDelta = {
@@ -13,7 +15,13 @@ export type AtlasPageDelta = {
   height: number;
 };
 
-type CachedPage = { url: string; bytes: number };
+export type AtlasPageDescriptor = {
+  readonly url: string;
+  readonly bytes: number;
+  readonly width: number;
+  readonly height: number;
+};
+type CachedPage = AtlasPageDescriptor;
 type PreparedPage = { page: AtlasPageDelta; bytes: Uint8Array<ArrayBuffer> };
 type Digest = (bytes: Uint8Array<ArrayBuffer>) => Promise<string>;
 
@@ -120,6 +128,8 @@ async function preparePage(
 
 export class BrowserAtlasCache {
   private readonly pages = new Map<string, CachedPage>();
+  private readonly presentationLeases = new Map<string, number>();
+  private readonly pendingRemovals = new Set<string>();
 
   constructor(
     private readonly createUrl = (blob: Blob) => URL.createObjectURL(blob),
@@ -134,6 +144,23 @@ export class BrowserAtlasCache {
     protectedPageIds: ReadonlySet<string> = new Set(),
     isCurrent: () => boolean = () => true,
   ): Promise<boolean> {
+    const configuredMaxPages = limits?.maxPages ?? MAX_ATLAS_PAGES;
+    const configuredMaxBytes = limits?.maxBytes ?? MAX_ATLAS_AGGREGATE_BYTES;
+    if (
+      !Number.isSafeInteger(configuredMaxPages)
+      || configuredMaxPages <= 0
+      || !Number.isSafeInteger(configuredMaxBytes)
+      || configuredMaxBytes <= 0
+    ) {
+      throw new Error("SGC_ATLAS_BROWSER_POLICY: cache limits are invalid");
+    }
+    const maxPages = Math.min(configuredMaxPages, MAX_ATLAS_PAGES);
+    const maxBytes = Math.min(configuredMaxBytes, MAX_ATLAS_AGGREGATE_BYTES);
+    if (pages.length > maxPages || removedPageIds.length > maxPages) {
+      throw new Error(
+        "SGC_ATLAS_DELTA_CARDINALITY: page delta exceeds the browser page limit",
+      );
+    }
     const additions = new Set<string>();
     for (const page of pages) {
       if (additions.has(page.pageId)) {
@@ -148,35 +175,51 @@ export class BrowserAtlasCache {
       }
       removals.add(pageId);
     }
-    const maxBytes = limits?.maxBytes ?? MAX_ATLAS_PAGE_BYTES;
     const prepared: PreparedPage[] = [];
+    let preparedBytes = 0;
     for (const page of pages) {
-      prepared.push(await preparePage(page, maxBytes, this.digest));
+      const item = await preparePage(
+        page,
+        Math.min(maxBytes, MAX_ATLAS_PAGE_BYTES),
+        this.digest,
+      );
+      preparedBytes += item.bytes.byteLength;
+      if (preparedBytes > maxBytes) {
+        throw new Error(
+          "SGC_ATLAS_AGGREGATE_BYTES: incoming pages exceed the browser byte limit",
+        );
+      }
+      prepared.push(item);
       if (!isCurrent()) return false;
     }
 
-    const prospective = new Map(this.pages);
+    const prospective = new Map(
+      [...this.pages].filter(([pageId]) => !this.pendingRemovals.has(pageId)),
+    );
     for (const pageId of removals) prospective.delete(pageId);
     for (const item of prepared) {
-      prospective.set(item.page.pageId, { url: "", bytes: item.bytes.byteLength });
+      prospective.set(item.page.pageId, {
+        url: "",
+        bytes: item.bytes.byteLength,
+        width: item.page.width,
+        height: item.page.height,
+      });
     }
     const evictions = new Set<string>();
-    if (limits) {
-      const prospectiveBytes = () => [...prospective.values()]
-        .reduce((total, page) => total + page.bytes, 0);
-      while (
-        prospective.size > limits.maxPages
-        || prospectiveBytes() > limits.maxBytes
-      ) {
-        const victim = [...prospective.keys()].find(
-          (pageId) => !protectedPageIds.has(pageId),
-        );
-        if (!victim) {
-          throw new Error("SGC_ATLAS_BROWSER_WORKING_SET_LIMIT");
-        }
-        prospective.delete(victim);
-        evictions.add(victim);
+    const prospectiveBytes = () => [...prospective.values()]
+      .reduce((total, page) => total + page.bytes, 0);
+    while (
+      prospective.size > maxPages
+      || prospectiveBytes() > maxBytes
+    ) {
+      const victim = [...prospective.keys()].find(
+        (pageId) => !protectedPageIds.has(pageId),
+      );
+      if (!victim) {
+        throw new Error("SGC_ATLAS_BROWSER_WORKING_SET_LIMIT");
       }
+      prospective.delete(victim);
+      evictions.add(victim);
     }
     if (!isCurrent()) return false;
 
@@ -188,10 +231,12 @@ export class BrowserAtlasCache {
           || removals.has(item.page.pageId)
           || evictions.has(item.page.pageId)
         ) continue;
-        staged.set(item.page.pageId, {
+        staged.set(item.page.pageId, Object.freeze({
           url: this.createUrl(new Blob([item.bytes], { type: item.page.mediaType })),
           bytes: item.bytes.byteLength,
-        });
+          width: item.page.width,
+          height: item.page.height,
+        }));
       }
     } catch (error) {
       for (const item of staged.values()) this.revokeUrl(item.url);
@@ -201,13 +246,18 @@ export class BrowserAtlasCache {
       for (const item of staged.values()) this.revokeUrl(item.url);
       return false;
     }
-    for (const pageId of new Set([...removals, ...evictions])) this.remove(pageId);
+    for (const pageId of new Set([...removals, ...evictions])) this.retire(pageId);
+    for (const item of prepared) {
+      if (!evictions.has(item.page.pageId)) {
+        this.pendingRemovals.delete(item.page.pageId);
+      }
+    }
     for (const [pageId, item] of staged) this.pages.set(pageId, item);
     return true;
   }
 
-  get(pageId: string): string | undefined {
-    return this.pages.get(pageId)?.url;
+  get(pageId: string): AtlasPageDescriptor | undefined {
+    return this.pages.get(pageId);
   }
 
   ids(): string[] {
@@ -218,15 +268,53 @@ export class BrowserAtlasCache {
     return [...this.pages.values()].reduce((total, page) => total + page.bytes, 0);
   }
 
-  remove(pageId: string): void {
+  retain(pageIds: ReadonlySet<string>): void {
+    for (const pageId of pageIds) {
+      if (!this.pages.has(pageId)) {
+        throw new Error("SGC_SPRITE_PAGE_MISSING: cannot lease an unavailable page");
+      }
+    }
+    for (const pageId of pageIds) {
+      this.presentationLeases.set(
+        pageId,
+        (this.presentationLeases.get(pageId) ?? 0) + 1,
+      );
+    }
+  }
+
+  release(pageIds: ReadonlySet<string>): void {
+    for (const pageId of pageIds) {
+      const leases = this.presentationLeases.get(pageId) ?? 0;
+      if (leases <= 1) {
+        this.presentationLeases.delete(pageId);
+        if (this.pendingRemovals.has(pageId)) this.deletePage(pageId);
+      } else {
+        this.presentationLeases.set(pageId, leases - 1);
+      }
+    }
+  }
+
+  private retire(pageId: string): void {
+    if ((this.presentationLeases.get(pageId) ?? 0) > 0) {
+      this.pendingRemovals.add(pageId);
+    } else {
+      this.deletePage(pageId);
+    }
+  }
+
+  private deletePage(pageId: string): void {
     const page = this.pages.get(pageId);
     if (!page) return;
-    this.revokeUrl(page.url);
     this.pages.delete(pageId);
+    this.pendingRemovals.delete(pageId);
+    this.presentationLeases.delete(pageId);
+    this.revokeUrl(page.url);
   }
 
   clear(): void {
-    for (const pageId of this.ids()) this.remove(pageId);
+    for (const pageId of this.ids()) this.deletePage(pageId);
+    this.pendingRemovals.clear();
+    this.presentationLeases.clear();
   }
 }
 

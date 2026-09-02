@@ -2,7 +2,8 @@
 
 This design defines a reusable, domain-neutral graph canvas for Streamlit. It
 is for reviewers evaluating the architecture and for engineers implementing
-the core package, renderer ecosystem, atlas transport, and conformance tests.
+the core package, renderer ecosystem, raster and atlas delivery, and conformance
+tests.
 The proposal targets Streamlit Components v2 and replaces the
 dependency-specific contract in the GitHub Dependency Explorer.
 
@@ -79,8 +80,9 @@ This design makes the following changes to the original proposal:
   edges, and named ports.
 - Removes containment semantics from the canvas schema. Applications own
   relationship meaning and graph windowing.
-- Includes PRIMS, explicitly enabled trusted JavaScript, and bounded ATLAS in
-  the public beta transport matrix.
+- Includes PRIMS, explicitly enabled trusted JavaScript, and bounded raster
+  transport in the public beta transport matrix, plus static PNG sprites that
+  share atlas delivery.
 - Loads third-party renderers only from explicitly enabled, installed Python
   wheels with static manifests.
 - Uses Components v2 bootstrap components to register JavaScript renderers in
@@ -104,8 +106,10 @@ This design makes the following changes to the original proposal:
   bindings, and interactions as data.
 - Support Python and JavaScript badge renderers through one versioned extension
   contract.
-- Support PRIMS, JavaScript, and ATLAS delivery without requiring an
+- Support PRIMS, JavaScript, and raster delivery without requiring an
   application to redesign badge data when it changes transports.
+- Let applications map named static transparent PNGs to nodes without a custom
+  renderer or browser-visible path.
 - Preserve node positions and the viewport across Streamlit reruns.
 - Distinguish single-click and double-click actions without emitting a stray
   single-click action for a double-click.
@@ -435,7 +439,7 @@ options, region, data contract, paint order, and event envelope.
 | --- | --- | --- | --- |
 | PRIMS | Validated drawing primitives | Vector-sharp | Supported |
 | JavaScript | Raw validated badge data | Vector-sharp | Supported when the renderer declares parts |
-| ATLAS | Content hash and tile coordinates | Raster; bounded by generated resolution | Not supported |
+| RASTER | Packed-page ID and real sprite coordinates | Raster; bounded by generated resolution | Not supported |
 
 Switching between supported transports changes only the binding configuration.
 It does not require a new kind or application payload.
@@ -448,7 +452,7 @@ changes without a Python rerun.
 
 PRIMS moves cost from transfer bytes to SVG elements. The frontend enables
 React Flow viewport culling, and beta measurements determine which renderers
-benefit from ATLAS instead.
+benefit from raster transport instead.
 
 ### JavaScript
 
@@ -459,10 +463,12 @@ installing independent event handlers.
 JavaScript packages are trusted application dependencies. Explicit enablement
 is a consent boundary, not a sandbox.
 
-### ATLAS
+### Raster transport and atlas delivery
 
-ATLAS rasterizes the output of a prim-emitting Python renderer. A renderer that
-cannot emit primitives cannot use ATLAS.
+`Transport.RASTER` rasterizes the output of a prim-emitting Python renderer. A
+renderer that cannot emit primitives cannot use the raster transport. The
+legacy `Transport.ATLAS` spelling remains compatibility behavior during the
+0.1 release-candidate series.
 
 The beta rasterizer uses Pillow behind an internal function and is installed
 through the `atlas` extra. The matrix validates its supported minimum and latest
@@ -471,19 +477,23 @@ and Linux. A forward lane detects the next Pillow major. The runtime guard and
 mandatory cache identity are checked against the dependency policy; this API
 does not appear in the public contract.
 
-The atlas pipeline performs the following work:
+Raster output then enters a shared atlas pipeline that also accepts normalized
+application-provided static PNG sprites. The pipeline performs the following
+work:
 
 1. Compute a content key from the rasterizer revision, normalized Pillow
    version, canonical kind, renderer version, static options, badge data,
    resolved palette, theme, dimensions, font resources, and resolution bucket.
-2. Reuse existing content-addressed tiles from the session cache.
-3. Render missing keys to primitives and serialize them to the supported static
-   SVG subset.
-4. Rasterize missing tiles into lossless one-tile PNG pages with alpha support;
-   multi-tile packing remains a compatible performance optimization.
-5. Send new pages as bounded base64 page deltas and mappings as versioned
+2. Reuse existing tile-to-page mappings from the session or tenant cache.
+3. Render missing procedural keys to the bounded PRIMS vocabulary and validate
+   the complete result.
+4. Rasterize missing PRIMS or normalize and resize missing static PNGs into
+   lossless RGBA tiles with alpha support.
+5. Deterministically pack missing tiles into immutable multi-sprite pages and
+   record a physical crop rectangle for each tile.
+6. Send new pages as bounded base64 page deltas and mappings as versioned
    JSON-compatible metadata.
-6. Create browser-session Blob URLs and revoke each URL when its page leaves
+7. Create browser-session Blob URLs and revoke each URL when its page leaves
    the browser cache.
 
 Python and browser caches use configurable least-recently-used limits for page
@@ -491,49 +501,46 @@ count and total bytes. Cache eviction produces explicit removal deltas. The
 cache is not append-only.
 
 Session-scoped caching is the default because graphs may contain private data.
-Global cache sharing requires explicit application opt-in and accepts only
-non-sensitive, content-addressed tiles.
+Tenant cache sharing requires explicit application opt-in and an authenticated,
+server-derived tenant ID. Page and tile identities remain tenant isolated.
 
-ATLAS supports `1x`, `1.5x`, and `2x` device-pixel-ratio buckets. The browser
-rounds up to the nearest bucket and reports bucket changes through persistent
-component state. Values above `2x` use `2x` until a later release adds another
-bucket.
+Atlas delivery supports `1x`, `1.5x`, and `2x` device-pixel-ratio buckets. The
+browser rounds up to the nearest bucket and reports bucket changes through
+persistent component state. Values above `2x` use `2x` until a later release
+adds another bucket.
 
-ATLAS generates light and dark variants lazily. A theme change reports the new
-mode through component state and causes one rerun. The frontend retains the
-previous tile or a neutral placeholder until the requested variant arrives.
+Raster bindings and static sprites select light and dark variants lazily. A
+static sprite always has a light/default PNG and may provide a dark PNG; dark
+mode falls back deterministically to light when the dark variant is absent. A
+theme change reports the new mode through component state and causes a
+presentation-only rerun. The frontend retains the previous valid page until
+the requested variant arrives.
 
-ATLAS renderers use only fonts declared and packaged in their wheel. Core and
+Raster renderers use only fonts declared and packaged in their wheel. Core and
 contrib package a deterministic open-licensed sans-serif font for stock
 renderers. Unsupported glyphs produce an isolated badge diagnostic instead of
 silently substituting an operating-system font.
 
 ## Image references
 
-Renderers use structured image references:
+The current public static-image contract uses `SpriteCatalog`, `StaticSprite`,
+`PngImage`, `SpriteBinding`, and `SpriteRef`. Every catalog entry requires a
+light/default PNG and may include a dark PNG. Nodes name catalog IDs, never
+paths, bytes, URLs, atlas pages, or coordinates. Static sprites do not require a
+renderer package or renderer enablement.
 
-- `PackageAsset(package, path)` identifies a public asset inside an installed
-  renderer distribution.
-- `BinaryImage(media_type, content_hash, bytes)` carries validated image bytes.
-- `RemoteImage(provider, resource_id)` identifies a resource through an
-  application-configured provider.
+`PngImage.from_file()` reads a trusted server path immediately and retains only
+owned bytes; `from_bytes()` copies already available PNG data. Core verifies
+and fully decodes each source, enforces encoded and decoded limits, normalizes
+to canonical RGBA, strips metadata, preserves alpha, and hashes the normalized
+content. `contain`, `cover`, and `fill` are applied before deterministic atlas
+packing. The browser receives only bounded page deltas and resolved crop
+coordinates.
 
-Python resolves `PackageAsset` only inside the asset roots declared by the
-enabled renderer manifest. It validates the path, reads and hashes the file,
-and sends the content through a session-scoped binary asset delta. The browser
-creates a Blob URL and reuses it by content hash. The graph envelope never
-contains an operating-system path or a cross-package asset URL.
-
-Remote images are disabled by default. If an application enables them, it must
-configure exact HTTPS origins and a provider. The framework rejects wildcard
-hosts, embedded credentials, arbitrary ports, IP literals, private or local
-addresses, and cross-origin redirects. Python and JavaScript enforce the same
-policy.
-
-The provider materializes every remote image as validated bytes before it
-reaches a transport. The rasterizer and framework-managed browser renderers
-never fetch the remote URL. Limits apply to encoded bytes, decoded bytes,
-dimensions, and total payload.
+Remote images, renderer package image assets, SVG, JPEG, WebP, animation, and
+user-supplied prepacked pages are deferred. If remote providers are introduced,
+they must materialize validated bytes server-side under exact allowlists; the
+framework-managed browser renderer must not fetch the remote URL.
 
 An enabled JavaScript renderer can bypass the framework image API because it is
 trusted page-level code. Renderer-authoring documentation must state this
@@ -543,8 +550,8 @@ boundary.
 
 The first release uses versioned JSON-compatible envelopes for schemas,
 topology, presentation data, primitives, mappings, state, actions, and
-diagnostics. Raw bytes appear only in content-addressed image and atlas page
-deltas.
+diagnostics. Static source bytes never enter the envelope; binary bytes appear
+only as base64-encoded, content-addressed atlas page deltas.
 
 Topology and presentation have separate hashes and monotonic revisions.
 Topology contains IDs, endpoint relationships, ports, types, and geometry.
@@ -639,7 +646,7 @@ an empty set suppresses actions. `canvas.explain()` shows the resolved routing
 and whether click buffering is active.
 
 Startup validation rejects handlers for undeclared node types, bindings, or
-parts and rejects part-specific handlers for ATLAS bindings.
+parts and rejects part-specific handlers for raster bindings.
 
 ### Actions use a versioned envelope
 
@@ -730,8 +737,8 @@ The first release provides:
 - Non-pointer alternatives for every required operation.
 - Meaning that does not depend on color alone.
 
-ATLAS cannot expose part-level hit geometry. Startup validation rejects a
-part-specific handler bound to an ATLAS badge.
+Raster output and static sprites cannot expose part-level hit geometry. Startup
+validation rejects a part-specific handler bound to either image layer.
 
 ## Validation and failure behavior
 
@@ -928,20 +935,24 @@ Acceptance criteria:
   contract.
 - Renderer cleanup does not leak event listeners or DOM nodes across reruns.
 
-### Milestone 6: complete ATLAS
+### Milestone 6: complete raster and atlas delivery
 
-Status: **Built for the beta primitive vocabulary.** The internal beta
-rasterizer is Pillow rather than the provisional `resvg_py`; pages currently
-contain one content-addressed tile, which preserves delta, eviction, and cache
-semantics while leaving multi-tile packing as a performance optimization.
+Status: **Built for the beta primitive and static-PNG vocabulary.** The
+internal beta rasterizer is Pillow rather than the provisional `resvg_py`.
+Deterministic immutable pages contain one or more static or procedural tiles;
+node layers carry real crop coordinates, and the browser validates and uses
+those coordinates against the page dimensions.
 
-Implement deterministic Pillow rasterization, page deltas, Blob URLs, bounded
-session and tenant caches, theme variants, resolution buckets, and eviction.
+The implementation includes deterministic Pillow normalization/rasterization,
+multi-sprite packing, page deltas, Blob URLs, bounded session and tenant caches,
+theme variants and fallback, resolution buckets, and eviction.
 
 Acceptance criteria:
 
-- Changing a supported binding from PRIMS to ATLAS changes only its transport.
-- Live PRIMS and ATLAS golden output match within documented raster tolerance.
+- Changing a supported binding from PRIMS to RASTER changes only its transport.
+- Live PRIMS and raster golden output match within documented raster tolerance.
+- Static transparent PNGs share pages, crop correctly, and select a supplied
+  dark variant or deterministic light fallback without topology changes.
 - Cache limits hold under high-cardinality badge data.
 - Evicted browser pages revoke their Blob URLs.
 - Windows and Linux golden tests produce the expected deterministic output.
@@ -976,7 +987,8 @@ The long-term plan includes:
   acknowledgment, hit testing, click buffering, registration, cleanup, and
   layout triggers.
 - Property tests that verify bleed containment and serialization invariants.
-- Golden-image tests for PRIMS and ATLAS on Windows and Linux x86-64.
+- Golden-image tests for PRIMS, raster output, and static PNG normalization on
+  Windows and Linux x86-64.
 - Browser tests for the supported Edge and Chrome matrix.
 - Accessibility automation plus documented keyboard, touch, zoom, and
   screen-reader checks.
@@ -1010,7 +1022,8 @@ Stable `1.0` requires all of the following gates:
 - Passing Windows and Linux x86-64 matrices.
 - Passing the supported Edge and Chrome browser matrix.
 - Dependency Explorer migration through public APIs only.
-- Passing PRIMS, JavaScript, and ATLAS conformance suites.
+- Passing PRIMS, JavaScript, raster, static-sprite, and atlas-crop conformance
+  suites.
 - Passing renderer compatibility and security tests.
 - Published beta performance measurements against the planning assumptions.
 - Completed API-freeze, migration-documentation, attribution, and packaging
@@ -1075,17 +1088,19 @@ Rejected. Both choices expand the code-loading boundary and complicate content
 security policy. Package-based Components v2 bootstrap registration loads only
 installed assets.
 
-### Make ATLAS the default transport
+### Make raster the default transport
 
-Rejected. ATLAS performs well when many nodes share visual states and poorly
-when key cardinality approaches node count. It also gives up vector sharpness
-and part-level hit geometry. Applications choose it per binding.
+Rejected. Raster delivery performs well when many nodes share visual states
+and poorly when key cardinality approaches node count. It also gives up vector
+sharpness and part-level hit geometry. Applications choose it per binding.
 
-### Keep public atlas URLs or generated static assets
+### Keep public atlas URLs or browser-visible source assets
 
 Rejected. Public asset locations risk cross-session disclosure and unbounded
-storage. Bounded page deltas, session caches, and Blob URLs keep
-generated data scoped to the application session by default.
+storage. Applications may provide static PNGs through `SpriteCatalog`, but core
+reads or copies them server-side, normalizes them, and sends only bounded page
+deltas and crop mappings. Session caches and Blob URLs keep generated data
+scoped to the application session by default.
 
 ### Accept raw SVG renderers
 
@@ -1109,7 +1124,7 @@ add authoritative positions later.
 
 ### Three transports increase the first-release surface
 
-PRIMS, JavaScript, and ATLAS require separate runtime and test paths. Their
+PRIMS, JavaScript, and raster require separate runtime and test paths. Their
 shared kind, region, options, data, and event contracts reduce divergence. A
 transport that cannot pass the common conformance suite must not ship.
 
@@ -1129,11 +1144,11 @@ extensibility rather than hide the failure behind source evaluation.
 
 ### PRIMS can create large SVG trees
 
-Viewport culling limits mounted work, and ATLAS provides an explicit option for
+Viewport culling limits mounted work, and raster provides an explicit option for
 highly duplicated complex badges. Beta measurements determine practical
 guidance by renderer and workload.
 
-### ATLAS can consume more memory than inline images
+### Atlas delivery can consume more memory than inline images
 
 High key cardinality and large surround regions can make atlases inefficient.
 Bounded caches, cardinality diagnostics, resolution buckets, and per-binding

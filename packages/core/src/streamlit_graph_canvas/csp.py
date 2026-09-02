@@ -33,7 +33,7 @@ def required_csp_directives(
         "media-src": ("'self'",),
         "worker-src": ("'self'",),
     }
-    if Transport.ATLAS in selected:
+    if Transport.ATLAS in selected or Transport.RASTER in selected:
         directives["img-src"] = (*directives["img-src"], "blob:")
     # JavaScript renderer modules are packaged and same-origin. In particular,
     # the transport never requires unsafe-eval, data:, blob:, or remote scripts.

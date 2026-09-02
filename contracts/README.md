@@ -18,7 +18,7 @@ The generator writes:
 | Field | Meaning and change requirement |
 | --- | --- |
 | `schemaVersion` | Version of the authority file's own closed structure. Increment it only when generators must interpret a different JSON shape, and update generator mutation tests in the same change. |
-| `codecVersion` | Version of the serialized graph/component envelope. Unsupported values fail closed before graph conversion or state application. A change requires Python serialization tests, frontend codec tests, and installed-browser migration or rejection coverage. |
+| `codecVersion` | Version of the serialized graph/component envelope. Codec 3 adds packed sprite layers and real atlas crop coordinates. Unsupported values fail closed before graph conversion or state application. A change requires Python serialization tests, frontend codec tests, and installed-browser migration or rejection coverage. |
 | `actionProtocolVersion` | Version of browser-to-Python action semantics. Change it when an action shape or acknowledgement rule is not backward compatible, with boundary tests on both sides. |
 | `rendererApiVersion` | Major contract implemented by enabled renderer packages. A change requires manifest compatibility, renderer enablement, wheel, and contrib-set Chromium evidence. |
 | `rendererRegistrySymbol` | Versioned global symbol used by trusted JavaScript bootstraps to find the registry. Changing it invalidates existing bootstraps and therefore requires regenerated assets plus stale/conflict browser tests. |
@@ -41,10 +41,19 @@ state would be unsafe.
 | `maxDataStringChars` | Unicode code points per graph-data string or key | Memory, encoding, and UI/log amplification | Reject during the bounded data walk. Changes require value and mapping-key boundary cases. |
 | `maxCollectionItems` | Entries in one JSON list or object | Broad-container traversal and allocation | Reject the container before traversing excess children. Changes require list and mapping breadth tests. |
 | `maxDataValues` | Aggregate scalar and container values in graph data | Total validation/serialization CPU and memory | Stop the visitor when the cumulative count exceeds the ceiling. Changes require broad/deep aggregate and no-further-traversal evidence. |
-| `maxAtlasDimension` | Pixels on one encoded page axis | Browser PNG decoding, SVG image allocation, and dimension arithmetic | Reject the whole ATLAS delta before Blob creation or cache mutation. Changes require PNG IHDR and envelope dimension boundary tests. |
-| `maxAtlasDecodedPixels` | Width × height decoded pixels per ATLAS page | Decoded image memory and rasterization work | Python refuses excessive tiles and the browser atomically rejects excessive PNG dimensions. Changes require matching Python/frontend pixel tests. |
+| `maxAtlasDimension` | Pixels on one encoded page axis | Browser PNG decoding, SVG image allocation, and dimension arithmetic | Reject the whole atlas delta before Blob creation or cache mutation. Changes require PNG IHDR and envelope dimension boundary tests. |
+| `maxAtlasDecodedPixels` | Width × height decoded pixels per atlas page | Decoded image memory and rasterization work | Python refuses excessive pages and the browser atomically rejects excessive PNG dimensions. Changes require matching Python/frontend pixel tests. |
 | `maxAtlasPageBytes` | Decoded bytes in one encoded PNG page | Base64 decoding, Blob memory, cache admission, and artifact transfer | Reject encoded length before decode where possible and decoded length before cache commit. Changes require base64, decoded-size, and atomicity tests. |
-| `maxPrimitiveCount` | Primitives returned for one badge | Renderer validation and React/SVG node creation | Reject the entire renderer result with a stable primitive-count diagnostic. Changes require PRIMS and ATLAS boundary tests. |
+| `maxAtlasPages` | Pages in one cache policy | Server cache cardinality, browser Blob URL count, and eviction work | Reject a policy above the reviewed ceiling; reject an active working set atomically when it cannot fit. Changes require policy and protected-page eviction boundaries. |
+| `maxAtlasAggregateBytes` | Encoded PNG bytes across cached atlas pages | Process cache memory, browser Blob memory, and transfer volume | Reject a policy above the reviewed ceiling and fail before committing a partial page batch. Changes require aggregate admission and rollback tests. |
+| `maxSpriteSourceBytes` | Encoded bytes in one source PNG | Server input memory and PNG decoder work | `PngImage` and normalization reject before full decode once the hard or configured ceiling is exceeded. Changes require exact-byte and byte-plus-one tests. |
+| `maxSpriteSourceDimension` | Pixels on one source PNG axis | Decoder allocation, resize work, and dimension arithmetic | Reject from validated IHDR dimensions before materializing an oversized RGBA image. Changes require width and height boundary fixtures. |
+| `maxSpriteSourceDecodedPixels` | Width × height decoded pixels in one source PNG | Pillow decode memory and decompression-bomb exposure | Reject before or during bounded decode without retaining partial normalized content. Changes require pixel-limit and decompression-bomb coverage. |
+| `maxSpriteCatalogEntries` | Named `StaticSprite` entries in one catalog | Catalog traversal, normalization work, mapping memory, and diagnostic cardinality | Reject the complete catalog before graph serialization when entry count exceeds the ceiling. Changes require exact-count and count-plus-one tests. |
+| `maxSpriteCatalogBytes` | Aggregate encoded bytes across light and dark catalog variants | Server input memory and total normalization work | Reject the complete catalog before image decode when conservative aggregate accounting exceeds the ceiling. Changes require multi-entry aggregate boundaries. |
+| `maxSpriteCatalogDecodedPixels` | Aggregate source pixels across light and dark catalog variants | Total decoded memory and normalization/resize CPU | Reject the complete catalog after bounded per-image validation and before envelope emission. Changes require aggregate pixel and atomic-failure tests. |
+| `maxPreparedTileDecodedPixels` | Physical pixels in one normalized tile before packing | Resize/raster memory, packing work, and atlas-page fit | Reject the tile before packing when logical region × DPR exceeds the ceiling. Changes require supported-DPR and region boundary tests. |
+| `maxPrimitiveCount` | Primitives returned for one badge | Renderer validation and React/SVG node creation | Reject the entire renderer result with a stable primitive-count diagnostic. Changes require PRIMS and raster boundary tests. |
 | `maxPrimitiveTextChars` | Unicode code points in one `TextPrim` | DOM text size, layout work, and visual/log amplification | Reject the primitive before serialization or rasterization. Changes require exact-limit and limit-plus-one text tests. |
 
 ## Change workflow
@@ -63,7 +72,8 @@ uv run python -m ci.sync_contracts
 
 A version or limit change must include the generated Python and TypeScript
 targets and relevant Python and frontend boundary tests in the same change.
-Changes affecting installed renderer identity, browser state, ATLAS, or action
-semantics also require the appropriate clean-wheel Chromium set. Reviewers
-should require evidence that unsupported versions and over-limit inputs leave
-no acknowledged action, partial graph, Blob, cache entry, or renderer output.
+Changes affecting installed renderer identity, browser state, raster/static
+sprite delivery, atlas packing, or action semantics also require the
+appropriate clean-wheel Chromium set. Reviewers should require evidence that
+unsupported versions and over-limit inputs leave no acknowledged action,
+partial graph, Blob, cache entry, sprite mapping, or renderer output.

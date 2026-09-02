@@ -3,10 +3,11 @@
 from importlib.metadata import version as distribution_version
 
 from .adapters import from_networkx
-from .atlas import AtlasCache, AtlasPolicy, AtlasScope
+from .atlas import AtlasCache, AtlasPageCache, AtlasPolicy, AtlasScope
 from .component import CanvasResult, graph_canvas
 from .csp import format_csp, required_csp_directives, streamlit_host_csp
 from .errors import Diagnostic, GraphCanvasError, ValidationError
+from .images import PngImage, SpriteCatalog, StaticSprite
 from .model import (
     ANY_NODE_TYPE,
     AnyNodeType,
@@ -49,6 +50,7 @@ from .renderers import (
     parse_renderer_manifest,
 )
 from .serialization import SerializedGraph, serialize_graph
+from .sprites import SpriteBinding, SpriteRef
 from .validation import validate
 
 __all__ = [
@@ -57,6 +59,7 @@ __all__ = [
     "ActionModifiers",
     "AnyNodeType",
     "AtlasCache",
+    "AtlasPageCache",
     "AtlasPolicy",
     "AtlasScope",
     "BadgeBinding",
@@ -79,6 +82,7 @@ __all__ = [
     "NodeStyle",
     "NodeType",
     "PaletteTone",
+    "PngImage",
     "PortSide",
     "PortSpec",
     "Prim",
@@ -89,6 +93,10 @@ __all__ = [
     "RendererRegistry",
     "SelectionMode",
     "SerializedGraph",
+    "SpriteBinding",
+    "SpriteCatalog",
+    "SpriteRef",
+    "StaticSprite",
     "TextPrim",
     "Transport",
     "ValidationError",
