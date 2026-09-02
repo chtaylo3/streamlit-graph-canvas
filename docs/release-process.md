@@ -21,7 +21,12 @@ Development versions use the PEP 440 `.devN` suffix, for example
    uv run python -m ci.sync_versions --write
    uv lock
    uv run python -m ci.sync_versions --check
+   uv run python -m ci.sync_renderer_assets --check
    ```
+
+   Version synchronization rewrites any shipped JavaScript renderer versions
+   and automatically refreshes their build identities, content-addressed
+   filenames, and manifest references.
 
 3. Push the branch, or manually run the `CI` workflow for that branch:
 
@@ -50,8 +55,16 @@ Public prereleases use lowercase PEP 440 suffixes:
 For each prerelease:
 
 1. Create a release branch from current `main` and set the root version.
-2. Synchronize metadata, update `uv.lock`, run the development and release
-   checks, and merge the signed version commit through a pull request.
+2. Synchronize metadata and renderer assets, update `uv.lock`, run the
+   development and release checks, and merge the signed version commit through
+   a pull request:
+
+   ```bash
+   uv run python -m ci.sync_versions --write
+   uv lock
+   uv run python -m ci.sync_versions --check
+   uv run python -m ci.sync_renderer_assets --check
+   ```
 3. Confirm `ci.yml` and `codeql.yml` succeeded for the exact merge SHA.
 4. Create an unsigned lightweight tag and push it. Use `--no-sign`
    explicitly so a maintainer's local `tag.gpgsign` setting cannot silently
