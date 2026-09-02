@@ -9,14 +9,16 @@ async function spriteSample(sprite: Locator) {
     const viewBox = svg.getAttribute("viewBox")?.split(/\s+/u).map(Number);
     if (!href || !viewBox || viewBox.length !== 4) throw new Error("sprite is incomplete");
     const [x, y, width, height] = viewBox;
-    const bitmap = await createImageBitmap(await (await fetch(href)).blob());
+    const source = new Image();
+    source.src = href;
+    await source.decode();
     const canvas = document.createElement("canvas");
     canvas.width = 1;
     canvas.height = 1;
     const context = canvas.getContext("2d");
     if (!context) throw new Error("2D context is unavailable");
     context.drawImage(
-      bitmap,
+      source,
       x + width * 0.2,
       y + height * 0.5,
       1,
@@ -26,7 +28,6 @@ async function spriteSample(sprite: Locator) {
       1,
       1,
     );
-    bitmap.close();
     return [...context.getImageData(0, 0, 1, 1).data];
   });
 }
