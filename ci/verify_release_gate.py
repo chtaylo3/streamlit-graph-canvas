@@ -12,6 +12,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from packaging.version import InvalidVersion, Version
+
 
 def _api(repository: str, path: str, token: str) -> Any:
     request = urllib.request.Request(
@@ -26,17 +28,69 @@ def _api(repository: str, path: str, token: str) -> Any:
         return json.load(response)
 
 
-def _tag_commit(repository: str, tag: str, token: str) -> str:
+def _release_version(tag: str) -> Version:
+    if not tag.startswith("v"):
+        raise RuntimeError("release tag must start with 'v'")
+    try:
+        version = Version(tag[1:])
+    except InvalidVersion as error:
+        raise RuntimeError(
+            f"release tag {tag!r} is not a valid PEP 440 version"
+        ) from error
+    if version.is_devrelease:
+        raise RuntimeError("development versions may be built by CI but not released")
+    return version
+
+
+def _tag_commit(
+    repository: str,
+    tag: str,
+    token: str,
+) -> tuple[str, dict[str, Any]]:
+    version = _release_version(tag)
+    signature_required = not version.is_prerelease
     reference = _api(
         repository,
         "git/ref/tags/" + urllib.parse.quote(tag, safe=""),
         token,
     )["object"]
+
+    if reference["type"] == "tag":
+        tag_object_sha = str(reference["sha"])
+        tag_object = _api(repository, f"git/tags/{tag_object_sha}", token)
+        if tag_object.get("tag") != tag:
+            raise RuntimeError("annotated tag name does not match release tag")
+        verification = tag_object.get("verification") or {}
+        tag_evidence = {
+            "kind": "annotated",
+            "sha": tag_object_sha,
+            "signature_required": signature_required,
+            "verified": verification.get("verified") is True,
+            "reason": verification.get("reason"),
+            "verified_at": verification.get("verified_at"),
+        }
+        if signature_required and not tag_evidence["verified"]:
+            reason = tag_evidence["reason"] or "missing verification result"
+            raise RuntimeError(
+                f"stable release tag signature is not verified: {reason}"
+            )
+        reference = tag_object["object"]
+    else:
+        if signature_required:
+            raise RuntimeError("stable releases require a signed annotated tag")
+        tag_evidence = {
+            "kind": "lightweight",
+            "signature_required": False,
+            "verified": False,
+            "reason": "unsigned",
+            "verified_at": None,
+        }
+
     while reference["type"] == "tag":
         reference = _api(repository, f"git/tags/{reference['sha']}", token)["object"]
     if reference["type"] != "commit":
         raise RuntimeError("release tag does not resolve to a commit")
-    return str(reference["sha"])
+    return str(reference["sha"]), tag_evidence
 
 
 def verify(
@@ -49,7 +103,7 @@ def verify(
     attempts: int = 40,
     interval: int = 30,
 ) -> dict[str, Any]:
-    tag_sha = _tag_commit(repository, tag, token)
+    tag_sha, tag_evidence = _tag_commit(repository, tag, token)
     if tag_sha != sha:
         raise RuntimeError(f"tag resolves to {tag_sha}, not workflow SHA {sha}")
     comparison = _api(repository, f"compare/{sha}...main", token)
@@ -89,6 +143,7 @@ def verify(
                 "sha": sha,
                 "tag": tag,
                 "tag_sha": tag_sha,
+                "tag_object": tag_evidence,
                 "main_merge_base": comparison["merge_base_commit"]["sha"],
                 "workflows": evidence,
             }

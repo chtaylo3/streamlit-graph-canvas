@@ -229,7 +229,7 @@ jobs:
             wheelhouse/SHA256SUMS
             wheelhouse/locked-constraints.txt
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
 
   chromium-conformance:
     needs: wheels
