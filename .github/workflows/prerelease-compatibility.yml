@@ -43,7 +43,7 @@ jobs:
           --venv "${{ runner.temp }}/sgc-forward-${{ matrix.scenario }}"
           --output "forward-${{ matrix.scenario }}.json"
       - if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: python-forward-${{ matrix.scenario }}
           path: forward-${{ matrix.scenario }}.json
@@ -78,7 +78,7 @@ jobs:
           --scenario "${{ matrix.scenario }}"
           --output "forward-frontend-${{ matrix.scenario }}.json"
       - if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: frontend-forward-${{ matrix.scenario }}
           path: forward-frontend-${{ matrix.scenario }}.json
@@ -128,7 +128,7 @@ jobs:
         env:
           SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-chrome-beta/bin/python
       - if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chrome-beta
           path: |
@@ -210,7 +210,7 @@ jobs:
           echo "### Forward Chromium: ${{ matrix.scenario }} — ${{ job.status }}"
           >> "$GITHUB_STEP_SUMMARY"
       - if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-forward-${{ matrix.scenario }}
           path: |
