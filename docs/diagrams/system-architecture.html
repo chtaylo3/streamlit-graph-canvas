@@ -5030,7 +5030,7 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Boundaries (behind everything) -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="Python" x="259" y="254" width="737" height="340" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="Python" x="259" y="254" width="762" height="340" rx="12" class="c-region" stroke-width="1"/>
 
         <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="Browser" x="1014" y="74" width="257" height="520" rx="12" class="c-region" stroke-width="1"/>
 
@@ -5040,8 +5040,10 @@
         <path data-edge-from="validation" data-edge-to="serialization" data-edge-label="validated graph" data-edge-key="2" data-edge-id="validation-serialization" data-composition-points="715,315;785,315" d="M 715 315 L 785 315" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="serialization" data-edge-to="frontend" data-edge-label="component envelope" data-edge-key="3" data-edge-id="serialization-frontend" data-composition-points="970,315;1040,315" d="M 970 315 L 1040 315" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="renderers" data-edge-to="validation" data-edge-label="manifest + output checks" data-edge-key="4" data-edge-id="renderers-validation" data-composition-points="645,500;645,425;622.5,425;622.5,350" d="M 645 500 L 645 433 Q 645 425 637 425 L 630.5 425 Q 622.5 425 622.5 417 L 622.5 350" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        <path data-edge-from="frontend" data-edge-to="layout" data-edge-label="topology revision" data-edge-key="5" data-edge-id="frontend-layout" data-composition-points="1142.5,280;1142.5,170" d="M 1142.5 280 L 1142.5 170" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="frontend" data-edge-to="state" data-edge-label="interactions" data-edge-key="6" data-edge-id="frontend-state" data-composition-points="1142.5,350;1142.5,374;1168.5,374;1168.5,476;1152.5,476;1152.5,500" d="M 1142.5 350 L 1142.5 366 Q 1142.5 374 1150.5 374 L 1160.5 374 Q 1168.5 374 1168.5 382 L 1168.5 468 Q 1168.5 476 1160.5 476 L 1160.5 476 Q 1152.5 476 1152.5 484 L 1152.5 500" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="renderers" data-edge-to="atlas" data-edge-label="raster + static tiles" data-edge-key="5" data-edge-id="renderers-atlas" data-composition-points="760,537;785,537" d="M 760 537 L 785 537" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="atlas" data-edge-to="serialization" data-edge-label="pages + crop refs" data-edge-key="6" data-edge-id="atlas-serialization" data-composition-points="890,500;890,476;906,476;906,374;877.5,374;877.5,350" d="M 890 500 L 890 484 Q 890 476 898 476 L 898 476 Q 906 476 906 468 L 906 382 Q 906 374 898 374 L 885.5 374 Q 877.5 374 877.5 366 L 877.5 350" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="frontend" data-edge-to="layout" data-edge-label="topology revision" data-edge-key="7" data-edge-id="frontend-layout" data-composition-points="1142.5,280;1142.5,170" d="M 1142.5 280 L 1142.5 170" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="frontend" data-edge-to="state" data-edge-label="interactions" data-edge-key="8" data-edge-id="frontend-state" data-composition-points="1142.5,350;1142.5,374;1168.5,374;1168.5,476;1152.5,476;1152.5,500" d="M 1142.5 350 L 1142.5 366 Q 1142.5 374 1150.5 374 L 1160.5 374 Q 1168.5 374 1168.5 382 L 1168.5 468 Q 1168.5 476 1160.5 476 L 1160.5 476 Q 1152.5 476 1152.5 484 L 1152.5 500" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
         <!-- Components -->
         <g id="node-app" data-node-id="app" data-node-label="Streamlit app" tabindex="0" role="button" aria-label="Focus Streamlit app, GraphData + GraphSchema, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="GraphData + GraphSchema" data-node-context="Architecture component">
@@ -5104,15 +5106,26 @@
         <text data-detail="context" x="1142.5" y="329" class="t-muted" font-size="9" text-anchor="middle">React Flow canvas</text>
         </g>
 
-        <g id="node-renderers" data-node-id="renderers" data-node-label="Enabled renderer transports" tabindex="0" role="button" aria-label="Focus Enabled renderer transports, PRIMS · trusted JS · ATLAS, Python" aria-pressed="false" data-node-kind="backend" data-node-sublabel="PRIMS · trusted JS · ATLAS" data-node-context="Python">
-          <title>Enabled renderer transports · PRIMS · trusted JS · ATLAS · Python</title>
+        <g id="node-renderers" data-node-id="renderers" data-node-label="Renderer + image sources" tabindex="0" role="button" aria-label="Focus Renderer + image sources, PRIMS · trusted JS · RASTER · PNG, Python" aria-pressed="false" data-node-kind="backend" data-node-sublabel="PRIMS · trusted JS · RASTER · PNG" data-node-context="Python">
+          <title>Renderer + image sources · PRIMS · trusted JS · RASTER · PNG · Python</title>
           <rect x="530" y="500" width="230" height="74" rx="6" class="c-mask"/>
           <rect x="530" y="500" width="230" height="74" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(536 506) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="645" y="535" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Enabled renderer transports</text>
-        <text data-detail="context" x="645" y="551" class="t-muted" font-size="9" text-anchor="middle">PRIMS · trusted JS · ATLAS</text>
+          <text data-node-label="" data-detail-anchor="" x="645" y="535" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Renderer + image sources</text>
+        <text data-detail="context" x="645" y="551" class="t-muted" font-size="9" text-anchor="middle">PRIMS · trusted JS · RASTER · PNG</text>
+        </g>
+
+        <g id="node-atlas" data-node-id="atlas" data-node-label="Packed atlas delivery" tabindex="0" role="button" aria-label="Focus Packed atlas delivery, dedupe · immutable pages · crop refs, Python" aria-pressed="false" data-node-kind="backend" data-node-sublabel="dedupe · immutable pages · crop refs" data-node-context="Python">
+          <title>Packed atlas delivery · dedupe · immutable pages · crop refs · Python</title>
+          <rect x="785" y="500" width="210" height="74" rx="6" class="c-mask"/>
+          <rect x="785" y="500" width="210" height="74" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(791 506) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="890" y="535" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Packed atlas delivery</text>
+        <text data-detail="context" x="890" y="551" class="t-muted" font-size="9" text-anchor="middle">dedupe · immutable pages · crop refs</text>
         </g>
 
         <g id="node-layout" data-node-id="layout" data-node-label="ELK layout" tabindex="0" role="button" aria-label="Focus ELK layout, topology changes only, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="topology changes only" data-node-context="Browser">
@@ -5164,11 +5177,19 @@
           <rect x="663.15" y="405" width="125.19999999999999" height="14" rx="3" class="c-mask"/>
           <text x="725.75" y="415" class="t-security" font-size="8" text-anchor="middle">manifest + output checks</text>
         </g>
-        <g data-detail="context" data-edge-from="frontend" data-edge-to="layout" data-edge-label="topology revision" data-edge-key="5" data-edge-id="frontend-layout">
+        <g data-detail="context" data-edge-from="renderers" data-edge-to="atlas" data-edge-label="raster + static tiles" data-edge-key="5" data-edge-id="renderers-atlas">
+          <rect x="717.6" y="578" width="110.8" height="14" rx="3" class="c-mask"/>
+          <text x="773" y="588" class="t-messagebus" font-size="8" text-anchor="middle">raster + static tiles</text>
+        </g>
+        <g data-detail="context" data-edge-from="atlas" data-edge-to="serialization" data-edge-label="pages + crop refs" data-edge-key="6" data-edge-id="atlas-serialization">
+          <rect x="926.2" y="456" width="91.6" height="14" rx="3" class="c-mask"/>
+          <text x="972" y="466" class="t-muted" font-size="8" text-anchor="middle">pages + crop refs</text>
+        </g>
+        <g data-detail="context" data-edge-from="frontend" data-edge-to="layout" data-edge-label="topology revision" data-edge-key="7" data-edge-id="frontend-layout">
           <rect x="1178.7" y="260" width="91.6" height="14" rx="3" class="c-mask"/>
           <text x="1224.5" y="270" class="t-muted" font-size="8" text-anchor="middle">topology revision</text>
         </g>
-        <g data-detail="context" data-edge-from="frontend" data-edge-to="state" data-edge-label="interactions" data-edge-key="6" data-edge-id="frontend-state">
+        <g data-detail="context" data-edge-from="frontend" data-edge-to="state" data-edge-label="interactions" data-edge-key="8" data-edge-id="frontend-state">
           <rect x="1183.7" y="354" width="67.6" height="14" rx="3" class="c-mask"/>
           <text x="1217.5" y="364" class="t-muted" font-size="8" text-anchor="middle">interactions</text>
         </g>
@@ -5420,7 +5441,7 @@
         </div>
         <ul>
           <li>&bull; PRIMS paints validated SVG</li>
-          <li>&bull; ATLAS sends bounded PNG page deltas</li>
+          <li>&bull; RASTER and static sprites share packed PNG pages</li>
           <li>&bull; JavaScript registers hash-bound scoped-SVG factories</li>
         </ul>
       </div>

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import io
 import os
 
 import streamlit as st
+from PIL import Image, ImageDraw
 from streamlit_graph_canvas import (
     AtlasPolicy,
     AtlasScope,
@@ -16,9 +18,14 @@ from streamlit_graph_canvas import (
     NodeStyle,
     NodeType,
     PaletteTone,
+    PngImage,
     PortSide,
     PortSpec,
     Region,
+    SpriteBinding,
+    SpriteCatalog,
+    SpriteRef,
+    StaticSprite,
     Transport,
     ValidationError,
     discover_renderer_diagnostics,
@@ -89,6 +96,34 @@ mount_secondary = (
     st.checkbox("Mount secondary canvas", value=True)
     if set_name == "multi-canvas"
     else False
+)
+
+
+def sprite_png(color: tuple[int, int, int, int], mark: str) -> PngImage:
+    image = Image.new("RGBA", (24, 24), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    draw.ellipse((1, 1, 22, 22), fill=color)
+    draw.text((8, 6), mark, fill=(255, 255, 255, 255))
+    output = io.BytesIO()
+    image.save(output, format="PNG", optimize=False, compress_level=9)
+    return PngImage.from_bytes(output.getvalue())
+
+
+sprite_catalog = (
+    SpriteCatalog(
+        {
+            "api": StaticSprite(
+                light=sprite_png((220, 38, 38, 180), "L"),
+                dark=sprite_png((37, 99, 235, 180), "D"),
+            ),
+            "worker": StaticSprite(
+                # No dark image: this is the deterministic light fallback case.
+                light=sprite_png((22, 163, 74, 150), "F")
+            ),
+        }
+    )
+    if with_stock
+    else None
 )
 
 badges = (
@@ -172,6 +207,9 @@ schema = GraphSchema(
                 PortSpec("out", PortSide.BOTTOM, "output"),
             ),
             badges=badges,
+            sprites=(SpriteBinding("thumbnail", Region.at(8, 48, 24, 24), z=10),)
+            if with_stock
+            else (),
         )
     },
     edge_types={"calls": EdgeType("calls", style=EdgeStyle("edge", 2.5, True))},
@@ -215,12 +253,18 @@ nodes = [
         "service",
         f"API v{st.session_state.presentation}",
         badges=api_badges,
+        sprites={"thumbnail": SpriteRef("api", "API themed status image")}
+        if with_stock
+        else {},
     ),
     Node(
         "worker",
         "service",
         "Worker",
         badges=worker_badges,
+        sprites={"thumbnail": SpriteRef("worker", "Worker fallback status image")}
+        if with_stock
+        else {},
     ),
 ]
 if st.session_state.topology > 1:
@@ -261,6 +305,7 @@ try:
         schema,
         key="conformance-canvas",
         renderer_registry=registry,
+        sprite_catalog=sprite_catalog,
         atlas_policy=atlas_policy,
         atlas_tenant="conformance-tenant",
     )
@@ -282,6 +327,7 @@ if mount_secondary:
         schema,
         key="conformance-canvas-secondary",
         renderer_registry=registry,
+        sprite_catalog=sprite_catalog,
         atlas_policy=atlas_policy,
         atlas_tenant="conformance-tenant-secondary",
     )

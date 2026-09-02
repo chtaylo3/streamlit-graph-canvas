@@ -9,11 +9,18 @@ carefully as any other application dependency.
 
 ## Supported contract
 
-This development release executes `prims`, trusted `javascript`, and `atlas`
+This development release executes `prims`, trusted `javascript`, and `raster`
 transports. Graph data can never choose a distribution, module, asset, or
 renderer kind that was not statically declared, hash-verified, and explicitly
-enabled. JavaScript is trusted page-level code. ATLAS is available only to a
-renderer with a Python PRIMS implementation.
+enabled. JavaScript is trusted page-level code. Raster transport is available
+only to a renderer with a Python PRIMS implementation. The legacy `atlas`
+manifest value remains a compatibility spelling during the 0.1
+release-candidate series; new manifests should declare `raster`.
+
+Application-provided static sprites are not renderer packages. They use
+`SpriteCatalog`, `SpriteBinding`, and `SpriteRef`, require no manifest or
+`enable_renderers()` call, and share only the downstream atlas packing and
+delivery machinery with procedural raster output.
 
 A package must:
 
@@ -29,7 +36,8 @@ A package must:
 
 The stock manifest in
 [`packages/contrib/src/streamlit_graph_canvas_contrib/renderer.toml`](../packages/contrib/src/streamlit_graph_canvas_contrib/renderer.toml)
-demonstrates all three transports.
+demonstrates the three current transports and the legacy `atlas` compatibility
+declaration.
 
 For JavaScript, also package a Components v2 `pyproject.toml`, declare
 `javascript_component` and its asset-dir-relative `javascript_entry`, and hash
@@ -62,9 +70,12 @@ affected renderer. Intentional regeneration uses
 `uv run python -m ci.sync_renderer_assets` followed by another check; it should
 be reviewed like any other executable artifact change.
 
-ATLAS renderer authors must emit deterministic PRIMS, use literal colors for
-both theme variants, and test high-cardinality behavior under cache limits. See
-[`transports-and-csp.md`](transports-and-csp.md) for the tenant and CSP contract.
+Raster renderer authors must emit deterministic PRIMS, use literal colors for
+both theme variants, and test high-cardinality behavior under cache limits.
+Static and procedural raster tiles may share immutable multi-sprite pages, but
+renderer authors do not provide pages or crop coordinates. See
+[`transports-and-csp.md`](transports-and-csp.md) for the atlas, tenant, and CSP
+contract.
 
 ## PRIMS safety boundary
 

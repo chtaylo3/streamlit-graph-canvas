@@ -14,8 +14,10 @@ from .contract import (
     MAX_DATA_VALUES,
 )
 from .errors import Diagnostic, ValidationError
+from .images import SpriteCatalog
 from .json_budget import JsonBudget, JsonLimitError, bounded_json_size
 from .model import BUILTIN_PALETTE, AnyNodeType, EdgeType, GraphData, GraphSchema
+from .sprites import SpriteRef
 
 if TYPE_CHECKING:
     from .renderers import RendererRegistry
@@ -176,6 +178,7 @@ def validate(
     max_elements: int = 700,
     max_data_bytes: int = 2_000_000,
     renderer_registry: RendererRegistry | None = None,
+    sprite_catalog: SpriteCatalog | None = None,
 ) -> None:
     """Validate a graph completely before it crosses the component boundary."""
 
@@ -296,6 +299,38 @@ def validate(
                     binding.kind,
                 )
             renderer_registry.require(binding.kind, binding.transport.value)
+        sprite_names = [binding.name for binding in node_declaration.sprites]
+        if duplicates := _duplicates(sprite_names):
+            _fail(
+                "SGC_SCHEMA_DUPLICATE_SPRITE_BINDING",
+                f"Node type has duplicate sprite bindings: {sorted(duplicates)}.",
+                "Give every sprite binding on the node type a unique name.",
+                key,
+            )
+        if overlap := set(binding_names) & set(sprite_names):
+            _fail(
+                "SGC_SCHEMA_LAYER_NAME_CONFLICT",
+                f"Badge and sprite bindings share names: {sorted(overlap)}.",
+                "Give every paint-layer binding a unique name.",
+                key,
+            )
+        for sprite_binding in node_declaration.sprites:
+            region = sprite_binding.region
+            if (
+                not all(
+                    math.isfinite(value)
+                    for value in (region.x, region.y, region.width, region.height)
+                )
+                or region.width <= 0
+                or region.height <= 0
+            ):
+                _fail(
+                    "SGC_SCHEMA_SPRITE_REGION",
+                    "Sprite regions require finite coordinates and positive "
+                    "dimensions.",
+                    "Correct the fixed sprite region geometry.",
+                    f"{key}.{sprite_binding.name}",
+                )
     for key, edge_declaration in schema.edge_types.items():
         if not key or key != edge_declaration.name:
             _fail(
@@ -378,6 +413,52 @@ def validate(
                 "Supply data for every required badge binding.",
                 node.id,
             )
+        sprite_bindings = {
+            binding.name: binding for binding in schema.node_types[node.type].sprites
+        }
+        undeclared_sprites = node.sprites.keys() - sprite_bindings.keys()
+        if undeclared_sprites:
+            _fail(
+                "SGC_GRAPH_SPRITE_BINDING",
+                "Node supplies undeclared sprite bindings: "
+                f"{sorted(undeclared_sprites)}.",
+                "Declare each sprite binding on the node type or remove its reference.",
+                node.id,
+            )
+        missing_sprites = [
+            name
+            for name, binding in sprite_bindings.items()
+            if binding.required and name not in node.sprites
+        ]
+        if missing_sprites:
+            _fail(
+                "SGC_GRAPH_SPRITE_REQUIRED",
+                f"Node is missing required sprite references: {missing_sprites}.",
+                "Supply a SpriteRef for every required sprite binding.",
+                node.id,
+            )
+        for name, reference in node.sprites.items():
+            if not isinstance(reference, SpriteRef):
+                _fail(
+                    "SGC_GRAPH_SPRITE_REFERENCE",
+                    "Node sprite values must be SpriteRef instances.",
+                    "Wrap each catalog ID in SpriteRef.",
+                    f"{node.id}.{name}",
+                )
+            if sprite_catalog is None:
+                _fail(
+                    "SGC_SPRITE_CATALOG_REQUIRED",
+                    "Node sprite references require an explicit SpriteCatalog.",
+                    "Pass sprite_catalog to graph_canvas() or serialize_graph().",
+                    f"{node.id}.{name}",
+                )
+            if reference.catalog_id not in sprite_catalog:
+                _fail(
+                    "SGC_SPRITE_CATALOG_MISSING",
+                    f"Sprite catalog has no entry {reference.catalog_id!r}.",
+                    "Add the static sprite or correct the SpriteRef catalog ID.",
+                    f"{node.id}.{name}",
+                )
         if (
             node.width is not None
             and (not math.isfinite(node.width) or node.width <= 0)

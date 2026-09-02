@@ -10,7 +10,7 @@ javascript = "frontend/renderer-bootstrap.9190c96b19b582b88ac96d75d3b7278f345403
 javascript_component = "streamlit-graph-canvas-contrib.renderer_bootstrap"
 javascript_entry = "renderer-bootstrap.9190c96b19b582b88ac96d75d3b7278f34540398dfe8a57ed20b6dd072193f0d.js"
 javascript_identity = "d6c9f8ad7507372b01b7c0ffa0ca74e6b6196ba0f9a555559de8783cb0ff9b82"
-transports = ["prims", "javascript", "atlas"]
+transports = ["prims", "javascript", "raster", "atlas"]
 
 [assets]
 "frontend/renderer-bootstrap.9190c96b19b582b88ac96d75d3b7278f34540398dfe8a57ed20b6dd072193f0d.js" = "9190c96b19b582b88ac96d75d3b7278f34540398dfe8a57ed20b6dd072193f0d"
