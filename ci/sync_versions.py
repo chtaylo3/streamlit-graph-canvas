@@ -39,6 +39,31 @@ def supported_range(version: str) -> str:
     return f">={version},<0.{parsed.minor + 1}"
 
 
+def contrib_javascript_targets(version: str, root: Path) -> tuple[VersionTarget, ...]:
+    """Return version targets embedded in shipped contrib JavaScript assets."""
+    manifest = (
+        root / "packages/contrib/src/streamlit_graph_canvas_contrib/renderer.toml"
+    )
+    if not manifest.is_file():
+        return ()
+    raw = tomllib.loads(manifest.read_text(encoding="utf-8"))
+    assets = {
+        renderer["javascript"]
+        for renderer in raw.get("renderers", [])
+        if isinstance(renderer, dict) and "javascript" in renderer
+    }
+    if not assets:
+        return ()
+    return tuple(
+        VersionTarget(
+            (manifest.parent / relative).relative_to(root).as_posix(),
+            r'(?m)^(\s+version: ")[^"]+(",\s*)$',
+            rf"\g<1>{version}\g<2>",
+        )
+        for relative in sorted(assets)
+    )
+
+
 def targets(version: str, root: Path) -> tuple[VersionTarget, ...]:
     compatibility = supported_range(version)
     return (
@@ -72,6 +97,7 @@ def targets(version: str, root: Path) -> tuple[VersionTarget, ...]:
             r'(?m)^(version = ")[^"]+("\s*)$',
             rf"\g<1>{version}\g<2>",
         ),
+        *contrib_javascript_targets(version, root),
         *(
             VersionTarget(
                 f"{fixture}/pyproject.toml",
@@ -98,6 +124,7 @@ def synchronize(root: Path, *, write: bool) -> list[str]:
     """Return stale paths, optionally rewriting their derived version fields."""
     version = workspace_version(root)
     stale: list[str] = []
+    javascript_updated = False
     for target in targets(version, root):
         path = root / target.path
         original = path.read_text(encoding="utf-8")
@@ -109,6 +136,13 @@ def synchronize(root: Path, *, write: bool) -> list[str]:
         stale.append(target.path)
         if write:
             path.write_text(updated, encoding="utf-8")
+            javascript_updated = javascript_updated or path.suffix == ".js"
+    if javascript_updated:
+        # The embedded version participates in the renderer build identity and
+        # content-addressed filename. Refresh both after rewriting the source.
+        from .sync_renderer_assets import synchronize as synchronize_assets
+
+        synchronize_assets(root, write=True)
     return stale
 
 

@@ -40,7 +40,7 @@ reason = "Optional graph adapter input behavior"
 support_url = "https://networkx.org/documentation/stable/release/index.html"
 
 [internal.core_contrib]
-supported = ">=0.1.0.dev0,<0.2"
+supported = ">=0.1.0rc1,<0.2"
 risk = "critical"
 reason = "Pre-1.0 renderer API and manifest compatibility boundary"
 

@@ -41,8 +41,10 @@ replace them. The default CI check builds in a temporary directory and leaves
 the checkout unchanged.
 
 The workspace `pyproject.toml` is the release-version authority. After changing
-it, run `uv run python -m ci.sync_versions --write`; CI checks that all static
-PEP 621, Streamlit component, dependency, and renderer metadata is synchronized.
+it, run `uv run python -m ci.sync_versions --write` and `uv lock`. Version
+synchronization also refreshes content-addressed renderer JavaScript when its
+embedded version changes. CI checks that all PEP 621, Streamlit component,
+dependency, renderer metadata, and renderer assets are synchronized.
 
 ## Compatibility and deprecation
 

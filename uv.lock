@@ -1693,7 +1693,7 @@ wheels = [
 
 [[package]]
 name = "streamlit-graph-canvas"
-version = "0.1.0.dev0"
+version = "0.1.0rc1"
 source = { editable = "packages/core" }
 dependencies = [
     { name = "packaging" },
@@ -1719,7 +1719,7 @@ provides-extras = ["atlas", "networkx"]
 
 [[package]]
 name = "streamlit-graph-canvas-contrib"
-version = "0.1.0.dev0"
+version = "0.1.0rc1"
 source = { editable = "packages/contrib" }
 dependencies = [
     { name = "streamlit-graph-canvas" },
@@ -1730,7 +1730,7 @@ requires-dist = [{ name = "streamlit-graph-canvas", editable = "packages/core" }
 
 [[package]]
 name = "streamlit-graph-canvas-workspace"
-version = "0.1.0.dev0"
+version = "0.1.0rc1"
 source = { virtual = "." }
 dependencies = [
     { name = "streamlit-graph-canvas" },

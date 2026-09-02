@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "streamlit-graph-canvas"
-version = "0.1.0.dev0"
+version = "0.1.0rc1"
 description = "A domain-neutral, schema-driven graph canvas for Streamlit."
 readme = "README.md"
 license = "Apache-2.0"

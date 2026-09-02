@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -8,7 +9,7 @@ import pytest
 from ci.build_conformance_environment import validate_set_coverage
 from ci.build_fixture_wheels import build_fixture_wheels
 from ci.fixture_inventory import discover_fixture_projects
-from ci.sync_versions import targets
+from ci.sync_versions import contrib_javascript_targets, targets
 
 ROOT = Path(__file__).parents[1]
 
@@ -87,6 +88,40 @@ def test_new_fixture_automatically_enters_version_targets_and_set_coverage(
     with pytest.raises(SystemExit, match="ninth-fixture"):
         validate_set_coverage(tmp_path, {"core-only": []})
     validate_set_coverage(tmp_path, {"fixture": ["ninth_fixture"]})
+
+
+def test_contrib_javascript_versions_are_derived_from_workspace_version(
+    tmp_path: Path,
+) -> None:
+    package = tmp_path / "packages/contrib/src/streamlit_graph_canvas_contrib"
+    frontend = package / "frontend"
+    frontend.mkdir(parents=True)
+    asset = frontend / "renderer-bootstrap.hash.js"
+    asset.write_text(
+        'const renderer = {\n    version: "0.1.0.dev0",\n};\n',
+        encoding="utf-8",
+    )
+    (package / "renderer.toml").write_text(
+        """manifest_schema = 1
+[[renderers]]
+kind = "example/renderer"
+javascript = "frontend/renderer-bootstrap.hash.js"
+""",
+        encoding="utf-8",
+    )
+
+    target = contrib_javascript_targets("0.1.0rc1", tmp_path)
+
+    assert len(target) == 1
+    assert target[0].path == asset.relative_to(tmp_path).as_posix()
+    updated, count = re.subn(
+        target[0].pattern,
+        target[0].replacement,
+        asset.read_text(encoding="utf-8"),
+        count=1,
+    )
+    assert count == 1
+    assert 'version: "0.1.0rc1"' in updated
 
 
 def test_build_helper_invokes_each_fixture_once_in_stable_order(
