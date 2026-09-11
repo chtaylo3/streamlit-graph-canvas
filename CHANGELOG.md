@@ -21,6 +21,8 @@ the project uses semantic versioning.
 
 ### Fixed
 
+- Preserve measured node dimensions across controlled rerenders so named-port
+  connectors do not disappear while waiting for another resize notification.
 - NetworkX fallback attributes are no longer removed by eager default
   evaluation.
 - CSS production assets are content-addressed.

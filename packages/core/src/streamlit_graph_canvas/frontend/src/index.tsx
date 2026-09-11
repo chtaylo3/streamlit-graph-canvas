@@ -42,6 +42,7 @@ import {
   type JavascriptRendererRequirement,
 } from "./javascript-registry";
 import { layoutGraph } from "./layout";
+import { useMeasuredNodes } from "./use-measured-nodes";
 import { tone, type Palette } from "./palette";
 import {
   imageLayerLocation,
@@ -801,9 +802,11 @@ function CanvasContents({
     topologyChanged,
   ]);
 
+  const measured = useMeasuredNodes(nodes);
   return (
     <ReactFlow
-      nodes={nodes}
+      nodes={measured.nodes}
+      onNodesChange={measured.onNodesChange}
       edges={edges}
       nodeTypes={nodeTypes}
       nodesDraggable={false}

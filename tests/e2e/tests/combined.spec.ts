@@ -178,6 +178,44 @@ test("styles, named ports, and accessible badge meaning are honored", async ({ p
   }
 });
 
+test("named-port edges survive rerenders without duplicate size notifications", async ({ page, browserFailures }) => {
+  void browserFailures;
+  await page.addInitScript(() => {
+    // Deliver initial/changed node sizes but coalesce duplicate notifications.
+    // This exposes discarded measurements without relying on CI frame timing.
+    const sizes = new WeakMap<Element, string>();
+    const NativeObserver = window.ResizeObserver;
+    window.ResizeObserver = class extends NativeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        super((entries, observer) => {
+          const changed = entries.filter((entry) => {
+            if (!entry.target.classList.contains("react-flow__node")) return true;
+            const size = `${entry.contentRect.width}:${entry.contentRect.height}`;
+            if (sizes.get(entry.target) === size) return false;
+            sizes.set(entry.target, size);
+            return true;
+          });
+          if (changed.length) callback(changed, observer);
+        });
+      }
+    };
+  });
+  await openGallery(page);
+  const edge = page.locator('.react-flow__edge[data-id="api-worker"] path.react-flow__edge-path');
+  await expect(edge).toHaveCSS("stroke", "rgb(220, 38, 38)");
+  await page.getByRole("button", { name: "Change presentation" }).click();
+  await expect(page.getByRole("button", { name: /service API v2/ })).toBeVisible();
+  await waitForGalleryStable(page);
+  await expect(edge).toHaveCSS("stroke", "rgb(220, 38, 38)");
+  await page.getByRole("button", { name: "Change topology" }).click();
+  await expect(page.getByRole("button", { name: /service Cache/ })).toBeVisible();
+  await waitForGalleryStable(page);
+  await expect(edge).toHaveCSS("stroke", "rgb(220, 38, 38)");
+  await expect(
+    page.locator('.react-flow__edge[data-id="worker-cache"] path.react-flow__edge-path'),
+  ).toHaveCSS("stroke", "rgb(220, 38, 38)");
+});
+
 test("dark palette variants render in Chromium", async ({ page, browserFailures }) => {
   test.skip(process.env.SGC_CONTRIB_SET === "core-only", "requires stock badge fixture");
   void browserFailures;
