@@ -5,6 +5,8 @@ the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.1.0rc2] - 2026-09-11
+
 ### Added
 
 - Clean-wheel Chromium conformance sets for core, stock contrib, and hostile
