@@ -85,6 +85,8 @@ def python_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
         str(root / "packages/contrib"),
         "pytest",
         "hypothesis>=6.0.0",
+        # Telemetry tests require an SDK provider, not just the optional API.
+        "opentelemetry-sdk>=1.30,<2",
         *python_specs(policy, args.lane if args.lane != "forward" else "latest"),
     ]
     run(command)
