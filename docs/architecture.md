@@ -7,6 +7,9 @@ partial, or deferred. The [long-term design](generalized-node-canvas-design.md)
 contains rationale and future milestones and should not be read as current API
 documentation.
 
+Application authors should start with the [app-developer guide](app-developer-guide.md)
+for ownership boundaries, a runnable example, configuration defaults, and diagnostics.
+
 ## System architecture
 
 [![Streamlit Graph Canvas system architecture](diagrams/system-architecture.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/system-architecture.html)
@@ -129,3 +132,14 @@ The JSON files in `docs/diagrams` are the source of truth for these diagrams.
 Regenerate and validate their HTML with Archify whenever a package boundary,
 transport, or request-lifecycle fact changes. Review diagram changes alongside
 the corresponding implementation and beta-contract updates.
+
+## Application interaction boundary
+
+[![App and canvas interaction contract](diagrams/app-interactions.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/app-interactions.html)
+
+This sequence separates browser-local query preview and Apply ordering from
+explicit app submission. Viewport and atlas synchronization may still emit
+component events; local search does not mean every canvas interaction avoids
+a Streamlit rerun. The [editable source](diagrams/app-interactions.json) and
+[app-developer guide](app-developer-guide.md#search-locally-submit-only-when-needed)
+document the contract.

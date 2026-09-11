@@ -11,11 +11,13 @@ milestones.
 | NetworkX adapter | Built | Optional directed-graph conversion with unused source attributes preserved |
 | Validation and budgets | Built | Strict JSON, geometry, endpoint, port, palette, primitive, and combined-element validation; failures use `SGC_*` diagnostics |
 | Topology, layout, and presentation identities | Built | Graph presentation updates preserve topology identity; a separate layout hash also prevents schema appearance updates from rerunning ELK while preserving action validation |
-| ELK layout | Built | Framework-owned initial/topology layout; application positions remain deferred |
+| ELK layout | Built | Framework-owned geometry/group/order layout; appearance-only changes reuse layout; application positions remain deferred |
+| Child grouping and budgets | Built | Per-parent-type, per-edge-category tree/collection/cutoff modes; loaded graph and rendered elements have separate limits |
+| Search and labels | Built | Scalar metadata search and explicit Apply ordering are local; opt-in submission reruns Streamlit; fixed-box policies have global defaults and complete type overrides |
 | Selection and viewport | Built for beta | Persistent across component remounts; removed nodes are reconciled; viewport commits at interaction end |
 | Fit view | Built for beta | `never`, `initial`, and `topology-change` have distinct behavior; a restored viewport takes precedence over initial fitting |
 | Action protocol | Built, intentionally narrow | Protocol v1 contains ordered, acknowledged, topology-validated node `click` actions only |
-| Other gestures and handlers | Deferred | Double-click, context menu, expand/collapse, badge activation, handler routing, and click buffering require a future protocol version |
+| Other gestures and handlers | Deferred | Double-click, context menu, domain expand/collapse callbacks, badge activation, handler routing, and click buffering require a future protocol version; built-in collection toggles are browser interactions |
 | Node and edge styling | Built for beta | Symbolic palette tones control node fill/stroke/text/radius and edge stroke/width/dash |
 | Named ports | Built for beta | Declared ports are rendered and edge source/target handles are honored |
 | Accessibility | Built for beta with release checks | Named keyboard-operable nodes, visible focus, accessible badge text summaries, controls, and automated Chromium checks |

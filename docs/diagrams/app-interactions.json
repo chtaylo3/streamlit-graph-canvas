@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "App and Canvas Interaction Contract",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [
+      1080,
+      630
+    ]
+  },
+  "participants": [
+    {
+      "id": "app",
+      "type": "external",
+      "label": "Application",
+      "sublabel": "data + domain rules"
+    },
+    {
+      "id": "python",
+      "type": "backend",
+      "label": "Python component",
+      "sublabel": "validation + result"
+    },
+    {
+      "id": "browser",
+      "type": "frontend",
+      "label": "Browser canvas",
+      "sublabel": "layout + local search"
+    },
+    {
+      "id": "user",
+      "type": "external",
+      "label": "User",
+      "sublabel": "interaction"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 231,
+      "label": "App supplies the view"
+    },
+    {
+      "from": 246,
+      "to": 366,
+      "label": "Local search \u2014 no search callback"
+    },
+    {
+      "from": 384,
+      "to": 530,
+      "label": "Optional submission \u2014 Streamlit rerun"
+    }
+  ],
+  "messages": [
+    {
+      "id": "supply",
+      "from": "app",
+      "to": "python",
+      "y": 172,
+      "label": "graph, schema, scalar metadata",
+      "variant": "emphasis"
+    },
+    {
+      "id": "render",
+      "from": "python",
+      "to": "browser",
+      "y": 212,
+      "label": "validated component envelope",
+      "variant": "emphasis"
+    },
+    {
+      "id": "type",
+      "from": "user",
+      "to": "browser",
+      "y": 266,
+      "label": "type a query or change filters"
+    },
+    {
+      "id": "preview",
+      "from": "browser",
+      "to": "user",
+      "y": 296,
+      "label": "highlight matches; keep order",
+      "variant": "return"
+    },
+    {
+      "id": "apply",
+      "from": "user",
+      "to": "browser",
+      "y": 326,
+      "label": "Apply search (if configured)"
+    },
+    {
+      "id": "reorder",
+      "from": "browser",
+      "to": "user",
+      "y": 356,
+      "label": "rank matches within layout rules",
+      "variant": "return"
+    },
+    {
+      "id": "send",
+      "from": "user",
+      "to": "browser",
+      "y": 405,
+      "label": "Send filters to app",
+      "variant": "emphasis"
+    },
+    {
+      "id": "event",
+      "from": "browser",
+      "to": "python",
+      "y": 436,
+      "label": "explicit search event",
+      "variant": "emphasis"
+    },
+    {
+      "id": "result",
+      "from": "python",
+      "to": "app",
+      "y": 468,
+      "label": "callback; CanvasResult.search_request",
+      "variant": "return"
+    },
+    {
+      "id": "refresh",
+      "from": "app",
+      "to": "python",
+      "y": 504,
+      "label": "recompute; supply updated Node.data",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "App owns meaning",
+      "items": [
+        "Fetch data and compute descendant metrics",
+        "Keep node IDs and the component key stable"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Browser owns presentation",
+      "items": [
+        "Search covers displayed, scoped nodes",
+        "Apply may reorder; Clear restores normal order"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Rerun boundary",
+      "items": [
+        "Callbacks can repeat queries and computation",
+        "Browser matches are not authorization decisions"
+      ]
+    }
+  ]
+}
