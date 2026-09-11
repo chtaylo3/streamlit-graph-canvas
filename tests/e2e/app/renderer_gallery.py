@@ -7,11 +7,11 @@ import streamlit as st
 from PIL import Image, ImageDraw
 from streamlit_graph_canvas import (
     AtlasPolicy,
-    AtlasScope,
     BadgeBinding,
     Edge,
     EdgeStyle,
     EdgeType,
+    FitView,
     GraphData,
     GraphSchema,
     Node,
@@ -87,11 +87,14 @@ st.markdown(
 
 st.session_state.setdefault("presentation", 1)
 st.session_state.setdefault("topology", 1)
+st.session_state.setdefault("wide_topology", False)
 st.session_state.setdefault("action_sequences", [])
 if st.button("Change presentation"):
     st.session_state.presentation += 1
 if st.button("Change topology"):
     st.session_state.topology += 1
+if st.button("Load wide topology"):
+    st.session_state.wide_topology = True
 mount_secondary = (
     st.checkbox("Mount secondary canvas", value=True)
     if set_name == "multi-canvas"
@@ -287,27 +290,42 @@ if st.session_state.topology > 1:
             else {},
         )
     )
+if st.session_state.wide_topology:
+    nodes.extend(
+        Node(
+            f"wide-{index}",
+            "service",
+            f"Wide node {index}",
+            badges={
+                "count-prims": 0,
+                "count-javascript": 0,
+                "count-atlas": 0,
+            }
+            if with_stock
+            else {},
+        )
+        for index in range(80)
+    )
 edges = [Edge("api-worker", "api", "worker", "calls", "out", "in")]
 if len(nodes) == 3:
     edges.append(Edge("worker-cache", "worker", "cache", "calls", "out", "in"))
+if st.session_state.wide_topology:
+    edges.extend(
+        Edge(f"api-wide-{index}", "api", f"wide-{index}", "calls", "out", "in")
+        for index in range(80)
+    )
 
 graph = GraphData(tuple(nodes), tuple(edges))
-atlas_policy = AtlasPolicy(
-    scope=AtlasScope.TENANT,
-    max_pages=32,
-    max_bytes=8 * 1024 * 1024,
-    max_tenant_pages=16,
-    max_tenant_bytes=4 * 1024 * 1024,
-)
+atlas_policy = AtlasPolicy(max_pages=32, max_bytes=8 * 1024 * 1024)
 try:
     result = graph_canvas(
         graph,
         schema,
         key="conformance-canvas",
+        fit_view=FitView.TOPOLOGY_CHANGE,
         renderer_registry=registry,
         sprite_catalog=sprite_catalog,
         atlas_policy=atlas_policy,
-        atlas_tenant="conformance-tenant",
     )
 except ValidationError as error:
     if (
@@ -329,7 +347,6 @@ if mount_secondary:
         renderer_registry=registry,
         sprite_catalog=sprite_catalog,
         atlas_policy=atlas_policy,
-        atlas_tenant="conformance-tenant-secondary",
     )
 for action in result.actions:
     if action.seq not in st.session_state.action_sequences:

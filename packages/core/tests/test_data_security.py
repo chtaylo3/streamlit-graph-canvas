@@ -54,14 +54,23 @@ def test_serialized_graph_data_size_is_bounded() -> None:
     assert error.value.diagnostic.code == "SGC_DATA_SIZE"
 
 
-def test_graph_budget_matches_compact_json_bytes_exactly() -> None:
-    graph = GraphData(nodes=(Node("a", "item", "é", data={"value": "雪"}),), edges=())
+@pytest.mark.parametrize("display_label", [None, "短い名前"])
+def test_graph_budget_matches_compact_json_bytes_exactly(
+    display_label: str | None,
+) -> None:
+    graph = GraphData(
+        nodes=(
+            Node("a", "item", "é", data={"value": "雪"}, display_label=display_label),
+        ),
+        edges=(),
+    )
     measured = {
         "nodes": [
             {
                 "id": "a",
                 "type": "item",
                 "label": "é",
+                "display_label": display_label,
                 "data": {"value": "雪"},
                 "badges": {},
             }

@@ -273,24 +273,18 @@ def test_animated_png_and_reviewed_source_limits_fail_closed() -> None:
         )
 
 
-def test_static_page_ids_are_tenant_isolated() -> None:
+def test_static_page_ids_are_shared_across_sessions() -> None:
+    """Application-supplied sprites are identical for everyone, so they pack once."""
+
     catalog = SpriteCatalog(
         {"image": StaticSprite(PngImage.from_bytes(png((1, 2, 3, 128))))}
     )
     cache = AtlasCache(AtlasPolicy())
     left = serialize_graph(
-        schema(),
-        graph("image"),
-        sprite_catalog=catalog,
-        atlas_cache=cache,
-        atlas_tenant="left",
+        schema(), graph("image"), sprite_catalog=catalog, atlas_cache=cache
     )
     right = serialize_graph(
-        schema(),
-        graph("image"),
-        sprite_catalog=catalog,
-        atlas_cache=cache,
-        atlas_tenant="right",
+        schema(), graph("image"), sprite_catalog=catalog, atlas_cache=cache
     )
     left_page = left.envelope["presentation"]["nodes"][0]["badges"][0]["sprite"][
         "pageId"
@@ -298,7 +292,8 @@ def test_static_page_ids_are_tenant_isolated() -> None:
     right_page = right.envelope["presentation"]["nodes"][0]["badges"][0]["sprite"][
         "pageId"
     ]
-    assert left_page != right_page
+    assert left_page == right_page
+    assert cache.snapshot()["pages"] == 1
 
 
 def test_packing_is_deterministic_in_bounds_and_non_overlapping() -> None:
@@ -335,21 +330,16 @@ def test_packing_is_deterministic_in_bounds_and_non_overlapping() -> None:
 
 
 def test_active_working_set_failure_is_atomic_and_eviction_removes_mapping() -> None:
-    policy = AtlasPolicy(
-        max_pages=1,
-        max_tenant_pages=1,
-        page_width=24,
-        page_height=24,
-    )
+    policy = AtlasPolicy(max_pages=1, page_width=24, page_height=24)
     cache = AtlasCache(policy)
     first_tile = RasterTile("a", png((1, 2, 3, 255), (20, 20)), 20, 20)
     second_tile = RasterTile("b", png((4, 5, 6, 255), (20, 20)), 20, 20)
-    first = cache.resolve_tiles(tenant="session", tiles={"a": first_tile})
-    second = cache.resolve_tiles(tenant="session", tiles={"b": second_tile})
+    first = cache.resolve_tiles(tiles={"a": first_tile})
+    second = cache.resolve_tiles(tiles={"b": second_tile})
     assert first.locations["a"].page_id in second.evicted_page_ids
     before = cache.snapshot()
     with pytest.raises(ValidationError, match="SGC_ATLAS_WORKING_SET_LIMIT"):
-        cache.resolve_tiles(tenant="session", tiles={"a": first_tile, "b": second_tile})
+        cache.resolve_tiles(tiles={"a": first_tile, "b": second_tile})
     assert cache.snapshot() == before
-    restored = cache.resolve_tiles(tenant="session", tiles={"a": first_tile})
+    restored = cache.resolve_tiles(tiles={"a": first_tile})
     assert restored.added_pages

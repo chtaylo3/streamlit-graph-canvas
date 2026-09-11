@@ -7,7 +7,8 @@
   },
   "scripts": {
     "test": "playwright test",
-    "test:update": "playwright test --update-snapshots"
+    "test:update": "playwright test --update-snapshots",
+    "test:features": "playwright test --config playwright.budget.config.ts && playwright test --config playwright.search.config.ts && playwright test --config playwright.label.config.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

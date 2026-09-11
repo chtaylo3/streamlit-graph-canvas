@@ -49,11 +49,38 @@ def format_csp(transports: Iterable[Transport] = (Transport.PRIMS,)) -> str:
     )
 
 
+def telemetry_origin(endpoint: str) -> str:
+    """Return the exact origin a browser telemetry endpoint needs in connect-src.
+
+    Browser metrics are posted directly to an application-configured collector
+    rather than tunnelled through Streamlit's widget channel, which would force a
+    script rerun per flush. That requires the host policy to allow the collector
+    origin.
+    """
+
+    parsed = urlsplit(endpoint)
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.netloc
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.query
+        or parsed.fragment
+        or "*" in endpoint
+    ):
+        raise ValueError(
+            "telemetry endpoint must be an exact HTTP(S) URL without credentials, "
+            "query, fragment, or wildcards"
+        )
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
 def streamlit_host_csp(
     transports: Iterable[Transport] = (Transport.PRIMS,),
     *,
     app_origin: str | None = None,
     frame_ancestors: Iterable[str] = ("'self'",),
+    telemetry_endpoint: str | None = None,
 ) -> str:
     """Return the tested full Streamlit host policy for the selected transports."""
 
@@ -61,13 +88,16 @@ def streamlit_host_csp(
     websocket_sources = (
         ("ws:", "wss:") if app_origin is None else (_websocket_origin(app_origin),)
     )
+    telemetry_sources = (
+        () if telemetry_endpoint is None else (telemetry_origin(telemetry_endpoint),)
+    )
     directives["script-src"] = (
         "'self'",
         "'unsafe-inline'",
         "'wasm-unsafe-eval'",
     )
     directives["font-src"] = ("'self'", "data:")
-    directives["connect-src"] = ("'self'", *websocket_sources)
+    directives["connect-src"] = ("'self'", *websocket_sources, *telemetry_sources)
     directives["frame-ancestors"] = _frame_ancestors(frame_ancestors)
     return "; ".join(
         f"{directive} {' '.join(sources)}" for directive, sources in directives.items()

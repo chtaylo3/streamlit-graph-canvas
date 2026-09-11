@@ -85,6 +85,12 @@ jobs:
           SGC_CONTRIB_SET: transports
           SGC_CSP_PROXY: "true"
           SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-release-conformance/bin/python
+      - name: Test canvas features against the publishable wheel
+        run: npm run test:features
+        working-directory: tests/e2e
+        env:
+          CI: "true"
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-release-conformance/bin/python
       - run: >-
           uv run python ci/stage_release_bundle.py dist release-bundle
           --repository "${GITHUB_REPOSITORY}"

@@ -1,4 +1,4 @@
-# JavaScript, raster and sprite delivery, multi-tenancy, and CSP
+# JavaScript, raster and sprite delivery, cache scope, and CSP
 
 The canvas supports PRIMS, trusted JavaScript, and raster transports per badge
 binding. It also accepts application-provided static PNG sprites through a
@@ -127,40 +127,86 @@ The first static-image contract accepts only complete, single-frame PNGs. It
 does not fetch remote URLs or accept SVG, JPEG, WebP, GIF, animation, video,
 caller-provided atlas pages, or caller-provided crop coordinates.
 
-### Isolation and limits
+### Cache scope and limits
 
-`AtlasPolicy` applies encoded bytes and decoded dimensions per source image;
-catalog entry, aggregate-byte, and aggregate-pixel limits; prepared-tile
-pixels; atlas page dimensions, pixels, padding, and encoded bytes; and aggregate
-and per-tenant page/byte limits. All limits fail closed before a partial
-presentation is emitted. Session scope is the private-data default. Tenant
-scope is an explicit opt-in:
+The atlas cache is content-addressed and process-global. Sessions using an equal
+`AtlasPolicy` share one cache and reuse its tiles. Distinct policies use separate
+caches; there is no aggregate process-wide ceiling across those caches.
 
 ```python
-from streamlit_graph_canvas import AtlasPolicy, AtlasScope, graph_canvas
+from streamlit_graph_canvas import AtlasPolicy, graph_canvas
 
 result = graph_canvas(
     graph,
     schema,
     key="dependencies",
     renderer_registry=registry,
-    atlas_policy=AtlasPolicy(
-        scope=AtlasScope.TENANT,
-        max_pages=256,
-        max_bytes=64 * 1024 * 1024,
-        max_tenant_pages=64,
-        max_tenant_bytes=16 * 1024 * 1024,
-    ),
-    atlas_tenant=authenticated_tenant_id,
+    atlas_policy=AtlasPolicy(max_pages=256, max_bytes=64 * 1024 * 1024),
 )
 ```
 
-The process cache keys every tile mapping, page, and page identity by tenant; it
-never returns another tenant's page. A tenant ID is required for tenant scope
-and is not sent to the browser. Limits use a locked LRU and fail closed if the
-current graph's working set cannot fit, preventing eviction from producing
-partial output. Applications must derive `atlas_tenant` from authenticated
-server-side identity, not request parameters supplied without authorization.
+`AtlasPolicy` applies encoded bytes and decoded dimensions per source image;
+catalog entry, aggregate-byte, and aggregate-pixel limits; prepared-tile pixels;
+and atlas page dimensions, pixels, padding, and encoded bytes. All limits fail
+closed before a partial presentation is emitted.
+
+`max_pages` and `max_bytes` bound **one distinct policy cache**, not one session.
+Sessions sharing that policy do not multiply its allowance. Different policies
+multiply the potential aggregate residency; applications should reuse a stable
+set of policies and monitor `atlas_cache_snapshot()` when exposing policy choices.
+Each policy cache has its own locked LRU, and it fails closed when
+the current graph's working set cannot fit at all, so eviction never produces
+partial output.
+
+The cache keeps one entry per distinct `AtlasPolicy`. Page packing depends on
+`page_width`, `page_height`, and `padding`, so two policies packing identical
+tiles produce different pages and must not share a mapping.
+
+#### Why a shared cache does not widen access
+
+A session receives a tile because its own presentation references that tile's
+content key, and that presentation is built from that session's own graph data.
+Nothing enumerates the cache or fetches a tile by arbitrary key, so a session
+cannot obtain imagery it did not itself cause to be rendered. Sharing changes
+where bytes are stored, not who may retrieve them, and that holds even where
+authenticated users must not see each other's data.
+
+A content key covers the badge kind, renderer version, binding options, the data
+value, palette, theme, region size, resolution bucket, the fully rendered
+primitives, and the Pillow rasterizer version. Static sprites cover the source
+content hash together with logical geometry and fit. Two tiles therefore share
+storage only when they are the same image.
+
+One residual is worth stating. Because the cache is content-addressed, a cache
+hit is observable as latency, so a caller could in principle infer that some
+other session rendered byte-identical content. For low-cardinality badge domains
+such as counts, severities, and statuses this conveys nothing. It would become
+meaningful only if a renderer rasterized high-cardinality identifying text, such
+as a customer name, which no bundled renderer does.
+
+Page identifiers are `sha256` over the packed page bytes and their tile mapping.
+They are stable across processes, so a browser that already holds a page keeps
+it across a server restart.
+
+#### Warming the cache at startup
+
+A binding's tile set is a function of its renderer, options, value domain,
+palette, theme, and device-scale bucket. When an application can enumerate that
+domain, `warm_atlas` packs it once at startup so no session pays the first-render
+cost:
+
+```python
+from streamlit_graph_canvas import warm_atlas
+
+warm_atlas(
+    schema,
+    {"service": {"severity": ["critical", "high", "medium", "low"]}},
+    renderer_registry=registry,
+)
+```
+
+Warming covers every theme and device-scale bucket by default, because both are
+part of tile identity. Only rasterizing transports are packed.
 
 Pillow `>=12.3,<13` is the supported internal beta rasterizer range and is
 available through `streamlit-graph-canvas[atlas]`. Raster and static sprite

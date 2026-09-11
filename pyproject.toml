@@ -23,6 +23,9 @@ dev = [
     "hypothesis>=6.0.0",
     "mypy>=2.3.1",
     "networkx>=3.6.1",
+    # The SDK is a test-only dependency: it supplies the in-memory metric reader
+    # used to assert instrument behaviour. The package itself never imports it.
+    "opentelemetry-sdk>=1.30,<2",
     "pip-audit>=2.9.0",
     "pytest>=9.0.0",
     "pytest-cov>=7.0.0",

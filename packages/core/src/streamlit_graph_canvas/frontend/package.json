@@ -6,9 +6,11 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run format:check && tsc --noEmit && vite build",
     "dev": "vite build --watch",
-    "test": "vitest run"
+    "test": "vitest run",
+    "format": "prettier --write src/child-groups.ts src/index.tsx src/node-label.tsx src/node-search.tsx src/use-node-search.ts src/search-model.ts src/telemetry.ts",
+    "format:check": "prettier --check src/child-groups.ts src/index.tsx src/node-label.tsx src/node-search.tsx src/use-node-search.ts src/search-model.ts src/telemetry.ts"
   },
   "dependencies": {
     "@streamlit/component-v2-lib": "^0.2.0",
@@ -21,6 +23,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.0",
+    "prettier": "3.6.2",
     "typescript": "^7.0.2",
     "vite": "^8.2.0",
     "vitest": "^4.1.0"

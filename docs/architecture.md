@@ -23,8 +23,11 @@ explicitly enabled renderer metadata before serializing a versioned component
 envelope.
 
 The envelope crosses the Streamlit Components v2 boundary to the React Flow
-frontend. ELK computes positions when topology changes; presentation-only
-changes preserve layout. Selection, viewport, validated click actions, theme,
+frontend. A separate `layoutHash` covers node geometry, ports, relationships,
+and collection rules. ELK runs when those inputs or local grouping/order change;
+label policies, colors, and collection titles refresh without laying out again.
+The existing `topologyHash` remains the action-protocol identity and still
+includes schema changes. Selection, viewport, validated click actions, theme,
 resolution, and atlas-page browser state return to Python and are reconciled
 across Streamlit reruns.
 
@@ -57,7 +60,7 @@ logical region. Theme, resolution, and atlas-page changes affect presentation
 identity but never topology identity or ELK layout.
 
 The trust model and deployment requirements are detailed in
-[JavaScript, raster and sprite delivery, multi-tenancy, and
+[JavaScript, raster and sprite delivery, cache scope, and
 CSP](transports-and-csp.md).
 
 ## Request lifecycle
@@ -73,6 +76,17 @@ trusted JavaScript renderer is enabled, its bootstrap mounts before the core
 component. The frontend lays out new topology, restores interaction state, and
 returns changes through `CanvasResult`; configured callbacks cause the normal
 Streamlit rerun cycle.
+
+Collection visibility uses an adjacency traversal of the loaded graph before
+applying the rendered-element budget. Search state and evaluation live in
+`use-node-search.ts`: metadata, rendered membership, and filters invalidate the
+results; geometry-only animation frames reuse them. Exiting and hidden nodes
+are excluded. Search is browser-local unless the application explicitly enables
+submission callbacks, which cause Streamlit reruns.
+
+The frontend's `npm run format` and `npm run format:check` cover the grouping,
+canvas, label, search, and telemetry modules. The build checks that formatting;
+other modules can be adopted as they are changed.
 
 ## Public API map
 

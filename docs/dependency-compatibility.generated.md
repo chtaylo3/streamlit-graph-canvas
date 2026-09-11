@@ -33,6 +33,7 @@ This file is generated from `ci/dependency-policy.toml` by
 | build | @types/react-dom | 19.2.0 | `^19.2.0` | `—` | react,react-dom,@types/react,@xyflow/react | high |
 | build | typescript | 7.0.2 | `^7.0.2` | `—` | — | high |
 | build | vite | 8.2.0 | `^8.2.0` | `—` | — | high |
+| build | prettier | 3.6.2 | `3.6.2` | `—` | — | low |
 | build | vitest | 4.1.0 | `^4.1.0` | `—` | — | medium |
 | test | @playwright/test | 1.52.0 | `^1.52.0` | `—` | — | high |
 | test | @axe-core/playwright | 4.13.0 | `^4.13.0` | `—` | — | medium |

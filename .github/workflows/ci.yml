@@ -289,6 +289,12 @@ jobs:
         working-directory: tests/e2e
         env:
           SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-conformance/bin/python
+      - name: Test canvas features against the candidate wheel
+        if: matrix.contrib-set == 'core-only'
+        run: npm run test:features
+        working-directory: tests/e2e
+        env:
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-conformance/bin/python
       - if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:

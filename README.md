@@ -215,7 +215,7 @@ documented in [`docs/dependency-lifecycle.md`](docs/dependency-lifecycle.md).
 
 The current vertical slice provides the native graph and schema models, strict
 preflight validation, explicit multigraph edge identities, versioned topology
-and presentation envelopes, a combined element budget, an optional NetworkX
+and presentation envelopes, separate loaded-data and rendered-element budgets, an optional NetworkX
 adapter, and a Components v2 canvas with ELK layout, declarative styles and
 ports, persistent selection and viewport state, and a validated click-action
 protocol. It also provides import-free static renderer discovery, explicit
@@ -230,3 +230,184 @@ security, multi-tenant configuration, and deployment policy are documented in
 [`docs/transports-and-csp.md`](docs/transports-and-csp.md).
 
 Licensed under the Apache License, Version 2.0.
+
+### Choose tree or collection display
+
+```python
+from streamlit_graph_canvas import ChildGroup, GroupDisplay, NodeType
+
+manifest_type = NodeType(
+    "manifest",
+    child_groups=(
+        ChildGroup(
+            "depends_on",
+            label="Direct dependencies",
+            threshold=8,
+            display=GroupDisplay.CUTOFF,
+        ),
+        ChildGroup(
+            "resolves", label="Resolved packages", display=GroupDisplay.COLLECTION
+        ),
+    ),
+)
+```
+
+Declare the corresponding edge types in your schema. Use `GroupDisplay.TREE`
+to always show a category's children directly. Cutoffs count distinct children
+**per relationship category**, grouping at the supplied number. `collapsed=False`
+starts a collection expanded. Mark edges with `emphasized=True` or `optional=True`
+to style them without changing their relationship type.
+
+Collections use nested orthogonal layout and keep ELK's computed edge routes.
+See [the beta contract](docs/beta-contract.md#child-display-and-edge-presentation)
+for shared-child behavior and routing limits.
+
+Graph navigation animates over 250 ms by default. Shared nodes stay on the same
+canvas, entering/leaving nodes fade, and viewport changes move smoothly. Configure
+`transition_ms` (0 disables motion) and `navigation_anchor` on `graph_canvas`.
+The user's reduced-motion browser preference is respected automatically.
+
+Collection display budgets count one collection node and one parent edge, plus
+visible members and drawn internal edges when expanded. Hidden members remain in
+the full count. `graph_canvas(max_elements=..., max_loaded_elements=...)` configures
+the display and input limits separately; partial expansions show both counts.
+
+### Local node search and optional applied ordering
+
+Pass `search_fields=()` to enable name search, or declare scalar fields from
+`Node.data`. The app owns metadata and computes descendant metrics over its full
+source graph before passing them in. Search covers displayed individual nodes;
+collapsed members and budget-omitted nodes are excluded. Supply
+`search_active_ids` to exclude faded context by default; users can opt into
+including context. Without this argument, all displayed real nodes are searched.
+
+```python
+from streamlit_graph_canvas import SearchField, graph_canvas
+
+result = graph_canvas(
+    graph,
+    schema,
+    key="dependencies",
+    search_fields=(
+        SearchField("dependency_count", "Dependencies", "number"),
+        SearchField(
+            "critical_below",
+            "Critical findings below",
+            "number",
+            description="Computed by the app over all descendants",
+        ),
+    ),
+    search_active_ids=active_node_ids,  # tuple of node IDs
+    search_reorder_threshold=100,
+    search_nonmatch_opacity=0.25,
+)
+```
+
+Names accept comma-separated alternatives. Filters support text, numbers, declared
+choices, all/any combinations, and known/unknown checks. Missing or null values are
+unknown, not zero. Matches receive an outline independently of node selection;
+Previous/Next/Fit matches help locate them.
+
+Typing only previews matches and never changes their order. By default nonmatches
+retain their appearance; `search_nonmatch_opacity` optionally multiplies their
+opacity by a value from 0 to 1. `search_reorder_threshold` enables **Apply search**:
+a collection or peer group must contain at least that many searched, displayed
+nodes before its matches are ranked first. Matches retain their relative order;
+context outside the search keeps its order. Layout still respects dependency
+layers, so connected nodes cannot always be placed in one leftmost row. Further
+edits preview a new search without changing the applied order. **Clear search**
+removes highlights/dimming and restores normal layout ordering. These options can
+be hard-coded or exposed by the host app.
+
+### Search callbacks and Streamlit reruns
+
+Local search needs no callback and sends no per-keystroke events. Only configure
+`on_search_request=your_callback` if the app needs to fetch or compute additional
+information. It exposes a separate **Send filters to app** button, with a visible
+warning: **submitting reruns Streamlit (or the enclosing fragment)** and can repeat
+database queries, expensive calculations, and rendering, causing latency or
+visual disruption. Cache expensive work and avoid enabling callbacks merely to
+highlight nodes. Existing camera/viewport and sprite-atlas synchronization may
+still produce component events when navigating or changing layouts.
+
+The no-argument callback runs as a Streamlit callback. After `graph_canvas`
+returns on that rerun, `result.search_request` contains the validated query,
+criteria, match mode, context choice, and matching node IDs. Handle app-side work
+there and pass refreshed metadata into the next render. Duplicate submissions
+and stale graph revisions are rejected; matching IDs describe the browser's
+visible results, not a server-side query over all descendants. Recompute any
+metrics or decisions from the app's authoritative data as needed.
+
+### Fixed-box node labels
+
+`GraphSchema.label_policy` supplies the default for every node type. A non-`None`
+`NodeType.label_policy` replaces that whole policy for that type. Configure only
+type policies if you prefer; other types inherit the package default. Use
+`dataclasses.replace` to derive a type policy while retaining your chosen defaults.
+
+```python
+from dataclasses import replace
+from streamlit_graph_canvas import GraphSchema, LabelPolicy, Node, NodeType
+
+labels = LabelPolicy()  # path-aware, two lines, automatic ellipsis
+schema = GraphSchema(
+    node_types={
+        "manifest": NodeType("manifest"),  # inherits labels
+        "dependency": NodeType(
+            "dependency",
+            label_policy=replace(
+                labels,
+                layout="single",
+                lines=1,
+                ellipsis="middle",
+            ),
+        ),
+    },
+    edge_types={},
+    label_policy=labels,
+)
+node = Node(
+    "id",
+    "manifest",
+    "src/very/long/path/project.csproj",
+    display_label="project.csproj",
+)  # optional app-provided compact text
+```
+
+The default puts the directory on line one and filename on line two. Long paths
+omit middle directory segments; long filenames use middle ellipsis. Labels without
+a path wrap naturally, with end ellipsis on the last line. Full original labels
+remain searchable and accessible even when `display_label` supplies compact text.
+
+| Setting | Choices and compatibility |
+| --- | --- |
+| `layout` | `path` requires exactly 2 lines; `single` requires exactly 1; `wrap` allows 1–6. Box growth is unsupported. |
+| `ellipsis` | `auto`, `end`, or `middle`. `auto` follows the default rules above; `single` uses end ellipsis. `wrap` with `middle` is rejected. |
+| `font_size` | Positive integer pixels; defaults to 14. |
+| `min_font_size` | `None` keeps uniform size; a positive integer no greater than `font_size` enables shrinking before truncation. Works with every layout. |
+| `reveal_mode` | `delayed_hover` (default) reveals only shortened names after hovering over the name itself. `controls` retains immediate whole-node hover, keyboard-focus reveal, and the pin/copy/close button. |
+| `reveal_delay_ms` | Nonnegative integer milliseconds; defaults to 600. Applies to delayed hover only. Leaving the name cancels the pending reveal. |
+| `reveal_hover` | Boolean, defaults to `True`; enables the selected mode’s hover behavior. |
+| `reveal_focus`, `reveal_button` | `None` uses the mode default: enabled for `controls`, disabled for `delayed_hover`. Set either to `False` to disable it in controls mode. Setting either to `True` with delayed-hover mode is incompatible and raises a configuration error. |
+| `Node.display_label` | Optional display-only string; works with every policy. `Node.label` remains the full name used for search, accessibility, and copying. |
+
+Invalid combinations raise `ValueError` when constructing the Python model, before
+the component starts. Unknown options are rejected by the constructor. No label
+mode grows the node or changes its geometry; app-declared node dimensions remain
+authoritative. Extremely small boxes may show fewer lines than configured. Reveal
+controls stay local and do not submit Streamlit events. Escape dismisses a reveal.
+Copy uses the browser clipboard when available; the full label can also be selected
+in the pinned reveal. Changing the global policy does not partially merge into an
+explicit type policy: overrides are complete, validated policies.
+
+The delayed-hover eligibility check uses actual rendered truncation, not label
+length: wrapping or reducing the font without omitting text does not trigger a
+reveal. A distinct `Node.display_label` also qualifies, so the original remains
+available. Full labels remain in accessible node names in both modes.
+
+```python
+# Global default, with a custom delay:
+labels = LabelPolicy(reveal_delay_ms=900)
+# Opt a particular type into the previous reveal controls:
+manifest_labels = replace(labels, reveal_mode="controls")
+```

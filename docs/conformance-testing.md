@@ -12,7 +12,7 @@ The initial matrix contains:
 | Set | Installed project packages | Purpose |
 | --- | --- | --- |
 | `core-only` | core | Detect accidental contrib coupling |
-| `stock` | core and stock contrib | Exercise PRIMS, JavaScript, raster delivery, static sprites, packed atlas crops, tenant limits, and CSP |
+| `stock` | core and stock contrib | Exercise PRIMS, JavaScript, raster delivery, static sprites, packed atlas crops, cache limits, and CSP |
 | `transports` | core, stock contrib, and JavaScript-only fixture | Prove a wheel can provide browser code without a Python renderer implementation |
 | `hostile` | core, stock contrib, and deliberately malformed/cross-import fixtures | Prove unrequested failures and module-ownership violations are isolated |
 | `javascript-stale` | core and an installed stale-identity JavaScript renderer | Prove immutable identity mismatch prevents readiness and renderer execution |
@@ -120,7 +120,16 @@ npx playwright install --with-deps chromium
 SGC_CONTRIB_SET=stock \
 SGC_CONFORMANCE_PYTHON=../../.conformance-venv/bin/python \
 npm test
+SGC_CONFORMANCE_PYTHON=../../.conformance-venv/bin/python \
+npm run test:features
 ```
+
+`test:features` runs the budget, search, and label galleries, including layout
+invalidation and reveal-overlay behavior. Each gallery honors the candidate-wheel
+interpreter above; without it, local runs use the repository virtual environment.
+The core-only Chromium CI lane and the release gate run these suites in addition
+to the main conformance suite. The grouping unit suite also bounds edge visits
+on a long, reverse-ordered chain without relying on machine-specific timings.
 
 The `--with-deps` operation needs package-manager privileges on Linux. It works
 on GitHub-hosted Ubuntu runners; a restricted local environment may be able to

@@ -76,7 +76,7 @@ def main() -> None:
         )
         for index in range(NODE_COUNT)
     )
-    policy = AtlasPolicy(max_tenant_pages=128)
+    policy = AtlasPolicy(max_pages=128)
     cache = AtlasCache(policy)
     initial, initial_seconds = _serialize(
         GraphData(nodes, ()), catalog, cache, frozenset()

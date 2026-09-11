@@ -114,6 +114,7 @@ export async function waitForGalleryStable(page: Page, expectedCanvases = 1) {
   let previousSignature = "";
   let unchangedSince = Date.now();
   await expect.poll(async () => {
+    if (await ready.evaluateAll(elements => elements.some(e => e.getAttribute("data-sgc-transition") === "running" || e.getAttribute("data-sgc-layout-pending") === "true"))) { unchangedSince = Date.now(); return false; }
     const signature = await ready.evaluateAll((elements) => {
       type IdentityWindow = Window & {
         __sgcElementIds?: WeakMap<Element, number>;
