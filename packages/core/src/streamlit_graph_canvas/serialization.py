@@ -6,22 +6,22 @@ import base64
 import hashlib
 import json
 from dataclasses import asdict, dataclass
-from functools import partial
 from typing import Any
 
 from .atlas import (
     AtlasCache,
     AtlasPolicy,
     atlas_content_key,
-    rasterize_primitives,
+    rasterize_primitives_tile,
     resolution_bucket,
-    tenant_subject,
 )
 from .contract import CODEC_VERSION, RENDERER_API
 from .errors import Diagnostic, ValidationError
+from .images import SpriteCatalog, normalize_catalog
 from .model import BUILTIN_PALETTE, AnyNodeType, GraphData, GraphSchema, Transport
 from .primitives import BadgeContext, validate_primitives
 from .renderers import RendererRegistry
+from .sprites import RasterTile, prepare_static_tile, static_tile_content_key
 from .validation import validate
 
 
@@ -47,6 +47,7 @@ def serialize_graph(
     *,
     max_elements: int = 700,
     renderer_registry: RendererRegistry | None = None,
+    sprite_catalog: SpriteCatalog | None = None,
     atlas_cache: AtlasCache | None = None,
     atlas_policy: AtlasPolicy | None = None,
     atlas_tenant: str = "session",
@@ -61,7 +62,21 @@ def serialize_graph(
         graph,
         max_elements=max_elements,
         renderer_registry=renderer_registry,
+        sprite_catalog=sprite_catalog,
     )
+    if atlas_theme not in {"light", "dark"}:
+        raise ValueError("atlas_theme must be 'light' or 'dark'")
+    if not atlas_tenant or len(atlas_tenant) > 128:
+        raise ValueError("atlas_tenant must be a non-empty string of at most 128 chars")
+    policy = atlas_policy or AtlasPolicy()
+    cache = atlas_cache or AtlasCache(policy)
+    bucket = resolution_bucket(atlas_resolution)
+    normalized_catalog = (
+        normalize_catalog(sprite_catalog, policy=policy)
+        if sprite_catalog is not None
+        else {}
+    )
+
     schema_data = {
         "nodeTypes": {
             name: {
@@ -78,7 +93,19 @@ def serialize_graph(
                         "z": binding.z,
                     }
                     for binding in sorted(
-                        kind.badges, key=lambda item: (item.layer, item.z)
+                        kind.badges, key=lambda item: (item.layer, item.z, item.name)
+                    )
+                ],
+                "sprites": [
+                    {
+                        "name": binding.name,
+                        "region": asdict(binding.region),
+                        "layer": binding.layer,
+                        "z": binding.z,
+                        "fit": binding.fit,
+                    }
+                    for binding in sorted(
+                        kind.sprites, key=lambda item: (item.layer, item.z, item.name)
                     )
                 ],
             }
@@ -120,18 +147,6 @@ def serialize_graph(
             for edge in graph.edges
         ],
     }
-
-    if atlas_theme not in {"light", "dark"}:
-        raise ValueError("atlas_theme must be 'light' or 'dark'")
-    if not atlas_tenant or len(atlas_tenant) > 128:
-        raise ValueError("atlas_tenant must be a non-empty string of at most 128 chars")
-    policy = atlas_policy or AtlasPolicy()
-    cache = atlas_cache or AtlasCache(policy)
-    bucket = resolution_bucket(atlas_resolution)
-    atlas_pages: dict[str, dict[str, Any]] = {}
-    removed_atlas_pages: set[str] = set()
-    referenced_atlas_pages: set[str] = set()
-    javascript_renderers: dict[str, dict[str, Any]] = {}
     resolved_palette = {
         name: (
             tone["dark"] if atlas_theme == "dark" and tone["dark"] else tone["light"]
@@ -141,6 +156,9 @@ def serialize_graph(
             **{name: asdict(tone) for name, tone in schema.palette.items()},
         }.items()
     }
+    javascript_renderers: dict[str, dict[str, Any]] = {}
+    required_tiles: dict[str, RasterTile] = {}
+    layers_by_node: dict[str, list[dict[str, Any]]] = {}
 
     def rendered_primitives(
         node: Any, binding: Any, renderer: Any, context: BadgeContext
@@ -159,9 +177,7 @@ def serialize_graph(
                 node.badges[binding.name], binding.options, context
             )
             return validate_primitives(
-                primitives,
-                context,
-                subject=f"{node.id}.{binding.name}",
+                primitives, context, subject=f"{node.id}.{binding.name}"
             )
         except ValidationError:
             raise
@@ -175,15 +191,13 @@ def serialize_graph(
                 )
             ) from error
 
-    def badges_for(node: Any) -> list[dict[str, Any]]:
-        result: list[dict[str, Any]] = []
-        for binding in sorted(
-            schema.node_types[node.type].badges,
-            key=lambda item: (item.layer, item.z),
-        ):
+    for node in graph.nodes:
+        layers: list[dict[str, Any]] = []
+        declaration = schema.node_types[node.type]
+        for binding in declaration.badges:
             if binding.name not in node.badges:
                 continue
-            assert renderer_registry is not None  # Guaranteed by validation above.
+            assert renderer_registry is not None
             renderer = renderer_registry.require(binding.kind, binding.transport.value)
             badge: dict[str, Any] = {
                 "name": binding.name,
@@ -203,10 +217,10 @@ def serialize_graph(
                     node, binding, renderer, context
                 )
             elif binding.transport is Transport.JAVASCRIPT:
-                declaration = renderer.declaration
+                metadata = renderer.declaration
                 if (
-                    declaration.javascript_component is None
-                    or declaration.javascript_entry is None
+                    metadata.javascript_component is None
+                    or metadata.javascript_entry is None
                     or renderer.javascript_hash is None
                 ):
                     raise ValidationError(
@@ -220,12 +234,12 @@ def serialize_graph(
                     )
                 javascript_renderers[binding.kind] = {
                     "kind": binding.kind,
-                    "component": declaration.javascript_component,
-                    "entry": declaration.javascript_entry,
+                    "component": metadata.javascript_component,
+                    "entry": metadata.javascript_entry,
                     "version": renderer.version,
                     "rendererApi": RENDERER_API,
                     "assetHash": renderer.javascript_hash,
-                    "buildIdentity": declaration.javascript_identity,
+                    "buildIdentity": metadata.javascript_identity,
                 }
                 badge["data"] = node.badges[binding.name]
                 badge["options"] = dict(binding.options)
@@ -251,42 +265,93 @@ def serialize_graph(
                     },
                     subject=f"{node.id}.{binding.name}",
                 )
-                lookup = cache.get_or_create(
-                    tenant=atlas_tenant,
-                    content_key=content_key,
-                    create=partial(
-                        rasterize_primitives,
+                if content_key not in required_tiles:
+                    required_tiles[content_key] = rasterize_primitives_tile(
                         primitives,
+                        content_key=content_key,
                         width=binding.region.width,
                         height=binding.region.height,
                         palette=resolved_palette,
                         bucket=bucket,
                         policy=policy,
                         subject=f"{node.id}.{binding.name}",
-                    ),
+                    )
+                badge["_tileKey"] = content_key
+                badge["_locationField"] = (
+                    "atlas" if binding.transport is Transport.ATLAS else "sprite"
                 )
-                removed_atlas_pages.update(lookup.evicted_page_ids)
-                page = lookup.page
-                referenced_atlas_pages.add(page.page_id)
-                if page.page_id not in atlas_known_pages:
-                    atlas_pages[page.page_id] = {
-                        "pageId": page.page_id,
-                        "contentSha256": hashlib.sha256(page.content).hexdigest(),
-                        "mediaType": page.media_type,
-                        "base64": base64.b64encode(page.content).decode("ascii"),
-                        "width": page.width,
-                        "height": page.height,
-                    }
-                badge["atlas"] = {
-                    "pageId": page.page_id,
-                    "x": 0,
-                    "y": 0,
-                    "width": page.width,
-                    "height": page.height,
-                    "resolution": bucket,
+            layers.append(badge)
+        for sprite_binding in declaration.sprites:
+            if sprite_binding.name not in node.sprites:
+                continue
+            reference = node.sprites[sprite_binding.name]
+            variants = normalized_catalog[reference.catalog_id]
+            selected = variants.get("dark") if atlas_theme == "dark" else None
+            selected = selected or variants["light"]
+            tile_key = static_tile_content_key(
+                selected,
+                logical_width=sprite_binding.region.width,
+                logical_height=sprite_binding.region.height,
+                resolution=bucket,
+                fit=sprite_binding.fit,
+                subject=f"{node.id}.{sprite_binding.name}",
+            )
+            if tile_key not in required_tiles:
+                required_tiles[tile_key] = prepare_static_tile(
+                    selected,
+                    logical_width=sprite_binding.region.width,
+                    logical_height=sprite_binding.region.height,
+                    resolution=bucket,
+                    fit=sprite_binding.fit,
+                    policy=policy,
+                    subject=f"{node.id}.{sprite_binding.name}",
+                )
+            layers.append(
+                {
+                    "name": sprite_binding.name,
+                    "kind": "static-sprite",
+                    "transport": "sprite",
+                    "region": asdict(sprite_binding.region),
+                    "layer": sprite_binding.layer,
+                    "z": sprite_binding.z,
+                    "fit": sprite_binding.fit,
+                    "accessibleText": reference.accessible_text,
+                    "_tileKey": tile_key,
+                    "_locationField": "sprite",
                 }
-            result.append(badge)
-        return result
+            )
+        layers_by_node[node.id] = sorted(
+            layers, key=lambda item: (item["layer"], item["z"], item["name"])
+        )
+
+    packed = cache.resolve_tiles(tenant=atlas_tenant, tiles=required_tiles)
+    atlas_pages = [
+        {
+            "pageId": page.page_id,
+            "contentSha256": hashlib.sha256(page.content).hexdigest(),
+            "mediaType": page.media_type,
+            "base64": base64.b64encode(page.content).decode("ascii"),
+            "width": page.width,
+            "height": page.height,
+        }
+        for page in packed.referenced_pages
+        if page.page_id not in atlas_known_pages
+    ]
+    for layers in layers_by_node.values():
+        for layer in layers:
+            content_key = layer.pop("_tileKey", None)
+            location_field = layer.pop("_locationField", None)
+            if content_key is None:
+                continue
+            location = packed.locations[content_key]
+            layer[location_field] = {
+                "pageId": location.page_id,
+                "x": location.x,
+                "y": location.y,
+                "width": location.width,
+                "height": location.height,
+                "resolution": bucket,
+            }
 
     presentation = {
         "nodes": [
@@ -294,7 +359,7 @@ def serialize_graph(
                 "id": node.id,
                 "label": node.label,
                 "data": dict(node.data),
-                "badges": badges_for(node),
+                "badges": layers_by_node[node.id],
                 "disabled": node.disabled,
                 "dimmed": node.dimmed,
             }
@@ -310,18 +375,10 @@ def serialize_graph(
             for edge in graph.edges
         ],
     }
-    if evicted_active := referenced_atlas_pages & removed_atlas_pages:
-        raise ValidationError(
-            Diagnostic(
-                "SGC_ATLAS_WORKING_SET_LIMIT",
-                f"ATLAS cache limits evicted {len(evicted_active)} pages still "
-                "required by the current graph.",
-                "Increase the reviewed tenant limits or reduce ATLAS cardinality.",
-                tenant_subject(atlas_tenant),
-            )
-        )
     topology_hash = _hash({"schema": schema_data, "topology": topology})
-    presentation_hash = _hash(presentation)
+    presentation_hash = _hash(
+        {"presentation": presentation, "theme": atlas_theme, "resolution": bucket}
+    )
     return SerializedGraph(
         envelope={
             "codecVersion": CODEC_VERSION,
@@ -330,8 +387,8 @@ def serialize_graph(
             "presentation": presentation,
             "javascriptRenderers": list(javascript_renderers.values()),
             "atlas": {
-                "pages": list(atlas_pages.values()),
-                "removedPageIds": sorted(removed_atlas_pages),
+                "pages": atlas_pages,
+                "removedPageIds": sorted(packed.evicted_page_ids),
                 "policy": {
                     "maxPages": policy.max_pages,
                     "maxBytes": policy.max_bytes,

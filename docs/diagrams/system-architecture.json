@@ -8,12 +8,13 @@
     { "id": "validation", "type": "security", "label": "Validation", "sublabel": "schema, budgets, renderers", "pos": [530, 280], "size": [185, 70] },
     { "id": "serialization", "type": "backend", "label": "Serialization", "sublabel": "versioned envelope", "pos": [785, 280], "size": [185, 70] },
     { "id": "frontend", "type": "frontend", "label": "Components v2 frontend", "sublabel": "React Flow canvas", "pos": [1040, 280], "size": [205, 70] },
-    { "id": "renderers", "type": "backend", "label": "Enabled renderer transports", "sublabel": "PRIMS · trusted JS · ATLAS", "pos": [530, 500], "size": [230, 74] },
+    { "id": "renderers", "type": "backend", "label": "Renderer + image sources", "sublabel": "PRIMS · trusted JS · RASTER · PNG", "pos": [530, 500], "size": [230, 74] },
+    { "id": "atlas", "type": "backend", "label": "Packed atlas delivery", "sublabel": "dedupe · immutable pages · crop refs", "pos": [785, 500], "size": [210, 74] },
     { "id": "layout", "type": "frontend", "label": "ELK layout", "sublabel": "topology changes only", "pos": [1060, 100], "size": [165, 70] },
     { "id": "state", "type": "frontend", "label": "Persistent canvas state", "sublabel": "selection · viewport · actions", "pos": [1060, 500], "size": [185, 74] }
   ],
   "boundaries": [
-    { "kind": "region", "label": "Python", "wraps": ["api", "validation", "serialization", "renderers"], "pad": 26 },
+    { "kind": "region", "label": "Python", "wraps": ["api", "validation", "serialization", "renderers", "atlas"], "pad": 26 },
     { "kind": "region", "label": "Browser", "wraps": ["frontend", "layout", "state"], "pad": 26 }
   ],
   "connections": [
@@ -22,12 +23,14 @@
     { "id": "validation-serialization", "from": "validation", "to": "serialization", "label": "validated graph", "labelDy": -28 },
     { "id": "serialization-frontend", "from": "serialization", "to": "frontend", "label": "component envelope", "variant": "emphasis", "labelDy": -28 },
     { "id": "renderers-validation", "from": "renderers", "to": "validation", "label": "manifest + output checks", "variant": "security", "fromSide": "top", "toSide": "bottom", "labelDx": 92 },
+    { "id": "renderers-atlas", "from": "renderers", "to": "atlas", "label": "raster + static tiles", "variant": "dashed", "labelAt": [773, 588] },
+    { "id": "atlas-serialization", "from": "atlas", "to": "serialization", "label": "pages + crop refs", "fromSide": "top", "toSide": "bottom", "labelDx": 74 },
     { "id": "frontend-layout", "from": "frontend", "to": "layout", "label": "topology revision", "fromSide": "top", "toSide": "bottom", "labelDx": 82 },
     { "id": "frontend-state", "from": "frontend", "to": "state", "label": "interactions", "fromSide": "bottom", "toSide": "top", "labelDx": 62 }
   ],
   "cards": [
     { "dot": "cyan", "title": "Core path", "items": ["Validation happens before the browser boundary", "Only topology changes trigger ELK", "CanvasResult reconciles state across reruns"] },
     { "dot": "rose", "title": "Trust boundary", "items": ["Graph data cannot choose executable assets", "JavaScript renderers are explicitly enabled trusted page code"] },
-    { "dot": "emerald", "title": "Transport choices", "items": ["PRIMS paints validated SVG", "ATLAS sends bounded PNG page deltas", "JavaScript registers hash-bound scoped-SVG factories"] }
+    { "dot": "emerald", "title": "Transport choices", "items": ["PRIMS paints validated SVG", "RASTER and static sprites share packed PNG pages", "JavaScript registers hash-bound scoped-SVG factories"] }
   ]
 }

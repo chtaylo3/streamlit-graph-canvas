@@ -31,6 +31,7 @@ import { appendPendingAction, clickAction, type CanvasAction } from "./events";
 import {
   acquireBrowserAtlasCache,
   releaseBrowserAtlasCache,
+  type AtlasPageDescriptor,
   type AtlasPageDelta,
 } from "./atlas-cache";
 import {
@@ -41,7 +42,15 @@ import {
   type JavascriptRendererRequirement,
 } from "./javascript-registry";
 import { layoutGraph } from "./layout";
+import { useMeasuredNodes } from "./use-measured-nodes";
 import { tone, type Palette } from "./palette";
+import {
+  imageLayerLocation,
+  spriteCrop,
+  validateSpriteLocation,
+  type ImageLayer,
+  type SpriteLocation,
+} from "./sprite-location";
 import "./style.css";
 
 type State = {
@@ -143,7 +152,7 @@ type Primitive =
 type BadgeView = {
   name: string;
   kind: string;
-  transport: "prims" | "javascript" | "atlas";
+  transport: "prims" | "javascript" | "raster" | "atlas" | "sprite";
   layer: "under" | "over";
   region: { x: number; y: number; width: number; height: number };
   primitives?: Primitive[];
@@ -157,6 +166,15 @@ type BadgeView = {
     height: number;
     resolution: number;
   };
+  sprite?: {
+    pageId: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    resolution: number;
+  };
+  accessibleText?: string | null;
 };
 type NodeData = {
   label: string;
@@ -169,7 +187,7 @@ type NodeData = {
   ports: Port[];
   accessibleBadgeText: string;
   javascriptRenderers: Map<string, JavascriptRendererRegistration>;
-  atlasUrls: Map<string, string>;
+  atlasPages: Map<string, AtlasPageDescriptor>;
   onKeyboardActivate: (event: React.KeyboardEvent<HTMLDivElement>) => void;
 };
 type CanvasNode = FlowNode<NodeData, "schemaNode">;
@@ -235,26 +253,36 @@ function JavascriptBadge({
   );
 }
 
-function AtlasBadge({ badge, url }: { badge: BadgeView; url: string }) {
-  if (!badge.atlas) return null;
+function SpriteBadge({
+  badge,
+  page,
+  location,
+}: {
+  badge: BadgeView;
+  page: AtlasPageDescriptor;
+  location: SpriteLocation;
+}) {
+  const crop = spriteCrop(location, page);
   return (
     <svg
       className="sgc-badge"
       data-sgc-badge={badge.name}
-      data-sgc-transport="atlas"
+      data-sgc-transport={badge.transport}
+      data-sgc-page-id={location.pageId}
       aria-hidden="true"
       style={{
         left: badge.region.x,
         top: badge.region.y,
         width: badge.region.width,
         height: badge.region.height,
+        overflow: "hidden",
       }}
-      viewBox={`0 0 ${badge.region.width} ${badge.region.height}`}
+      viewBox={crop.viewBox}
     >
       <image
-        href={url}
-        width={badge.region.width}
-        height={badge.region.height}
+        href={page.url}
+        width={crop.imageWidth}
+        height={crop.imageHeight}
         preserveAspectRatio="none"
       />
     </svg>
@@ -265,12 +293,12 @@ function BadgeLayer({
   badge,
   palette,
   javascriptRenderers,
-  atlasUrls,
+  atlasPages,
 }: {
   badge: BadgeView;
   palette: Palette;
   javascriptRenderers: Map<string, JavascriptRendererRegistration>;
-  atlasUrls: Map<string, string>;
+  atlasPages: Map<string, AtlasPageDescriptor>;
 }) {
   if (badge.transport === "javascript") {
     const registration = javascriptRenderers.get(badge.kind);
@@ -278,9 +306,20 @@ function BadgeLayer({
       <JavascriptBadge badge={badge} palette={palette} registration={registration} />
     ) : null;
   }
-  if (badge.transport === "atlas") {
-    const url = badge.atlas ? atlasUrls.get(badge.atlas.pageId) : undefined;
-    return url ? <AtlasBadge badge={badge} url={url} /> : null;
+  if (
+    badge.transport === "raster"
+    || badge.transport === "atlas"
+    || badge.transport === "sprite"
+  ) {
+    const unvalidated = imageLayerLocation(badge as ImageLayer);
+    const pageId = unvalidated && typeof unvalidated === "object"
+      && "pageId" in unvalidated && typeof unvalidated.pageId === "string"
+      ? unvalidated.pageId
+      : "";
+    const page = atlasPages.get(pageId);
+    if (!page) return null;
+    const location = validateSpriteLocation(unvalidated, page, badge.region);
+    return <SpriteBadge badge={badge} page={page} location={location} />;
   }
   if (!badge.primitives) return null;
   return (
@@ -376,7 +415,7 @@ const SchemaNode = memo(({ data, selected }: NodeProps<CanvasNode>) => (
           badge={badge}
           palette={data.palette}
           javascriptRenderers={data.javascriptRenderers}
-          atlasUrls={data.atlasUrls}
+          atlasPages={data.atlasPages}
         />
       ))}
     <div
@@ -410,7 +449,7 @@ const SchemaNode = memo(({ data, selected }: NodeProps<CanvasNode>) => (
           badge={badge}
           palette={data.palette}
           javascriptRenderers={data.javascriptRenderers}
-          atlasUrls={data.atlasUrls}
+          atlasPages={data.atlasPages}
         />
       ))}
   </div>
@@ -446,13 +485,59 @@ function releaseManagedRoot(
   managedRoots.delete(host);
 }
 
+function isImageTransport(
+  transport: BadgeView["transport"],
+): transport is "raster" | "atlas" | "sprite" {
+  return transport === "raster" || transport === "atlas" || transport === "sprite";
+}
+
+function imagePageIds(data: CanvasData): Set<string> {
+  const pageIds = new Set<string>();
+  for (const node of data.presentation.nodes) {
+    for (const layer of node.badges) {
+      for (const location of [layer.sprite, layer.atlas]) {
+        if (location?.pageId) pageIds.add(location.pageId);
+      }
+    }
+  }
+  return pageIds;
+}
+
+function validateImageLayers(
+  data: CanvasData,
+  atlas: ReturnType<typeof acquireBrowserAtlasCache>,
+): void {
+  for (const node of data.presentation.nodes) {
+    for (const layer of node.badges) {
+      if (!isImageTransport(layer.transport)) continue;
+      const location = imageLayerLocation(layer as ImageLayer);
+      const pageId = location !== null && typeof location === "object"
+        && "pageId" in location && typeof location.pageId === "string"
+        ? location.pageId
+        : "";
+      validateSpriteLocation(location, atlas.get(pageId), layer.region);
+    }
+  }
+}
+
+function atlasPageSnapshot(
+  atlas: ReturnType<typeof acquireBrowserAtlasCache>,
+): Map<string, AtlasPageDescriptor> {
+  return new Map(
+    atlas.ids().flatMap((pageId) => {
+      const page = atlas.get(pageId);
+      return page ? [[pageId, page] as const] : [];
+    }),
+  );
+}
+
 function CanvasContents({
   componentKey,
   data,
   initialState,
   topologyChanged,
   javascriptRenderers,
-  atlasUrls,
+  atlasPages,
   setStateValue,
   setTriggerValue,
   onFatal,
@@ -462,7 +547,7 @@ function CanvasContents({
   initialState: BrowserCanvasState;
   topologyChanged: boolean;
   javascriptRenderers: Map<string, JavascriptRendererRegistration>;
-  atlasUrls: Map<string, string>;
+  atlasPages: Map<string, AtlasPageDescriptor>;
   setStateValue: SetStateValue;
   setTriggerValue: SetTriggerValue;
   onFatal: (diagnostic: string) => void;
@@ -577,12 +662,15 @@ function CanvasContents({
         const width = node.width ?? declaration.style.width;
         const height = node.height ?? declaration.style.height;
         const accessibleBadgeText = presentation.badges
-          .flatMap((badge) => badge.primitives ?? [])
-          .filter(
-            (primitive): primitive is Extract<Primitive, { kind: "text" }> =>
-              primitive.kind === "text",
-          )
-          .map((primitive) => primitive.text)
+          .flatMap((badge) => [
+            ...(badge.primitives ?? [])
+              .filter(
+                (primitive): primitive is Extract<Primitive, { kind: "text" }> =>
+                  primitive.kind === "text",
+              )
+              .map((primitive) => primitive.text),
+            ...(badge.accessibleText ? [badge.accessibleText] : []),
+          ])
           .join(" ");
         return {
           id: node.id,
@@ -607,7 +695,7 @@ function CanvasContents({
               ? `, ${accessibleBadgeText}`
               : "",
             javascriptRenderers,
-            atlasUrls,
+            atlasPages,
             onKeyboardActivate: (event) =>
               activateNode(node.id, node.type, {
                 shift: event.shiftKey,
@@ -622,7 +710,7 @@ function CanvasContents({
       }),
     [
       activateNode,
-      atlasUrls,
+      atlasPages,
       data,
       javascriptRenderers,
       positions,
@@ -714,9 +802,11 @@ function CanvasContents({
     topologyChanged,
   ]);
 
+  const measured = useMeasuredNodes(nodes);
   return (
     <ReactFlow
-      nodes={nodes}
+      nodes={measured.nodes}
+      onNodesChange={measured.onNodesChange}
       edges={edges}
       nodeTypes={nodeTypes}
       nodesDraggable={false}
@@ -756,6 +846,11 @@ function Canvas(props: {
 }) {
   const [runtimeRevision, setRuntimeRevision] = useState(0);
   const [fatalDiagnostic, setFatalDiagnostic] = useState<string | null>(null);
+  const [activeData, setActiveData] = useState<CanvasData | null>(null);
+  const [activeAtlasPages, setActiveAtlasPages] = useState<
+    Map<string, AtlasPageDescriptor>
+  >(new Map());
+  const activePageIds = useRef<Set<string>>(new Set());
   const validNodeIds = useMemo(
     () => new Set(props.data.topology.nodes.map((node) => node.id)),
     [props.data.topology.nodes],
@@ -773,11 +868,8 @@ function Canvas(props: {
   const [atlas] = useState(() => acquireBrowserAtlasCache(props.componentKey));
   useEffect(() => {
     let current = true;
-    const protectedPageIds = new Set(
-      props.data.presentation.nodes.flatMap((node) =>
-        node.badges.flatMap((badge) => badge.atlas ? [badge.atlas.pageId] : []),
-      ),
-    );
+    const protectedPageIds = imagePageIds(props.data);
+    for (const pageId of activePageIds.current) protectedPageIds.add(pageId);
     void atlas.apply(
         props.data.atlas.pages,
         props.data.atlas.removedPageIds,
@@ -787,6 +879,11 @@ function Canvas(props: {
       )
       .then((applied) => {
         if (!applied || !current) return;
+        validateImageLayers(props.data, atlas);
+        const nextPageIds = imagePageIds(props.data);
+        atlas.retain(nextPageIds);
+        const previousPageIds = activePageIds.current;
+        activePageIds.current = nextPageIds;
         const pageIds = atlas.ids();
         if (
           JSON.stringify(pageIds)
@@ -794,7 +891,20 @@ function Canvas(props: {
         ) {
           props.setStateValue("atlas_page_ids", pageIds);
         }
+        setActiveAtlasPages(atlasPageSnapshot(atlas));
+        setActiveData(props.data);
         setRuntimeRevision((value) => value + 1);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          atlas.release(previousPageIds);
+          if (!current) return;
+          const retainedPageIds = atlas.ids();
+          if (
+            JSON.stringify(retainedPageIds)
+            !== JSON.stringify(props.data.state.atlasPageIds)
+          ) {
+            props.setStateValue("atlas_page_ids", retainedPageIds);
+          }
+        }));
       })
       .catch((error: unknown) => {
         if (current) {
@@ -810,6 +920,14 @@ function Canvas(props: {
     props.data.atlas.removedPageIds,
     props.data.presentation.nodes,
   ]);
+
+  useEffect(
+    () => () => {
+      atlas.release(activePageIds.current);
+      activePageIds.current = new Set();
+    },
+    [atlas],
+  );
 
   useEffect(
     () => () => releaseBrowserAtlasCache(props.componentKey),
@@ -876,8 +994,10 @@ function Canvas(props: {
       ? "fatal"
       : missingRegistration
         ? "waiting-renderers"
+        : !activeData
+          ? "loading-atlas"
         : "ready";
-  }, [effectiveFatal, missingRegistration, props.host, runtimeRevision]);
+  }, [activeData, effectiveFatal, missingRegistration, props.host, runtimeRevision]);
 
   if (effectiveFatal) {
     return <div className="sgc-fatal" role="alert">{effectiveFatal}</div>;
@@ -885,20 +1005,18 @@ function Canvas(props: {
   if (missingRegistration) {
     return <div className="sgc-loading" role="status">Loading renderer modules…</div>;
   }
-  const atlasUrls = new Map(
-    atlas.ids().flatMap((pageId) => {
-      const url = atlas.get(pageId);
-      return url ? [[pageId, url] as const] : [];
-    }),
-  );
+  if (!activeData) {
+    return <div className="sgc-loading" role="status">Loading canvas images…</div>;
+  }
   return (
     <ReactFlowProvider>
       <CanvasContents
         {...props}
+        data={activeData}
         initialState={initial.state}
         topologyChanged={initial.topologyChanged}
         javascriptRenderers={javascriptRenderers}
-        atlasUrls={atlasUrls}
+        atlasPages={activeAtlasPages}
         onFatal={setFatalDiagnostic}
       />
     </ReactFlowProvider>
@@ -936,7 +1054,7 @@ const renderer: FrontendRenderer<State, CanvasData> = ({
     typeof data.config.height === "number" ? `${data.config.height}px` : "100%";
   entry.root.render(
     <Canvas
-      key={generation}
+      key={key}
       componentKey={key}
       data={data}
       setStateValue={setStateValue}

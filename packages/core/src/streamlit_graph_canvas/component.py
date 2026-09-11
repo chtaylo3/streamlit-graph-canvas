@@ -16,6 +16,7 @@ from .atlas import (
     tenant_atlas_cache,
 )
 from .contract import RENDERER_API
+from .images import SpriteCatalog
 from .model import FitView, GraphData, GraphSchema, SelectionMode
 from .protocol import (
     CanvasAction,
@@ -194,6 +195,7 @@ def graph_canvas(
     fit_view: FitView = FitView.INITIAL,
     max_elements: int = 700,
     renderer_registry: RendererRegistry | None = None,
+    sprite_catalog: SpriteCatalog | None = None,
     width: CanvasDimension = "stretch",
     height: CanvasDimension = 620,
     on_selected_node_ids_change: Callable[[], None] | None = None,
@@ -254,6 +256,7 @@ def graph_canvas(
             graph,
             max_elements=max_elements,
             renderer_registry=renderer_registry,
+            sprite_catalog=sprite_catalog,
             atlas_cache=atlas_cache,
             atlas_policy=atlas_policy,
             atlas_tenant=tenant,
@@ -322,11 +325,21 @@ def graph_canvas(
     session["selected_node_ids"] = list(selected_node_ids)
     session["viewport"] = asdict(viewport) if viewport is not None else None
     session["acknowledged_sequence"] = acknowledged
+    previous_atlas_theme = session["atlas_theme"]
+    previous_atlas_resolution = session["atlas_resolution"]
     atlas_theme, atlas_resolution, atlas_page_ids = _browser_atlas_state(result)
     session["atlas_theme"] = atlas_theme
     session["atlas_resolution"] = atlas_resolution
     session["atlas_page_ids"] = atlas_page_ids
     _store_session_state(key, session)
+    if (
+        atlas_theme != previous_atlas_theme
+        or atlas_resolution != previous_atlas_resolution
+    ):
+        # Components state is returned after this run's envelope was serialized.
+        # Apply a presentation-only rerun so the selected theme/DPR reaches the
+        # rasterizer instead of waiting for an unrelated user interaction.
+        st.rerun()
     if actions:
         LOGGER.info(
             "Accepted canvas actions",

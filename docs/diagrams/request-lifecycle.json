@@ -6,42 +6,42 @@
     "output": "docs/diagrams/request-lifecycle.html",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "viewBox": [1050, 860]
+    "viewBox": [1080, 630]
   },
   "participants": [
     { "id": "app", "type": "external", "label": "Streamlit app", "sublabel": "user code" },
     { "id": "python", "type": "backend", "label": "Core Python", "sublabel": "graph_canvas()" },
-    { "id": "renderers", "type": "security", "label": "Renderers", "sublabel": "PRIMS / JS / ATLAS" },
+    { "id": "renderers", "type": "security", "label": "Renderers + sprites", "sublabel": "PRIMS / JS / RASTER / PNG" },
     { "id": "frontend", "type": "frontend", "label": "Components v2", "sublabel": "React Flow" },
     { "id": "elk", "type": "frontend", "label": "ELK", "sublabel": "layout engine" }
   ],
   "segments": [
-    { "from": 150, "to": 370, "label": "Preflight and serialization" },
-    { "from": 390, "to": 570, "label": "Mount and render" },
-    { "from": 590, "to": 770, "label": "Interaction and rerun" }
+    { "from": 150, "to": 280, "label": "Preflight and serialization" },
+    { "from": 292, "to": 398, "label": "Mount and render" },
+    { "from": 410, "to": 516, "label": "Interaction and rerun" }
   ],
   "messages": [
-    { "id": "invoke", "from": "app", "to": "python", "y": 190, "label": "graph_canvas(graph, schema, key=...); validate inputs", "variant": "emphasis" },
-    { "id": "resolve-renderers", "from": "python", "to": "renderers", "y": 270, "label": "verify explicitly enabled renderers", "variant": "security" },
-    { "id": "renderer-output", "from": "renderers", "to": "python", "y": 340, "label": "primitives, bootstrap metadata, or atlas pages", "variant": "return" },
-    { "id": "mount-bootstrap", "from": "python", "to": "frontend", "y": 430, "label": "mount JavaScript bootstraps when enabled", "variant": "security" },
-    { "id": "send-envelope", "from": "python", "to": "frontend", "y": 480, "label": "versioned envelope + persisted state", "variant": "emphasis" },
-    { "id": "layout", "from": "frontend", "to": "elk", "y": 515, "label": "layout only when topology changes" },
-    { "id": "positions", "from": "elk", "to": "frontend", "y": 555, "label": "node positions", "variant": "return" },
-    { "id": "interaction", "from": "app", "to": "frontend", "y": 630, "label": "select, pan, zoom, or click action" },
-    { "id": "state-return", "from": "frontend", "to": "python", "y": 680, "label": "selection, viewport, actions, atlas state", "variant": "return" },
-    { "id": "result", "from": "python", "to": "app", "y": 715, "label": "CanvasResult", "variant": "return" },
-    { "id": "rerun", "from": "app", "to": "python", "y": 755, "label": "callback-triggered rerun", "variant": "dashed" }
+    { "id": "invoke", "from": "app", "to": "python", "y": 174, "label": "graph_canvas(graph, schema, key=...); validate inputs", "variant": "emphasis" },
+    { "id": "resolve-renderers", "from": "python", "to": "renderers", "y": 221, "label": "validate renderer metadata + static PNG catalog", "variant": "security" },
+    { "id": "renderer-output", "from": "renderers", "to": "python", "y": 262, "label": "primitives, bootstrap metadata, or raster/static tiles", "variant": "return" },
+    { "id": "mount-bootstrap", "from": "python", "to": "frontend", "y": 316, "label": "mount JavaScript bootstraps when enabled", "variant": "security" },
+    { "id": "send-envelope", "from": "python", "to": "frontend", "y": 345, "label": "codec 3 envelope + page deltas + crop refs", "variant": "emphasis" },
+    { "id": "layout", "from": "frontend", "to": "elk", "y": 365, "label": "layout only when topology changes" },
+    { "id": "positions", "from": "elk", "to": "frontend", "y": 395, "label": "node positions", "variant": "return" },
+    { "id": "interaction", "from": "app", "to": "frontend", "y": 434, "label": "select, pan, zoom, or click action" },
+    { "id": "state-return", "from": "frontend", "to": "python", "y": 463, "label": "selection, viewport, actions, theme/DPR/page IDs", "variant": "return" },
+    { "id": "result", "from": "python", "to": "app", "y": 483, "label": "CanvasResult", "variant": "return" },
+    { "id": "rerun", "from": "app", "to": "python", "y": 513, "label": "callback or presentation-state rerun", "variant": "dashed" }
   ],
   "activations": [
-    { "participant": "python", "from": 185, "to": 585, "type": "backend" },
-    { "participant": "renderers", "from": 285, "to": 350, "type": "security" },
-    { "participant": "frontend", "from": 425, "to": 700, "type": "frontend" },
-    { "participant": "elk", "from": 525, "to": 580, "type": "frontend" }
+    { "participant": "python", "from": 171, "to": 407, "type": "backend" },
+    { "participant": "renderers", "from": 230, "to": 268, "type": "security" },
+    { "participant": "frontend", "from": 313, "to": 475, "type": "frontend" },
+    { "participant": "elk", "from": 372, "to": 410, "type": "frontend" }
   ],
   "cards": [
     { "dot": "rose", "title": "Fail closed", "items": ["Invalid inputs and renderer metadata fail before the canvas mounts", "Graph data never chooses an executable renderer"] },
-    { "dot": "cyan", "title": "Revision-aware", "items": ["Topology and presentation revisions are independent", "Presentation-only changes preserve layout"] },
-    { "dot": "emerald", "title": "Persistent interaction", "items": ["Selection and viewport survive reruns", "Actions are validated and acknowledged by sequence"] }
+    { "dot": "cyan", "title": "Revision-aware", "items": ["Topology and presentation revisions are independent", "Theme and DPR changes rerun presentation without relayout"] },
+    { "dot": "emerald", "title": "Persistent interaction", "items": ["Selection and viewport survive reruns", "Known page IDs suppress unchanged binary deltas"] }
   ]
 }

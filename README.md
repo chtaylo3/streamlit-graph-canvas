@@ -26,7 +26,7 @@ optional integrations your application uses:
 pip install streamlit-graph-canvas
 pip install streamlit-graph-canvas-contrib       # stock renderers
 pip install "streamlit-graph-canvas[networkx]"   # NetworkX adapter
-pip install "streamlit-graph-canvas[atlas]"      # ATLAS raster transport
+pip install "streamlit-graph-canvas[atlas]"      # PNG sprites and raster transport
 ```
 
 ## Quick start
@@ -62,6 +62,84 @@ st.write("Selected nodes", result.selected_node_ids)
 Run the fuller [`examples/basic.py`](examples/basic.py) application for styling
 and palette usage.
 
+### Static PNG sprites
+
+Applications can map transparent PNGs to nodes without creating or enabling a
+renderer. Each catalog entry requires a light image, which is also the default;
+the dark image is optional and falls back deterministically to light when it is
+absent.
+
+```python
+from pathlib import Path
+
+from streamlit_graph_canvas import (
+    GraphData,
+    GraphSchema,
+    Node,
+    NodeType,
+    PngImage,
+    Region,
+    SpriteBinding,
+    SpriteCatalog,
+    SpriteRef,
+    StaticSprite,
+    graph_canvas,
+)
+
+sprites = SpriteCatalog(
+    {
+        "service:healthy": StaticSprite(
+            light=PngImage.from_file(Path("images/healthy-light.png")),
+            dark=PngImage.from_file(Path("images/healthy-dark.png")),
+        ),
+        "service:warning": StaticSprite(
+            light=PngImage.from_file(Path("images/warning.png")),
+        ),
+    }
+)
+schema = GraphSchema(
+    node_types={
+        "service": NodeType(
+            "service",
+            sprites=(
+                SpriteBinding(
+                    "thumbnail",
+                    Region.at(8, 8, 72, 72),
+                    layer="under",
+                    fit="contain",
+                ),
+            ),
+        )
+    }
+)
+graph = GraphData(
+    nodes=(
+        Node(
+            "api",
+            "service",
+            "API",
+            sprites={
+                "thumbnail": SpriteRef(
+                    "service:healthy",
+                    accessible_text="Healthy service",
+                )
+            },
+        ),
+    )
+)
+
+graph_canvas(graph, schema, key="service-map", sprite_catalog=sprites)
+```
+
+`PngImage.from_file()` reads the trusted server path immediately and owns its
+bytes; `PngImage.from_bytes()` accepts already available PNG bytes. Neither
+paths nor source bytes enter graph data or the browser envelope. Core
+normalizes the images, preserves alpha, applies the binding's `contain`,
+`cover`, or `fill` fit policy, and packs static and renderer-generated raster
+tiles into immutable multi-sprite pages. Nodes receive real crop coordinates
+for the shared page. A theme or page-delta change updates presentation only and
+does not change graph topology or rerun layout.
+
 ## How it works
 
 The current beta architecture and the `graph_canvas()` request lifecycle are
@@ -78,7 +156,7 @@ Select the diagram to open the interactive GitHub Pages version.
 - [Architecture and public API](docs/architecture.md)
 - [Beta contract and implementation status](docs/beta-contract.md)
 - [Renderer authoring](docs/contributing-renderers.md)
-- [JavaScript, ATLAS, multi-tenancy, and CSP](docs/transports-and-csp.md)
+- [JavaScript, raster and sprite delivery, multi-tenancy, and CSP](docs/transports-and-csp.md)
 - [Conformance testing](docs/conformance-testing.md)
 - [Dependency lifecycle](docs/dependency-lifecycle.md)
 - [Build and release process](docs/release-process.md)
@@ -96,7 +174,9 @@ Select the diagram to open the interactive GitHub Pages version.
 
 ## Development
 
-Python 3.12+, uv, and Node.js 24.x are required.
+The supported Python compatibility lanes cover Python 3.12 through 3.14. uv is
+used for Python development, and Node.js 24.x is the supported frontend build
+toolchain.
 
 ```bash
 uv sync
@@ -139,11 +219,14 @@ and presentation envelopes, a combined element budget, an optional NetworkX
 adapter, and a Components v2 canvas with ELK layout, declarative styles and
 ports, persistent selection and viewport state, and a validated click-action
 protocol. It also provides import-free static renderer discovery, explicit
-enablement, and a bounded PRIMS transport demonstrated by the stock count-chip
-renderer. Trusted JavaScript registration and bounded session/tenant ATLAS are
-implemented and covered by clean-wheel CSP tests. Additional action gestures
-remain later milestones and fail closed in this release. Transport security,
-multi-tenant configuration, and deployment policy are documented in
+enablement, and bounded PRIMS and raster transports demonstrated by the stock
+count-chip renderer. Static transparent PNG catalogs use separate sprite
+bindings and do not require renderer enablement. Static and procedural rasters
+share deterministic immutable atlas pages, real crop coordinates, bounded
+session/tenant caches, and Blob-backed browser delivery. Trusted JavaScript
+registration and the image paths are covered by CSP checks. Additional action
+gestures remain later milestones and fail closed in this release. Transport
+security, multi-tenant configuration, and deployment policy are documented in
 [`docs/transports-and-csp.md`](docs/transports-and-csp.md).
 
 Licensed under the Apache License, Version 2.0.

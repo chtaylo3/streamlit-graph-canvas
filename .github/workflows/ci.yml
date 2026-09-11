@@ -86,10 +86,14 @@ jobs:
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
         run: uv run python benchmarks/benchmark_serialization.py > serialization-benchmark.json
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        run: uv run python benchmarks/benchmark_sprite_atlas.py > sprite-atlas-benchmark.json
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: serialization-benchmark
-          path: serialization-benchmark.json
+          path: |
+            serialization-benchmark.json
+            sprite-atlas-benchmark.json
           retention-days: 14
 
   python-compatibility:

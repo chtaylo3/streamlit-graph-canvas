@@ -96,7 +96,12 @@ class RendererRegistry:
                 "Explicitly enable its installed renderer distribution.",
                 kind,
             )
-        if transport not in renderer.declaration.transports:
+        compatible = (
+            "atlas"
+            if transport == "raster" and "atlas" in renderer.declaration.transports
+            else transport
+        )
+        if compatible not in renderer.declaration.transports:
             _fail(
                 "SGC_RENDERER_TRANSPORT",
                 f"Renderer does not support transport {transport!r}.",
@@ -406,11 +411,16 @@ def parse_renderer_manifest(
                 distribution,
             )
         transports = frozenset(transport_items)
-        if not transports or not transports <= {"prims", "javascript", "atlas"}:
+        if not transports or not transports <= {
+            "prims",
+            "javascript",
+            "raster",
+            "atlas",
+        }:
             _fail(
                 "SGC_RENDERER_TRANSPORT",
                 f"Invalid transports for {kind!r}: {sorted(transports)}.",
-                "Declare one or more of prims, javascript, or atlas.",
+                "Declare one or more of prims, javascript, raster, or atlas.",
                 distribution,
             )
         python = item.get("python")
@@ -449,10 +459,10 @@ def parse_renderer_manifest(
                 "Declare the installed component key and its asset-dir-relative entry.",
                 kind,
             )
-        if ({"prims", "atlas"} & transports) and python is None:
+        if ({"prims", "raster", "atlas"} & transports) and python is None:
             _fail(
                 "SGC_RENDERER_IMPLEMENTATION",
-                "PRIMS and ATLAS renderers require a Python implementation.",
+                "PRIMS and raster renderers require a Python implementation.",
                 "Declare a package module and attribute in the python field.",
                 kind,
             )
