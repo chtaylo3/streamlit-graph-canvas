@@ -73,6 +73,9 @@ test('appearance updates refresh labels without another layout; geometry still r
  await width.fill('240');await width.press('Enter');await waitForGalleryStable(page);
  expect(Number(await host.getAttribute('data-sgc-layout-count'))).toBeGreaterThan(Number(count));
  const reveal=page.getByTestId('rf__node-path').locator('.sgc-label-reveal');
+ // The resized node can be below the viewport. Settle the page scroll before
+ // opening: scrolling intentionally dismisses full-label overlays.
+ await reveal.scrollIntoViewIfNeeded();await waitForGalleryStable(page);
  await reveal.click();await expect(page.getByRole('dialog',{name:'Full node label'})).toBeVisible();
  await page.locator('.react-flow__controls-zoomin').click();
  await expect(page.getByRole('dialog',{name:'Full node label'})).toHaveCount(0);

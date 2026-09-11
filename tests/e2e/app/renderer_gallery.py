@@ -300,6 +300,11 @@ if st.session_state.wide_topology:
                 "count-prims": 0,
                 "count-javascript": 0,
                 "count-atlas": 0,
+                **(
+                    {"javascript-only": f"Wide node {index} status"}
+                    if with_javascript_fixture
+                    else {}
+                ),
             }
             if with_stock
             else {},
