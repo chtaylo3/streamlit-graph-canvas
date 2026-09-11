@@ -1,4 +1,6 @@
-# Contributing renderer packages
+<a id="contributing-renderer-packages"></a>
+
+# Create renderer packages
 
 Renderer distributions are trusted extensions, not data plugins. Installing a
 wheel makes its static metadata discoverable; no package code is imported until
@@ -22,16 +24,17 @@ Application-provided static sprites are not renderer packages. They use
 `enable_renderers()` call, and share only the downstream atlas packing and
 delivery machinery with procedural raster output.
 
-A package must:
+A renderer package must meet the following requirements:
 
-- publish a wheel with exactly one `renderer.toml` inside its import package;
-- advertise through `streamlit_graph_canvas.renderers` entry points;
-- use globally namespaced kinds in `vendor/package/kind` form;
-- declare a PEP 440 renderer API range and a version matching wheel metadata;
-- place every public asset below the manifest and record its lowercase SHA256;
-- depend on a bounded compatible core range;
-- import contrib-facing types only from `streamlit_graph_canvas`'s public API;
-- avoid source maps, credentials, private data, and development dependencies in
+- Publish a wheel with exactly one `renderer.toml` inside its import package.
+- Advertise through `streamlit_graph_canvas.renderers` entry points.
+- Use globally namespaced kinds in `vendor/package/kind` form.
+- Declare a PEP 440 renderer API range and a version matching wheel metadata.
+- Place every public asset in the manifest directory or one of its
+  subdirectories and record its lowercase SHA-256 digest.
+- Depend on a bounded compatible core range.
+- Import contrib-facing types only from `streamlit_graph_canvas`'s public API.
+- Avoid source maps, credentials, private data, and development dependencies in
   release wheels.
 
 The stock manifest in
@@ -47,7 +50,9 @@ the stock bootstrap and the JavaScript-only conformance fixture. Runtime npm
 installation, dynamic import from remote origins, evaluated strings, and Blob
 scripts are prohibited.
 
-### JavaScript bootstrap authoring
+<a id="javascript-bootstrap-authoring"></a>
+
+### Write a JavaScript bootstrap
 
 Renderer bootstraps are trusted, currently hand-authored ES modules. The
 repository uses several complementary checks rather than treating any one
@@ -64,17 +69,17 @@ static check as a sandbox or runtime proof:
 - The selected installed-wheel Chromium contrib set is the runtime contract
   and remains required even when all static checks pass.
 
-Before submitting a bootstrap change, run both commands above, the frontend
+Before submitting a bootstrap change, run the JavaScript syntax and asset
+synchronization checks, the frontend
 Vitest suite, and the specialized `tests/e2e` contrib set that installs the
-affected renderer. Intentional regeneration uses
-`uv run python -m ci.sync_renderer_assets` followed by another check; it should
-be reviewed like any other executable artifact change.
+affected renderer. To regenerate assets, run `uv run python -m ci.sync_renderer_assets`, then run
+the check again. Review regenerated files as executable code changes.
 
 Raster renderer authors must emit deterministic PRIMS, use literal colors for
 both theme variants, and test high-cardinality behavior under cache limits.
 Static and procedural raster tiles may share immutable multi-sprite pages, but
-renderer authors do not provide pages or crop coordinates. See
-[`transports-and-csp.md`](transports-and-csp.md) for the atlas, cache-scope, and
+renderer authors do not provide pages or crop coordinates. See the
+[transport and CSP guide](transports-and-csp.md) for the atlas, cache-scope, and
 CSP contract.
 
 ## PRIMS safety boundary

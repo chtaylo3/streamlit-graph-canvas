@@ -7,9 +7,12 @@ tests.
 The proposal targets Streamlit Components v2 and replaces the
 dependency-specific contract in the GitHub Dependency Explorer.
 
-Status: Proposed long-term architecture. See
-[`beta-contract.md`](beta-contract.md) for the authoritative implementation
-status and deliberately deferred beta scope.
+Status: Proposed long-term architecture. See the
+[beta contract](beta-contract.md) for the authoritative implementation
+status and deferred beta scope. Cache isolation, element budgets, and broader
+action handlers in this proposal do not describe the current implementation.
+Use the beta contract and [app developer guide](app-developer-guide.md) when
+building an application.
 
 ## Contents
 
@@ -35,7 +38,7 @@ status and deliberately deferred beta scope.
 - [Security and privacy considerations](#security-and-privacy-considerations)
 - [Performance validation](#performance-validation)
 - [Implementation plan](#implementation-plan)
-- [Test strategy](#test-strategy)
+- [Long-term test strategy](#long-term-test-strategy)
 - [Compatibility and release policy](#compatibility-and-release-policy)
 - [Licensing and release artifacts](#licensing-and-release-artifacts)
 - [Alternatives considered](#alternatives-considered)
@@ -172,7 +175,7 @@ The first public release uses the following minimums and test boundaries:
 | Frontend development | Node.js 24.x |
 | Streamlit server runtime | Windows and Linux x86-64 in the tested matrix |
 | End-user runtime | Standards-capable browser; operating system is not the compatibility boundary |
-| Browsers | Pinned Chromium for beta; Edge/Chrome release claims begin when both join CI |
+| Browsers | Pinned Chromium for beta; Edge and Chrome release claims begin when both join CI |
 | Firefox | Best effort until it joins the automated matrix |
 | ARM64 | Deferred |
 
@@ -383,7 +386,7 @@ partial registry.
 The application must reload the page after changing the enabled renderer set.
 Development documentation must state this lifecycle requirement.
 
-### Shadow-DOM boundary
+### Shadow DOM boundary
 
 The core component uses Components v2 style isolation. React Flow, controls,
 menus, overlays, and renderer output remain inside the component shadow root.
@@ -510,7 +513,7 @@ persistent component state. Values above `2x` use `2x` until a later release
 adds another bucket.
 
 Raster bindings and static sprites select light and dark variants lazily. A
-static sprite always has a light/default PNG and may provide a dark PNG; dark
+static sprite always has a light or default PNG and may provide a dark PNG; dark
 mode falls back deterministically to light when the dark variant is absent. A
 theme change reports the new mode through component state and causes a
 presentation-only rerun. The frontend retains the previous valid page until
@@ -525,7 +528,7 @@ silently substituting an operating-system font.
 
 The current public static-image contract uses `SpriteCatalog`, `StaticSprite`,
 `PngImage`, `SpriteBinding`, and `SpriteRef`. Every catalog entry requires a
-light/default PNG and may include a dark PNG. Nodes name catalog IDs, never
+light or default PNG and may include a dark PNG. Nodes name catalog IDs, never
 paths, bytes, URLs, atlas pages, or coordinates. Static sprites do not require a
 renderer package or renderer enablement.
 
@@ -847,7 +850,9 @@ from the assumption.
 
 ## Implementation plan
 
-### Milestone 0: establish the monorepo and Components v2 spike
+<a id="milestone-0-establish-the-monorepo-and-components-v2-spike"></a>
+
+### Milestone 0: establish the monorepo and Components v2 prototype
 
 Create the two distributions, Apache-2.0 licensing, build tooling, committed
 frontend assets, and Windows and Linux continuous integration. Build a thin
@@ -929,7 +934,7 @@ JavaScript fixture renderer.
 
 Acceptance criteria:
 
-- JavaScript-only renderer wheels install with `pip` and need no runtime Node.js.
+- JavaScript-only renderer wheels install with `pip` and need no Node.js installation at runtime.
 - Applications must explicitly enable a renderer before its code executes.
 - JavaScript and PRIMS implementations can share one canonical kind and schema
   contract.
@@ -974,8 +979,7 @@ Acceptance criteria:
 
 ## Long-term test strategy
 
-The following is the target test plan, not a claim that every item is present
-in the current beta. See [Conformance testing](conformance-testing.md) for the
+This target test plan includes checks that are not implemented in the current beta. See [conformance testing](conformance-testing.md) for the
 gates implemented today and [the beta contract](beta-contract.md) for feature
 status.
 
@@ -1137,9 +1141,9 @@ code.
 
 ### The bootstrap registry depends on Components v2 lifecycle behavior
 
-The milestone 0 spike must prove registration order, cleanup, reruns, multiple
+The milestone 0 prototype must prove registration order, cleanup, reruns, multiple
 canvas instances, and page navigation before the project freezes renderer API
-version 1. If the spike fails, the design must revisit first-release JavaScript
+version 1. If the prototype fails, the design must revisit first-release JavaScript
 extensibility rather than hide the failure behind source evaluation.
 
 ### PRIMS can create large SVG trees

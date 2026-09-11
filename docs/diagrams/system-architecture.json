@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Streamlit Graph Canvas Architecture",
+    "title": "Streamlit Graph Canvas architecture",
     "output": "docs/diagrams/system-architecture.html",
     "quality_profile": "showcase",
     "viewBox": [
@@ -84,7 +84,7 @@
     {
       "id": "renderers",
       "type": "backend",
-      "label": "Renderer + image sources",
+      "label": "Renderers and images",
       "sublabel": "PRIMS \u00b7 trusted JS \u00b7 RASTER \u00b7 PNG",
       "pos": [
         530,
@@ -99,7 +99,7 @@
       "id": "atlas",
       "type": "backend",
       "label": "Packed atlas delivery",
-      "sublabel": "dedupe \u00b7 immutable pages \u00b7 crop refs",
+      "sublabel": "deduplication \u00b7 pages \u00b7 crops",
       "pos": [
         785,
         500
@@ -251,7 +251,7 @@
       "title": "Core path",
       "items": [
         "Loaded and rendered budgets are independent",
-        "ELK follows geometry, grouping and applied order",
+        "ELK follows geometry, grouping, and applied order",
         "Search previews stay local; submission may rerun"
       ]
     },

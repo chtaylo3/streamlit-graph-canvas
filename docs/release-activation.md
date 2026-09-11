@@ -1,13 +1,16 @@
-# Release security activation
+<a id="release-security-activation"></a>
 
-The repository implements the release boundary, but the following hosted
-settings must be enabled by an administrator before the first beta tag.
+# Configure release security
+
+Before creating the first beta tag, ask a repository administrator to configure
+the following hosted settings. The repository already implements the release
+workflow checks.
 
 The version-specific build and publication procedures are documented in
-[`release-process.md`](release-process.md).
+[release process](release-process.md).
 
 1. Protect `main`; require pull requests and the complete CI and CodeQL
-   workflows, prevent force-push/deletion, and restrict bypass rights.
+   workflows, prevent force pushes and deletion, and restrict bypass rights.
 2. Create a `pypi` GitHub environment restricted to `v*` tags. Require an
    independent reviewer and prevent self-approval when a second maintainer is
    available. A single-maintainer repository may instead require owner
@@ -42,7 +45,7 @@ eligible for the tag-triggered release workflow.
 
 After changing any release action pin or job topology, run:
 
-```text
+```bash
 uv run python ci/verify_workflow_security.py
 uv run pytest tests/test_workflow_security.py
 ```

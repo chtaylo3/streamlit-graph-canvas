@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "App and Canvas Interaction Contract",
+    "title": "App and canvas interaction contract",
     "quality_profile": "showcase",
     "column_fit": "spread",
     "viewBox": [
@@ -147,7 +147,7 @@
       "title": "Browser owns presentation",
       "items": [
         "Search covers displayed, scoped nodes",
-        "Apply may reorder; Clear restores normal order"
+        "Apply search reorders; Clear search restores order"
       ]
     },
     {

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "graph_canvas() Request Lifecycle",
+    "title": "Canvas request lifecycle",
     "output": "docs/diagrams/request-lifecycle.html",
     "quality_profile": "showcase",
     "column_fit": "spread",
@@ -27,7 +27,7 @@
     {
       "id": "renderers",
       "type": "security",
-      "label": "Renderers + sprites",
+      "label": "Renderers and sprites",
       "sublabel": "PRIMS / JS / RASTER / PNG"
     },
     {
@@ -121,7 +121,7 @@
       "from": "app",
       "to": "frontend",
       "y": 434,
-      "label": "navigate, search locally, select, pan or zoom"
+      "label": "Navigate, search locally, select, pan, or zoom"
     },
     {
       "id": "state-return",
@@ -187,7 +187,7 @@
       "dot": "cyan",
       "title": "Revision-aware",
       "items": [
-        "ELK follows geometry, grouping and applied order",
+        "ELK follows geometry, grouping, and applied order",
         "Labels and colors update without another ELK run"
       ]
     },
@@ -195,7 +195,7 @@
       "dot": "emerald",
       "title": "Persistent interaction",
       "items": [
-        "Search previews preserve positions; Apply can reorder",
+        "Search previews preserve positions; Apply search reorders",
         "Measurements and navigation anchors survive rerenders",
         "Explicit search callbacks cause Streamlit reruns"
       ]
