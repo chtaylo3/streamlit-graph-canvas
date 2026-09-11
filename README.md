@@ -142,21 +142,29 @@ does not change graph topology or rerun layout.
 
 ## How it works
 
-The current beta architecture and the `graph_canvas()` request lifecycle are
-documented in [`docs/architecture.md`](docs/architecture.md). The interactive
-diagrams are generated from editable Archify specifications committed beside
-the rendered files.
+The [architecture and public API guide](docs/architecture.md) explains the Python
+validation boundary, browser layout and interaction, and renderer delivery.
 
-[![Streamlit Graph Canvas architecture](docs/diagrams/system-architecture.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/system-architecture.html)
+**System architecture** — follow graph data into the canvas, including collection
+budgets, local search, and shared atlas pages.
 
-Select the diagram to open the interactive GitHub Pages version.
+[![Streamlit Graph Canvas system architecture](docs/diagrams/system-architecture.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/system-architecture.html)
+
+**Request lifecycle** — see when layout runs, which interactions stay in the
+browser, and which submissions return to Streamlit.
+
+[![graph_canvas request lifecycle](docs/diagrams/request-lifecycle.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/request-lifecycle.html)
+
+Select either diagram to open its interactive GitHub Pages version. Editable
+[Archify specifications](docs/diagrams) are committed beside the HTML and SVG
+artifacts.
 
 ## Documentation
 
 - [Architecture and public API](docs/architecture.md)
 - [Beta contract and implementation status](docs/beta-contract.md)
 - [Renderer authoring](docs/contributing-renderers.md)
-- [JavaScript, raster and sprite delivery, multi-tenancy, and CSP](docs/transports-and-csp.md)
+- [JavaScript, raster and sprite delivery, cache scope, and CSP](docs/transports-and-csp.md)
 - [Conformance testing](docs/conformance-testing.md)
 - [Dependency lifecycle](docs/dependency-lifecycle.md)
 - [Build and release process](docs/release-process.md)

@@ -374,27 +374,27 @@ rect.c-bg-rect { fill: var(--bg); }
         </g>
         </g>
 
-        <g data-edge-from="frontend" data-edge-to="elk" data-edge-label="layout only when topology changes" data-edge-key="5" data-edge-id="layout">
+        <g data-edge-from="frontend" data-edge-to="elk" data-edge-label="layout inputs change" data-edge-key="5" data-edge-id="layout">
           <path data-composition-edge-from="frontend" data-composition-edge-to="elk" data-composition-edge-id="layout" data-composition-points="760.75,365;949.5,365" d="M 760.75 365 L 949.5 365" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g>
-          <rect x="763.325" y="345" width="183.6" height="16" rx="3" class="c-mask"/>
-          <text x="855.125" y="355" class="t-backend" font-size="9" text-anchor="middle">layout only when topology changes</text>
+          <rect x="797.125" y="345" width="116" height="16" rx="3" class="c-mask"/>
+          <text x="855.125" y="355" class="t-backend" font-size="9" text-anchor="middle">layout inputs change</text>
         </g>
         </g>
 
-        <g data-edge-from="elk" data-edge-to="frontend" data-edge-label="node positions" data-edge-key="6" data-edge-id="positions">
+        <g data-edge-from="elk" data-edge-to="frontend" data-edge-label="positions + edge routes" data-edge-key="6" data-edge-id="positions">
           <path data-composition-edge-from="elk" data-composition-edge-to="frontend" data-composition-edge-id="positions" data-composition-points="949.5,395;760.75,395" d="M 949.5 395 L 760.75 395" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g>
-          <rect x="812.725" y="375" width="84.8" height="16" rx="3" class="c-mask"/>
-          <text x="855.125" y="385" class="t-muted" font-size="9" text-anchor="middle">node positions</text>
+          <rect x="789.325" y="375" width="131.60000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="855.125" y="385" class="t-muted" font-size="9" text-anchor="middle">positions + edge routes</text>
         </g>
         </g>
 
-        <g data-edge-from="app" data-edge-to="frontend" data-edge-label="select, pan, zoom, or click action" data-edge-key="7" data-edge-id="interaction">
+        <g data-edge-from="app" data-edge-to="frontend" data-edge-label="navigate, search locally, select, pan or zoom" data-edge-key="7" data-edge-id="interaction">
           <path data-composition-edge-from="app" data-composition-edge-to="frontend" data-composition-edge-id="interaction" data-composition-points="152.5,434;746.75,434" d="M 152.5 434 L 746.75 434" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g>
-          <rect x="355.225" y="414" width="188.8" height="16" rx="3" class="c-mask"/>
-          <text x="449.625" y="424" class="t-backend" font-size="9" text-anchor="middle">select, pan, zoom, or click action</text>
+          <rect x="326.625" y="414" width="246" height="16" rx="3" class="c-mask"/>
+          <text x="449.625" y="424" class="t-backend" font-size="9" text-anchor="middle">navigate, search locally, select, pan or zoom</text>
         </g>
         </g>
 
@@ -414,11 +414,11 @@ rect.c-bg-rect { fill: var(--bg); }
         </g>
         </g>
 
-        <g data-edge-from="app" data-edge-to="python" data-edge-label="callback or presentation-state rerun" data-edge-key="10" data-edge-id="rerun">
+        <g data-edge-from="app" data-edge-to="python" data-edge-label="opt-in search submission or state rerun" data-edge-key="10" data-edge-id="rerun">
           <path data-composition-edge-from="app" data-composition-edge-to="python" data-composition-edge-id="rerun" data-composition-points="152.5,513;341.25,513" d="M 152.5 513 L 341.25 513" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
         <g>
-          <rect x="147.27499999999998" y="493" width="199.20000000000002" height="16" rx="3" class="c-mask"/>
-          <text x="246.875" y="503" class="t-messagebus" font-size="9" text-anchor="middle">callback or presentation-state rerun</text>
+          <rect x="139.475" y="493" width="214.8" height="16" rx="3" class="c-mask"/>
+          <text x="246.875" y="503" class="t-messagebus" font-size="9" text-anchor="middle">opt-in search submission or state rerun</text>
         </g>
         </g>
 

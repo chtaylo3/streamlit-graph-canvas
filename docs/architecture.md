@@ -1,7 +1,7 @@
 # Architecture and public API
 
-This page describes the implementation in the current beta. It is a concise
-map for application authors and contributors; the
+This page describes the implementation in the 0.1 release-candidate series.
+It is a concise map for application authors and contributors; the
 [beta contract](beta-contract.md) remains authoritative for what is built,
 partial, or deferred. The [long-term design](generalized-node-canvas-design.md)
 contains rationale and future milestones and should not be read as current API
@@ -52,8 +52,9 @@ Static sprites therefore do not require renderer discovery or
 `enable_renderers()`.
 
 Both static sprites and procedural raster output converge on the same
-deterministic atlas layer. Missing tiles are packed into immutable pages, page
-deltas are content addressed, and each resolved node layer carries the actual
+deterministic atlas layer. Equal atlas policies share a process-wide cache;
+page and byte limits apply per distinct policy, with no aggregate ceiling across
+policies. Missing tiles are packed into immutable pages, page deltas are content addressed, and each resolved node layer carries the actual
 physical crop coordinates. The browser validates the page and rectangle,
 creates a shared Blob URL, and crops the requested sprite into the binding's
 logical region. Theme, resolution, and atlas-page changes affect presentation
@@ -73,8 +74,8 @@ Its editable source is
 
 `graph_canvas()` validates and serializes before mounting the canvas. When a
 trusted JavaScript renderer is enabled, its bootstrap mounts before the core
-component. The frontend lays out new topology, restores interaction state, and
-returns changes through `CanvasResult`; configured callbacks cause the normal
+component. The frontend lays out changed geometry or grouping, restores
+interaction state, and returns changes through `CanvasResult`; configured callbacks cause the normal
 Streamlit rerun cycle.
 
 Collection visibility uses an adjacency traversal of the loaded graph before
@@ -83,6 +84,12 @@ applying the rendered-element budget. Search state and evaluation live in
 results; geometry-only animation frames reuse them. Exiting and hidden nodes
 are excluded. Search is browser-local unless the application explicitly enables
 submission callbacks, which cause Streamlit reruns.
+
+React Flow measurements are retained after animation and search styling replace
+controlled node objects, preserving handle bounds and connectors across rerenders.
+Navigation anchors keep shared ancestors and sibling context stable; changed
+layouts still animate. Full-label overlays close when the canvas moves or the
+page scrolls.
 
 The frontend's `npm run format` and `npm run format:check` cover the grouping,
 canvas, label, search, and telemetry modules. The build checks that formatting;
@@ -97,6 +104,10 @@ implementation details.
 | --- | --- |
 | Define a graph | `GraphData`, `Node`, `Edge` |
 | Define its schema and appearance | `GraphSchema`, `NodeType`, `EdgeType`, `NodeStyle`, `EdgeStyle`, `PaletteTone`, `PortSpec`, `Region`, `BadgeBinding`, `SpriteBinding` |
+| Configure collections | `ChildGroup`, per-category display mode and cutoff |
+| Show sibling context | `add_sibling_context`, anchor selection and opacity |
+| Configure fixed-box names | `LabelPolicy`, schema defaults and per-type overrides |
+| Search visible nodes | `SearchField`, `SearchCriterion`, `SearchRequest`, and `graph_canvas` search options |
 | Convert NetworkX data | `from_networkx` from the `networkx` extra |
 | Validate or serialize without mounting | `validate`, `serialize_graph`, `SerializedGraph` |
 | Render in Streamlit | `graph_canvas`, `CanvasResult`, `SelectionMode`, `FitView` |
@@ -104,7 +115,7 @@ implementation details.
 | Discover and enable renderers | `discover_renderer_manifests`, `discover_renderer_diagnostics`, `enable_renderers`, `RendererRegistry` |
 | Author a PRIMS renderer | `BadgeRenderer`, `BadgeContext`, `RectPrim`, `CirclePrim`, `TextPrim`, `validate_primitives` |
 | Supply static PNG sprites | `PngImage`, `StaticSprite`, `SpriteCatalog`, `SpriteRef` from the `atlas` extra |
-| Configure raster and atlas delivery | `Transport.RASTER`, `AtlasPolicy`, `AtlasScope`, `AtlasPageCache` (`AtlasCache` compatibility alias) from the `atlas` extra |
+| Configure raster and atlas delivery | `Transport.RASTER`, `AtlasPolicy`, `AtlasPageCache` (`AtlasCache` compatibility alias) from the `atlas` extra |
 | Build host CSP policy | `required_csp_directives`, `format_csp`, `streamlit_host_csp` |
 
 Renderer authors should continue with
