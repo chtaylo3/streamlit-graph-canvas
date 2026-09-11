@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import time
 from collections.abc import Iterator
+from unittest.mock import patch
 
 import pytest
 from streamlit_graph_canvas import (
@@ -21,6 +21,7 @@ from streamlit_graph_canvas import (
     serialize_graph,
     warm_atlas,
 )
+from streamlit_graph_canvas.atlas import pack_tiles
 
 _COUNT_CHIP = "streamlit-graph-canvas/contrib/count-chip"
 _PALETTE = {
@@ -112,33 +113,38 @@ def test_a_warmed_cache_makes_the_first_render_a_cache_hit() -> None:
         themes=("light",),
         resolutions=(1.0,),
     )
-    pages_after_warming = atlas_cache_snapshot()["pages"]
+    cache_after_warming = atlas_cache_snapshot()
+    assert cache_after_warming["pages"] > 0
 
-    started = time.perf_counter()
-    serialize_graph(
-        schema(),
-        graph,
-        renderer_registry=registry,
-        atlas_cache=atlas_cache(policy),
-        atlas_policy=policy,
-    )
-    warmed_seconds = time.perf_counter() - started
+    # Observe the real packer without replacing its output. Warming must leave
+    # no missing tiles to pack, regardless of runner speed or scheduling.
+    with patch("streamlit_graph_canvas.atlas.pack_tiles", wraps=pack_tiles) as pack:
+        warmed = serialize_graph(
+            schema(),
+            graph,
+            renderer_registry=registry,
+            atlas_cache=atlas_cache(policy),
+            atlas_policy=policy,
+        )
+        assert all(not call.args[0] for call in pack.call_args_list)
 
-    # A render against the warmed cache must add no pages: every tile it needs
-    # was packed during warming.
-    assert atlas_cache_snapshot()["pages"] == pages_after_warming
+    assert atlas_cache_snapshot() == cache_after_warming
 
     reset_atlas_caches()
-    started = time.perf_counter()
-    serialize_graph(
-        schema(),
-        graph,
-        renderer_registry=registry,
-        atlas_cache=atlas_cache(policy),
-        atlas_policy=policy,
-    )
-    cold_seconds = time.perf_counter() - started
-    assert cold_seconds > warmed_seconds
+    # A cold render is the positive control: the same graph must pack all
+    # twelve tiles and produce the same presentation and page bytes.
+    with patch("streamlit_graph_canvas.atlas.pack_tiles", wraps=pack_tiles) as pack:
+        cold = serialize_graph(
+            schema(),
+            graph,
+            renderer_registry=registry,
+            atlas_cache=atlas_cache(policy),
+            atlas_policy=policy,
+        )
+        assert sum(len(call.args[0]) for call in pack.call_args_list) == 12
+
+    assert warmed.envelope["presentation"] == cold.envelope["presentation"]
+    assert warmed.envelope["atlas"]["pages"] == cold.envelope["atlas"]["pages"]
 
 
 def test_warming_ignores_bindings_that_never_rasterize() -> None:
