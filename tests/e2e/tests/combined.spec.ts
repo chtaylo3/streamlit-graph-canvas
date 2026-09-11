@@ -125,6 +125,37 @@ test("React Flow geometry, handles, and zoom limits remain compatible", async ({
   expect(transform).toMatch(/scale\(2\.5\)/);
 });
 
+test("wide minimum-zoom graphs retain readable edges while panning", async ({ page, browserFailures }) => {
+  void browserFailures;
+  await openGallery(page);
+  await page.getByRole("button", { name: "Load wide topology" }).click();
+  const paths = page.locator(".react-flow__edge-path");
+  await expect(paths).toHaveCount(81, { timeout: 20_000 });
+  await expect.poll(async () =>
+    page.locator(".react-flow__viewport").getAttribute("style"),
+  ).toMatch(/scale\(0\.08\)/);
+  await expect(paths.first()).toHaveCSS("vector-effect", "non-scaling-stroke");
+  const before = await paths.evaluateAll((items) =>
+    items.map((item) => item.getAttribute("d")),
+  );
+  const pane = page.locator(".react-flow__pane");
+  const bounds = await pane.boundingBox();
+  expect(bounds).not.toBeNull();
+  await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(
+    bounds!.x + bounds!.width / 2 + 120,
+    bounds!.y + bounds!.height / 2 + 60,
+    { steps: 8 },
+  );
+  await page.mouse.up();
+  await expect(paths).toHaveCount(81);
+  await expect(paths.first()).toHaveCSS("vector-effect", "non-scaling-stroke");
+  expect(await paths.evaluateAll((items) =>
+    items.map((item) => item.getAttribute("d")),
+  )).toEqual(before);
+});
+
 test("rerenders do not duplicate React Flow action handlers", async ({ page, browserFailures }) => {
   void browserFailures;
   await openGallery(page);
@@ -168,7 +199,11 @@ test("styles, named ports, and accessible badge meaning are honored", async ({ p
   await openGallery(page);
   const api = page.locator('.react-flow__node[data-id="api"] .sgc-node');
   await expect(api).toHaveCSS("border-radius", "16px");
-  await expect(api).toHaveCSS("border-color", "rgb(37, 99, 235)");
+  await expect(api.locator(".sgc-node-outline rect")).toHaveCSS("stroke", "rgb(37, 99, 235)");
+  await expect.poll(() => api.locator(".sgc-node-outline rect").evaluate((rect) => {
+    const matrix = (rect as SVGRectElement).getScreenCTM()!;
+    return Number((parseFloat(getComputedStyle(rect).strokeWidth) * Math.hypot(matrix.a, matrix.b)).toFixed(2));
+  })).toBe(1.5);
   await expect(page.locator('.react-flow__node[data-id="api"] [data-handleid="out"]')).toHaveCount(2);
   await expect(
     page.locator('.react-flow__edge[data-id="api-worker"] path.react-flow__edge-path'),

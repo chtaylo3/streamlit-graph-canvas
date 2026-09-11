@@ -16,7 +16,15 @@ from .contract import (
 from .errors import Diagnostic, ValidationError
 from .images import SpriteCatalog
 from .json_budget import JsonBudget, JsonLimitError, bounded_json_size
-from .model import BUILTIN_PALETTE, AnyNodeType, EdgeType, GraphData, GraphSchema
+from .model import (
+    BUILTIN_PALETTE,
+    AnyNodeType,
+    Edge,
+    EdgeType,
+    GraphData,
+    GraphSchema,
+    Node,
+)
 from .sprites import SpriteRef
 
 if TYPE_CHECKING:
@@ -91,6 +99,7 @@ def _validate_graph_data(graph: GraphData, *, max_data_bytes: int) -> None:
                     ("id", node.id),
                     ("type", node.type),
                     ("label", node.label),
+                    ("display_label", node.display_label),
                     ("data", node.data),
                     ("badges", node.badges),
                 ),
@@ -331,6 +340,22 @@ def validate(
                     "Correct the fixed sprite region geometry.",
                     f"{key}.{sprite_binding.name}",
                 )
+        group_edge_types = [group.edge_type for group in node_declaration.child_groups]
+        if duplicates := _duplicates(group_edge_types):
+            _fail(
+                "SGC_SCHEMA_DUPLICATE_CHILD_GROUP",
+                f"Node type groups an edge type more than once: {sorted(duplicates)}.",
+                "Declare at most one child group per edge type.",
+                key,
+            )
+        for group in node_declaration.child_groups:
+            if group.edge_type not in schema.edge_types:
+                _fail(
+                    "SGC_SCHEMA_CHILD_GROUP_EDGE_TYPE",
+                    f"Child group references undeclared edge type {group.edge_type!r}.",
+                    "Declare the edge type, or remove the child group.",
+                    key,
+                )
     for key, edge_declaration in schema.edge_types.items():
         if not key or key != edge_declaration.name:
             _fail(
@@ -347,6 +372,13 @@ def validate(
                 "SGC_SCHEMA_EDGE_GEOMETRY",
                 "Edge widths must be finite and positive.",
                 "Set a finite positive edge width.",
+                key,
+            )
+        if edge_declaration.style.arrow not in {"none", "source", "target", "both"}:
+            _fail(
+                "SGC_SCHEMA_EDGE_ARROW",
+                "Unknown edge arrow placement.",
+                "Use none, source, target, or both.",
                 key,
             )
         if edge_declaration.style.stroke not in (
@@ -375,8 +407,32 @@ def validate(
             f"Graph has duplicate edge IDs: {sorted(duplicates)}.",
             "Assign every edge a stable unique string ID.",
         )
+    items: list[Node | Edge] = [*graph.nodes, *graph.edges]
+    for item in items:
+        if item.opacity is not None and (
+            isinstance(item.opacity, bool)
+            or not isinstance(item.opacity, (int, float))
+            or not math.isfinite(item.opacity)
+            or not 0 <= item.opacity <= 1
+        ):
+            _fail(
+                "SGC_OPACITY",
+                "Invalid opacity.",
+                "Use a finite number from 0 to 1, or None.",
+                item.id,
+            )
     nodes = {node.id: node for node in graph.nodes}
     for node in graph.nodes:
+        if node.layout_order is not None and (
+            isinstance(node.layout_order, bool)
+            or not isinstance(node.layout_order, int)
+        ):
+            _fail(
+                "SGC_LAYOUT_ORDER",
+                "Invalid layout order.",
+                "Use an integer or None.",
+                node.id,
+            )
         if not node.id:
             _fail(
                 "SGC_GRAPH_NODE_ID",

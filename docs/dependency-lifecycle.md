@@ -49,9 +49,9 @@ locked version but is not part of the user compatibility contract.
 Every compatibility run records the resolved inventory. Browser failures retain
 traces, screenshots, video, Streamlit logs, and JUnit output. The Chromium
 `transports` set combines core, stock contrib, JavaScript and raster transports,
-static sprites, packed atlas delivery, the tenant-scoped cache path, and CSP
-checks. Tenant isolation and eviction are separately exercised with
-deterministic Python tests.
+static sprites, packed atlas delivery, the shared cache path, and CSP checks.
+Cache sharing and eviction are separately exercised with deterministic Python
+tests.
 
 ## Dependency-specific behavioral contracts
 

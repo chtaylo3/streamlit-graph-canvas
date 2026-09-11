@@ -3,8 +3,16 @@
 from importlib.metadata import version as distribution_version
 
 from .adapters import from_networkx
-from .atlas import AtlasCache, AtlasPageCache, AtlasPolicy, AtlasScope
+from .atlas import (
+    AtlasCache,
+    AtlasPageCache,
+    AtlasPolicy,
+    atlas_cache,
+    atlas_cache_snapshot,
+    reset_atlas_caches,
+)
 from .component import CanvasResult, graph_canvas
+from .context import add_sibling_context
 from .csp import format_csp, required_csp_directives, streamlit_host_csp
 from .errors import Diagnostic, GraphCanvasError, ValidationError
 from .images import PngImage, SpriteCatalog, StaticSprite
@@ -12,12 +20,16 @@ from .model import (
     ANY_NODE_TYPE,
     AnyNodeType,
     BadgeBinding,
+    ChildGroup,
     Edge,
     EdgeStyle,
     EdgeType,
     FitView,
     GraphData,
     GraphSchema,
+    GroupDirection,
+    GroupDisplay,
+    LabelPolicy,
     Node,
     NodeStyle,
     NodeType,
@@ -49,9 +61,11 @@ from .renderers import (
     enable_renderers,
     parse_renderer_manifest,
 )
+from .search import SearchCriterion, SearchField, SearchRequest
 from .serialization import SerializedGraph, serialize_graph
 from .sprites import SpriteBinding, SpriteRef
 from .validation import validate
+from .warming import WarmingResult, warm_atlas
 
 __all__ = [
     "ANY_NODE_TYPE",
@@ -61,13 +75,13 @@ __all__ = [
     "AtlasCache",
     "AtlasPageCache",
     "AtlasPolicy",
-    "AtlasScope",
     "BadgeBinding",
     "BadgeContext",
     "BadgeRenderer",
     "CanvasAction",
     "CanvasResult",
     "CanvasViewport",
+    "ChildGroup",
     "CirclePrim",
     "Diagnostic",
     "Edge",
@@ -78,6 +92,9 @@ __all__ = [
     "GraphCanvasError",
     "GraphData",
     "GraphSchema",
+    "GroupDirection",
+    "GroupDisplay",
+    "LabelPolicy",
     "Node",
     "NodeStyle",
     "NodeType",
@@ -91,6 +108,9 @@ __all__ = [
     "RendererKind",
     "RendererManifest",
     "RendererRegistry",
+    "SearchCriterion",
+    "SearchField",
+    "SearchRequest",
     "SelectionMode",
     "SerializedGraph",
     "SpriteBinding",
@@ -100,6 +120,10 @@ __all__ = [
     "TextPrim",
     "Transport",
     "ValidationError",
+    "WarmingResult",
+    "add_sibling_context",
+    "atlas_cache",
+    "atlas_cache_snapshot",
     "discover_renderer_diagnostics",
     "discover_renderer_manifests",
     "enable_renderers",
@@ -108,10 +132,12 @@ __all__ = [
     "graph_canvas",
     "parse_renderer_manifest",
     "required_csp_directives",
+    "reset_atlas_caches",
     "serialize_graph",
     "streamlit_host_csp",
     "validate",
     "validate_primitives",
+    "warm_atlas",
 ]
 
 __version__ = distribution_version("streamlit-graph-canvas")

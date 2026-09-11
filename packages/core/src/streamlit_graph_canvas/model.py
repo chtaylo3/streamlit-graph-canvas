@@ -71,6 +71,7 @@ class EdgeStyle:
     stroke: str = "muted"
     width: float = 1.5
     dashed: bool = False
+    arrow: Literal["none", "source", "target", "both"] = "none"
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,6 +108,128 @@ class BadgeBinding:
         object.__setattr__(self, "options", _mapping(self.options))
 
 
+class GroupDisplay(StrEnum):
+    """Presentation policy, evaluated independently for each relationship."""
+
+    TREE = "tree"
+    COLLECTION = "collection"
+    CUTOFF = "cutoff"
+
+
+class GroupDirection(StrEnum):
+    """Flow direction used inside an expanded child group."""
+
+    RIGHT = "right"
+    DOWN = "down"
+
+
+@dataclass(frozen=True, slots=True)
+class ChildGroup:
+    """Collapse a node's children of one edge type behind an expandable group.
+
+    A node with a large fan-out flattens into one very wide band, because every
+    child sits at the same depth. Declaring a group moves those children behind a
+    marker on the parent: collapsed they leave the layout entirely, and expanded
+    they are laid out inside their own container with their own flow direction,
+    so a wide band becomes a compact nested tree.
+
+    Grouping keys on ``edge_type`` because that is the distinction the graph
+    already carries. A manifest that both depends on and resolves packages
+    declares one group per relationship rather than a parallel vocabulary.
+    """
+
+    edge_type: str
+    label: str = ""
+    threshold: int = 1
+    direction: GroupDirection = GroupDirection.RIGHT
+    collapsed: bool = True
+    display: GroupDisplay = GroupDisplay.CUTOFF
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.edge_type, str) or not self.edge_type:
+            raise ValueError("ChildGroup.edge_type must be a non-empty string")
+        if type(self.threshold) is not int or self.threshold < 1:
+            raise ValueError("ChildGroup.threshold must be a positive integer")
+        if not isinstance(self.display, GroupDisplay):
+            raise ValueError("ChildGroup.display must be a GroupDisplay")
+        if not isinstance(self.collapsed, bool):
+            raise ValueError("ChildGroup.collapsed must be a bool")
+        if not isinstance(self.direction, GroupDirection):
+            raise ValueError("ChildGroup.direction must be a GroupDirection")
+
+    @property
+    def title(self) -> str:
+        """Return the label shown on the group, defaulting to the edge type."""
+
+        return self.label or self.edge_type
+
+
+@dataclass(frozen=True, slots=True)
+class LabelPolicy:
+    """Fixed-box label formatting. A type override replaces the entire policy."""
+
+    layout: Literal["path", "wrap", "single"] = "path"
+    lines: int = 2
+    ellipsis: Literal["auto", "end", "middle"] = "auto"
+    font_size: int = 14
+    min_font_size: int | None = None
+    reveal_mode: Literal["delayed_hover", "controls"] = "delayed_hover"
+    reveal_delay_ms: int = 600
+    reveal_hover: bool = True
+    reveal_focus: bool | None = None
+    reveal_button: bool | None = None
+
+    def __post_init__(self) -> None:
+        if self.layout not in ("path", "wrap", "single"):
+            raise ValueError(
+                "LabelPolicy.layout must be path, wrap, or single; "
+                "box growth is unsupported"
+            )
+        if type(self.lines) is not int or not 1 <= self.lines <= 6:
+            raise ValueError("LabelPolicy.lines must be an integer from 1 to 6")
+        if self.layout == "single" and self.lines != 1:
+            raise ValueError("LabelPolicy single layout requires lines=1")
+        if self.layout == "path" and self.lines != 2:
+            raise ValueError("LabelPolicy path layout requires lines=2")
+        if self.ellipsis not in ("auto", "end", "middle"):
+            raise ValueError("LabelPolicy.ellipsis must be auto, end, or middle")
+        if self.layout == "wrap" and self.ellipsis == "middle":
+            raise ValueError(
+                "LabelPolicy wrap layout is incompatible with middle ellipsis"
+            )
+        if type(self.font_size) is not int or self.font_size < 1:
+            raise ValueError("LabelPolicy.font_size must be a positive integer")
+        if self.min_font_size is not None and (
+            type(self.min_font_size) is not int
+            or not 1 <= self.min_font_size <= self.font_size
+        ):
+            raise ValueError(
+                "LabelPolicy.min_font_size must be between 1 and font_size"
+            )
+        if self.reveal_mode not in ("delayed_hover", "controls"):
+            raise ValueError(
+                "LabelPolicy.reveal_mode must be delayed_hover or controls"
+            )
+        if (
+            type(self.reveal_delay_ms) is not int
+            or not 0 <= self.reveal_delay_ms <= 2_147_483_647
+        ):
+            raise ValueError(
+                "LabelPolicy.reveal_delay_ms must be an integer from 0 to 2147483647"
+            )
+        for name in ("reveal_focus", "reveal_button"):
+            value = getattr(self, name)
+            if value is not None and type(value) is not bool:
+                raise ValueError(f"LabelPolicy.{name} must be boolean or None")
+            if self.reveal_mode == "delayed_hover" and value is True:
+                raise ValueError(
+                    f"LabelPolicy.{name}=True requires reveal_mode='controls'"
+                )
+        for name in ("reveal_hover",):
+            if type(getattr(self, name)) is not bool:
+                raise ValueError(f"LabelPolicy.{name} must be boolean")
+
+
 @dataclass(frozen=True, slots=True)
 class NodeType:
     name: str
@@ -114,6 +237,24 @@ class NodeType:
     ports: tuple[PortSpec, ...] = ()
     badges: tuple[BadgeBinding, ...] = ()
     sprites: tuple[SpriteBinding, ...] = ()
+    child_groups: tuple[ChildGroup, ...] = ()
+    label_policy: LabelPolicy | None = None
+
+    def __post_init__(self) -> None:
+        if self.label_policy is not None and not isinstance(
+            self.label_policy, LabelPolicy
+        ):
+            raise ValueError("NodeType.label_policy must be a LabelPolicy or None")
+        seen: set[str] = set()
+        for group in self.child_groups:
+            if not isinstance(group, ChildGroup):
+                raise ValueError("child_groups entries must be ChildGroup instances")
+            if group.edge_type in seen:
+                raise ValueError(
+                    f"node type {self.name!r} groups edge type "
+                    f"{group.edge_type!r} more than once"
+                )
+            seen.add(group.edge_type)
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,8 +279,11 @@ class GraphSchema:
     node_types: Mapping[str, NodeType]
     edge_types: Mapping[str, EdgeType]
     palette: Mapping[str, PaletteTone] = field(default_factory=dict)
+    label_policy: LabelPolicy = LabelPolicy()
 
     def __post_init__(self) -> None:
+        if not isinstance(self.label_policy, LabelPolicy):
+            raise ValueError("GraphSchema.label_policy must be a LabelPolicy")
         object.__setattr__(self, "node_types", _mapping(self.node_types))
         object.__setattr__(self, "edge_types", _mapping(self.edge_types))
         object.__setattr__(self, "palette", _mapping(self.palette))
@@ -157,8 +301,13 @@ class Node:
     disabled: bool = False
     dimmed: bool = False
     sprites: Mapping[str, SpriteRef] = field(default_factory=dict)
+    opacity: float | None = None
+    layout_order: int | None = None
+    display_label: str | None = None
 
     def __post_init__(self) -> None:
+        if self.display_label is not None and not isinstance(self.display_label, str):
+            raise ValueError("Node.display_label must be a string or None")
         object.__setattr__(self, "data", _mapping(self.data))
         object.__setattr__(self, "badges", _mapping(self.badges))
         object.__setattr__(self, "sprites", _mapping(self.sprites))
@@ -175,6 +324,9 @@ class Edge:
     label: str | None = None
     data: Mapping[str, Any] = field(default_factory=dict)
     dimmed: bool = False
+    emphasized: bool = False
+    optional: bool = False
+    opacity: float | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "data", _mapping(self.data))

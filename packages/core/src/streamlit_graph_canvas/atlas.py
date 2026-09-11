@@ -1,22 +1,20 @@
-"""Bounded, tenant-isolated raster atlas cache for PRIMS renderers."""
+"""Bounded, content-addressed raster atlas cache for PRIMS renderers."""
 
 from __future__ import annotations
 
 import hashlib
-import hmac
 import io
 import json
-import secrets
 import threading
 from collections import OrderedDict
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import TYPE_CHECKING, Any, cast
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
 
+from . import telemetry
 from .contract import (
     MAX_ATLAS_AGGREGATE_BYTES,
     MAX_ATLAS_DECODED_PIXELS,
@@ -39,22 +37,17 @@ MAX_ATLAS_POLICY_PAGES = MAX_ATLAS_PAGES
 MAX_ATLAS_POLICY_BYTES = MAX_ATLAS_AGGREGATE_BYTES
 
 
-class AtlasScope(StrEnum):
-    """Lifetime and isolation boundary for raster pages."""
-
-    SESSION = "session"
-    TENANT = "tenant"
-
-
 @dataclass(frozen=True, slots=True)
 class AtlasPolicy:
-    """Hard memory and cardinality ceilings for Python and browser caches."""
+    """Hard memory and cardinality ceilings for Python and browser caches.
 
-    scope: AtlasScope = AtlasScope.SESSION
+    Ceilings apply per distinct policy cache, shared by sessions using that
+    policy. Distinct policies retain separate caches; their residency adds up.
+    There is no aggregate process-wide ceiling across policy caches.
+    """
+
     max_pages: int = 128
     max_bytes: int = 32 * 1024 * 1024
-    max_tenant_pages: int = 64
-    max_tenant_bytes: int = 16 * 1024 * 1024
     max_tile_pixels: int = 512 * 512 * 4
     max_page_bytes: int = 2 * 1024 * 1024
     max_source_bytes: int = 4 * 1024 * 1024
@@ -72,8 +65,6 @@ class AtlasPolicy:
         values = (
             self.max_pages,
             self.max_bytes,
-            self.max_tenant_pages,
-            self.max_tenant_bytes,
             self.max_tile_pixels,
             self.max_page_bytes,
             self.max_source_bytes,
@@ -88,10 +79,6 @@ class AtlasPolicy:
         )
         if any(isinstance(value, bool) or value <= 0 for value in values):
             raise ValueError("Atlas cache and raster limits must be positive integers")
-        if self.max_tenant_pages > self.max_pages:
-            raise ValueError("max_tenant_pages cannot exceed max_pages")
-        if self.max_tenant_bytes > self.max_bytes:
-            raise ValueError("max_tenant_bytes cannot exceed max_bytes")
         if self.max_pages > MAX_ATLAS_POLICY_PAGES:
             raise ValueError("max_pages exceeds the reviewed hard ceiling")
         if self.max_bytes > MAX_ATLAS_POLICY_BYTES:
@@ -134,13 +121,6 @@ class AtlasPage:
 
 
 @dataclass(frozen=True, slots=True)
-class AtlasLookup:
-    page: AtlasPage
-    evicted_page_ids: tuple[str, ...]
-    cache_hit: bool
-
-
-@dataclass(frozen=True, slots=True)
 class SpriteLocation:
     page_id: str
     x: int
@@ -158,15 +138,7 @@ class AtlasBatchLookup:
 
 
 @dataclass(slots=True)
-class _CacheEntry:
-    tenant: str
-    content_key: str
-    page: AtlasPage
-
-
-@dataclass(slots=True)
 class _PackedPageEntry:
-    tenant: str
     page: AtlasPage
     tile_keys: tuple[str, ...]
 
@@ -225,6 +197,22 @@ def atlas_content_key(payload: object, *, subject: str = "ATLAS") -> str:
         sort_keys=True,
     ).encode()
     return hashlib.sha256(encoded).hexdigest()
+
+
+_ATLAS_SUBJECT = "ATLAS"
+
+
+def _page_identity(content_hash: str, tile_keys: Mapping[str, object]) -> str:
+    """Return a stable content address for a packed page and its tile mapping.
+
+    Page identity is a pure function of bytes and layout, so the same tile set
+    reproduces the same identifier in any process. A browser that already holds a
+    page keeps it across server restarts, and the identifier is durable enough to
+    serve as a cache key for content-addressed HTTP delivery later.
+    """
+
+    payload = f"packed-page:{content_hash}:{','.join(sorted(tile_keys))}"
+    return hashlib.sha256(payload.encode()).hexdigest()
 
 
 def _diagnostic(code: str, message: str, action: str, subject: str) -> ValidationError:
@@ -457,24 +445,16 @@ def pack_tiles(
 
 
 class AtlasPageCache:
-    """Thread-safe LRU with aggregate and per-tenant limits."""
+    """Thread-safe, content-addressed LRU shared by every session in a process."""
 
-    def __init__(
-        self, policy: AtlasPolicy, *, identity_key: bytes | None = None
-    ) -> None:
+    def __init__(self, policy: AtlasPolicy) -> None:
         self.policy = policy
-        self._identity_key = identity_key or _PROCESS_IDENTITY_KEY
-        self._entries: OrderedDict[tuple[str, str], _CacheEntry] = OrderedDict()
-        self._packed_entries: OrderedDict[tuple[str, str], _PackedPageEntry] = (
-            OrderedDict()
-        )
-        self._tile_locations: dict[tuple[str, str], SpriteLocation] = {}
+        self._pages: OrderedDict[str, _PackedPageEntry] = OrderedDict()
+        self._tile_locations: dict[str, SpriteLocation] = {}
         self._bytes = 0
         self._lock = threading.RLock()
 
-    def resolve_tiles(
-        self, *, tenant: str, tiles: Mapping[str, RasterTile]
-    ) -> AtlasBatchLookup:
+    def resolve_tiles(self, *, tiles: Mapping[str, RasterTile]) -> AtlasBatchLookup:
         """Resolve a complete active tile set into immutable packed pages atomically."""
 
         if not tiles:
@@ -484,30 +464,28 @@ class AtlasPageCache:
             missing: list[RasterTile] = []
             protected: set[str] = set()
             for content_key, tile in tiles.items():
-                location = self._tile_locations.get((tenant, content_key))
-                if (
-                    location is None
-                    or (tenant, location.page_id) not in self._packed_entries
-                ):
+                location = self._tile_locations.get(content_key)
+                if location is None or location.page_id not in self._pages:
                     missing.append(tile)
                     continue
                 locations[content_key] = location
                 protected.add(location.page_id)
-                self._packed_entries.move_to_end((tenant, location.page_id))
+                self._pages.move_to_end(location.page_id)
+            telemetry.record_tile_lookups(hits=len(locations), misses=len(missing))
 
-            raw_batches = pack_tiles(
-                tuple(missing),
-                policy=self.policy,
-                subject=tenant_subject(tenant, identity_key=self._identity_key),
-            )
+            with telemetry.measure("pack_duration"):
+                raw_batches = pack_tiles(
+                    tuple(missing),
+                    policy=self.policy,
+                    subject=_ATLAS_SUBJECT,
+                )
             additions: list[_PackedPageEntry] = []
             addition_locations: dict[str, SpriteLocation] = {}
             for raw_page, raw_locations in raw_batches:
-                page_id = _identity(
-                    self._identity_key,
-                    "packed-page:"
-                    f"{tenant}:{raw_page.page_id}:{','.join(sorted(raw_locations))}",
-                )
+                # The packed PNG bytes already hash into raw_page.page_id. Binding
+                # the tile mapping as well keeps two pages distinct when identical
+                # pixels carry different crop rectangles.
+                page_id = _page_identity(raw_page.page_id, raw_locations)
                 page = AtlasPage(
                     page_id,
                     raw_page.media_type,
@@ -525,79 +503,67 @@ class AtlasPageCache:
                     )
                     for key, location in raw_locations.items()
                 }
-                additions.append(_PackedPageEntry(tenant, page, tuple(page_locations)))
+                additions.append(_PackedPageEntry(page, tuple(page_locations)))
                 addition_locations.update(page_locations)
                 protected.add(page_id)
 
-            projected_pages = (
-                len(self._entries) + len(self._packed_entries) + len(additions)
-            )
+            projected_pages = len(self._pages) + len(additions)
             projected_bytes = self._bytes + sum(
                 len(entry.page.content) for entry in additions
             )
-            tenant_legacy = [
-                entry for entry in self._entries.values() if entry.tenant == tenant
-            ]
-            tenant_packed = [
-                entry
-                for entry in self._packed_entries.values()
-                if entry.tenant == tenant
-            ]
-            tenant_pages = len(tenant_legacy) + len(tenant_packed) + len(additions)
-            tenant_bytes = (
-                sum(len(entry.page.content) for entry in tenant_legacy)
-                + sum(len(entry.page.content) for entry in tenant_packed)
-                + sum(len(entry.page.content) for entry in additions)
-            )
-            victims: list[tuple[str, str]] = []
+            # self._pages is in least-recently-used order, so the candidate list
+            # is already the eviction order.
+            victims: list[str] = []
             candidates = [
-                key
-                for key, entry in self._packed_entries.items()
-                if entry.tenant == tenant and entry.page.page_id not in protected
+                page_id for page_id in self._pages if page_id not in protected
             ]
             while (
                 projected_pages > self.policy.max_pages
                 or projected_bytes > self.policy.max_bytes
-                or tenant_pages > self.policy.max_tenant_pages
-                or tenant_bytes > self.policy.max_tenant_bytes
             ):
                 if not candidates:
+                    telemetry.record_failure("SGC_ATLAS_WORKING_SET_LIMIT")
                     raise _diagnostic(
                         "SGC_ATLAS_WORKING_SET_LIMIT",
                         "The active sprite working set cannot fit within the "
                         "configured atlas cache limits.",
                         "Reduce sprite cardinality or increase reviewed page limits.",
-                        tenant_subject(tenant, identity_key=self._identity_key),
+                        _ATLAS_SUBJECT,
                     )
                 victim_key = candidates.pop(0)
-                victim = self._packed_entries[victim_key]
                 victims.append(victim_key)
-                size = len(victim.page.content)
                 projected_pages -= 1
-                projected_bytes -= size
-                tenant_pages -= 1
-                tenant_bytes -= size
+                projected_bytes -= len(self._pages[victim_key].page.content)
 
             evicted: list[str] = []
+            released_bytes = 0
             for victim_key in victims:
-                victim = self._packed_entries.pop(victim_key)
+                victim = self._pages.pop(victim_key)
                 self._bytes -= len(victim.page.content)
+                released_bytes += len(victim.page.content)
                 evicted.append(victim.page.page_id)
                 for tile_key in victim.tile_keys:
-                    self._tile_locations.pop((tenant, tile_key), None)
+                    self._tile_locations.pop(tile_key, None)
+            added_bytes = 0
             for entry in additions:
-                self._packed_entries[(tenant, entry.page.page_id)] = entry
+                self._pages[entry.page.page_id] = entry
                 self._bytes += len(entry.page.content)
+                added_bytes += len(entry.page.content)
+            telemetry.record_eviction(len(victims), released_bytes)
+            telemetry.record_residency(
+                pages_delta=len(additions) - len(victims),
+                bytes_delta=added_bytes - released_bytes,
+            )
             for content_key, location in addition_locations.items():
-                self._tile_locations[(tenant, content_key)] = location
+                self._tile_locations[content_key] = location
             locations.update(addition_locations)
             if set(locations) != set(tiles):
                 raise RuntimeError("atlas tile resolution lost an active mapping")
             referenced_page_ids = {item.page_id for item in locations.values()}
             referenced_pages = tuple(
                 entry.page
-                for (_tenant, page_id), entry in self._packed_entries.items()
-                if entry.tenant == tenant and page_id in referenced_page_ids
+                for page_id, entry in self._pages.items()
+                if page_id in referenced_page_ids
             )
             if {page.page_id for page in referenced_pages} != referenced_page_ids:
                 raise RuntimeError("atlas page resolution lost an active page")
@@ -608,204 +574,68 @@ class AtlasPageCache:
                 tuple(evicted),
             )
 
-    def get_or_create(
-        self,
-        *,
-        tenant: str,
-        content_key: str,
-        create: Callable[[], AtlasPage],
-    ) -> AtlasLookup:
-        cache_key = (tenant, content_key)
-        with self._lock:
-            if entry := self._entries.get(cache_key):
-                self._entries.move_to_end(cache_key)
-                return AtlasLookup(entry.page, (), True)
-            raw_page = create()
-            page = AtlasPage(
-                _identity(
-                    self._identity_key,
-                    f"page:{tenant}:{content_key}:{raw_page.page_id}",
-                ),
-                raw_page.media_type,
-                raw_page.content,
-                raw_page.width,
-                raw_page.height,
-            )
-            entry = _CacheEntry(tenant, content_key, page)
-            self._entries[cache_key] = entry
-            self._bytes += len(page.content)
-            evicted: list[str] = []
-            while self._over_limit(tenant):
-                victim_key = self._oldest_key(tenant)
-                victim = self._entries.pop(victim_key)
-                self._bytes -= len(victim.page.content)
-                evicted.append(victim.page.page_id)
-            if cache_key not in self._entries:
-                raise _diagnostic(
-                    "SGC_ATLAS_CACHE_LIMIT",
-                    "A single ATLAS page cannot fit within the configured "
-                    "cache limits.",
-                    "Increase the per-tenant limits or reduce the badge raster size.",
-                    tenant_subject(tenant, identity_key=self._identity_key),
-                )
-            return AtlasLookup(page, tuple(evicted), False)
-
-    def _tenant_usage(self, tenant: str) -> tuple[int, int]:
-        legacy = [entry for entry in self._entries.values() if entry.tenant == tenant]
-        packed = [
-            entry for entry in self._packed_entries.values() if entry.tenant == tenant
-        ]
-        return len(legacy) + len(packed), sum(
-            len(entry.page.content) for entry in legacy
-        ) + sum(len(entry.page.content) for entry in packed)
-
-    def _over_limit(self, tenant: str) -> bool:
-        tenant_pages, tenant_bytes = self._tenant_usage(tenant)
-        return (
-            len(self._entries) + len(self._packed_entries) > self.policy.max_pages
-            or self._bytes > self.policy.max_bytes
-            or tenant_pages > self.policy.max_tenant_pages
-            or tenant_bytes > self.policy.max_tenant_bytes
-        )
-
-    def _oldest_key(self, tenant: str) -> tuple[str, str]:
-        return next(key for key in self._entries if key[0] == tenant)
-
     def snapshot(self) -> dict[str, int]:
         with self._lock:
-            return {
-                "pages": len(self._entries) + len(self._packed_entries),
-                "bytes": self._bytes,
-            }
+            return {"pages": len(self._pages), "bytes": self._bytes}
 
 
 # Compatibility alias retained throughout the 0.1 release-candidate series.
 AtlasCache = AtlasPageCache
 
 
-_PROCESS_IDENTITY_KEY = secrets.token_bytes(32)
+class _AtlasCacheRegistry:
+    """One process-global cache per distinct policy.
 
+    Page packing depends on ``page_width``, ``page_height`` and ``padding``, so two
+    policies packing the same tiles produce different pages. Keeping a cache per
+    policy stops one content key from mapping to two pages. Tile identity itself is
+    policy-independent, so within a policy every session shares the same entries.
+    """
 
-def _identity(key: bytes, value: str) -> str:
-    return hmac.new(key, value.encode(), hashlib.sha256).hexdigest()
-
-
-def tenant_subject(tenant: str, *, identity_key: bytes | None = None) -> str:
-    """Return a process-scoped tenant pseudonym safe for diagnostics."""
-
-    pseudonym = _identity(identity_key or _PROCESS_IDENTITY_KEY, f"tenant:{tenant}")
-    return f"tenant:{pseudonym[:12]}"
-
-
-@dataclass(slots=True)
-class _ManagedCache:
-    cache: AtlasCache
-    leases: int = 0
-
-
-class AtlasCacheLease:
-    """Explicit active-use lease for a bounded process tenant cache."""
-
-    def __init__(self, manager: TenantAtlasManager, policy: AtlasPolicy) -> None:
-        self._manager = manager
-        self._policy = policy
-        self._closed = False
-        self.cache = manager._acquire(policy)
-
-    def close(self) -> None:
-        if self._closed:
-            return
-        self._closed = True
-        self._manager._release(self._policy)
-
-    def __enter__(self) -> AtlasCache:
-        return self.cache
-
-    def __exit__(self, *_: object) -> None:
-        self.close()
-
-
-class TenantAtlasManager:
-    """Bounded registry that never displaces an actively leased policy cache."""
-
-    def __init__(
-        self, *, max_policy_caches: int = 4, identity_key: bytes | None = None
-    ) -> None:
-        if isinstance(max_policy_caches, bool) or max_policy_caches <= 0:
-            raise ValueError("max_policy_caches must be a positive integer")
-        self.max_policy_caches = max_policy_caches
-        self.max_total_pages = max_policy_caches * MAX_ATLAS_POLICY_PAGES
-        self.max_total_bytes = max_policy_caches * MAX_ATLAS_POLICY_BYTES
-        self._identity_key = identity_key or _PROCESS_IDENTITY_KEY
-        self._caches: OrderedDict[AtlasPolicy, _ManagedCache] = OrderedDict()
+    def __init__(self) -> None:
+        self._caches: dict[AtlasPolicy, AtlasPageCache] = {}
         self._lock = threading.RLock()
 
-    def acquire(self, policy: AtlasPolicy) -> AtlasCacheLease:
-        if policy.scope is not AtlasScope.TENANT:
-            raise ValueError("A process tenant cache requires AtlasScope.TENANT")
-        return AtlasCacheLease(self, policy)
-
-    def _acquire(self, policy: AtlasPolicy) -> AtlasCache:
+    def get(self, policy: AtlasPolicy) -> AtlasPageCache:
         with self._lock:
-            managed = self._caches.get(policy)
-            if managed is None:
-                if len(self._caches) >= self.max_policy_caches:
-                    idle = next(
-                        (
-                            candidate
-                            for candidate, item in self._caches.items()
-                            if item.leases == 0
-                        ),
-                        None,
-                    )
-                    if idle is None:
-                        raise _diagnostic(
-                            "SGC_ATLAS_MANAGER_LIMIT",
-                            "All process ATLAS policy cache slots are active.",
-                            "Reuse an existing reviewed policy or retry after its "
-                            "active render completes.",
-                            "ATLAS manager",
-                        )
-                    del self._caches[idle]
-                managed = _ManagedCache(
-                    AtlasCache(policy, identity_key=self._identity_key)
-                )
-                self._caches[policy] = managed
-            managed.leases += 1
-            self._caches.move_to_end(policy)
-            return managed.cache
-
-    def _release(self, policy: AtlasPolicy) -> None:
-        with self._lock:
-            managed = self._caches.get(policy)
-            if managed is None or managed.leases <= 0:
-                raise RuntimeError("ATLAS cache lease accounting is inconsistent")
-            managed.leases -= 1
+            cache = self._caches.get(policy)
+            if cache is None:
+                cache = AtlasPageCache(policy)
+                self._caches[policy] = cache
+            return cache
 
     def reset(self) -> None:
+        """Discard every cache. Intended for tests and process teardown."""
+
         with self._lock:
-            if any(managed.leases for managed in self._caches.values()):
-                raise RuntimeError("cannot reset ATLAS manager with active leases")
             self._caches.clear()
 
     def snapshot(self) -> dict[str, int]:
         with self._lock:
-            return {
-                "policy_caches": len(self._caches),
-                "active_leases": sum(item.leases for item in self._caches.values()),
-                "pages": sum(
-                    item.cache.snapshot()["pages"] for item in self._caches.values()
-                ),
-                "bytes": sum(
-                    item.cache.snapshot()["bytes"] for item in self._caches.values()
-                ),
-            }
+            snapshots = [cache.snapshot() for cache in self._caches.values()]
+        return {
+            "policy_caches": len(snapshots),
+            "pages": sum(item["pages"] for item in snapshots),
+            "bytes": sum(item["bytes"] for item in snapshots),
+        }
 
 
-_TENANT_ATLAS_MANAGER = TenantAtlasManager()
+_ATLAS_CACHES = _AtlasCacheRegistry()
 
 
-def tenant_atlas_cache(policy: AtlasPolicy) -> AtlasCacheLease:
-    """Lease a bounded process cache whose entries remain tenant-isolated."""
+def atlas_cache(policy: AtlasPolicy) -> AtlasPageCache:
+    """Return the process-global cache serving a policy, creating it on first use."""
 
-    return _TENANT_ATLAS_MANAGER.acquire(policy)
+    return _ATLAS_CACHES.get(policy)
+
+
+def reset_atlas_caches() -> None:
+    """Discard every process-global atlas cache."""
+
+    _ATLAS_CACHES.reset()
+
+
+def atlas_cache_snapshot() -> dict[str, int]:
+    """Return aggregate residency across every process-global atlas cache."""
+
+    return _ATLAS_CACHES.snapshot()

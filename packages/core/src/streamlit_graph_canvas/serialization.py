@@ -8,6 +8,7 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from . import telemetry
 from .atlas import (
     AtlasCache,
     AtlasPolicy,
@@ -50,13 +51,40 @@ def serialize_graph(
     sprite_catalog: SpriteCatalog | None = None,
     atlas_cache: AtlasCache | None = None,
     atlas_policy: AtlasPolicy | None = None,
-    atlas_tenant: str = "session",
     atlas_theme: str = "light",
     atlas_resolution: float = 1.0,
     atlas_known_pages: frozenset[str] = frozenset(),
 ) -> SerializedGraph:
     """Validate and serialize stable topology separately from presentation."""
 
+    with telemetry.measure("serialize_duration"):
+        return _serialize_graph(
+            schema,
+            graph,
+            max_elements=max_elements,
+            renderer_registry=renderer_registry,
+            sprite_catalog=sprite_catalog,
+            atlas_cache=atlas_cache,
+            atlas_policy=atlas_policy,
+            atlas_theme=atlas_theme,
+            atlas_resolution=atlas_resolution,
+            atlas_known_pages=atlas_known_pages,
+        )
+
+
+def _serialize_graph(
+    schema: GraphSchema,
+    graph: GraphData,
+    *,
+    max_elements: int,
+    renderer_registry: RendererRegistry | None,
+    sprite_catalog: SpriteCatalog | None,
+    atlas_cache: AtlasCache | None,
+    atlas_policy: AtlasPolicy | None,
+    atlas_theme: str,
+    atlas_resolution: float,
+    atlas_known_pages: frozenset[str],
+) -> SerializedGraph:
     validate(
         schema,
         graph,
@@ -66,8 +94,6 @@ def serialize_graph(
     )
     if atlas_theme not in {"light", "dark"}:
         raise ValueError("atlas_theme must be 'light' or 'dark'")
-    if not atlas_tenant or len(atlas_tenant) > 128:
-        raise ValueError("atlas_tenant must be a non-empty string of at most 128 chars")
     policy = atlas_policy or AtlasPolicy()
     cache = atlas_cache or AtlasCache(policy)
     bucket = resolution_bucket(atlas_resolution)
@@ -77,11 +103,12 @@ def serialize_graph(
         else {}
     )
 
-    schema_data = {
+    schema_data: dict[str, Any] = {
         "nodeTypes": {
             name: {
                 "name": kind.name,
                 "style": asdict(kind.style),
+                "labelPolicy": asdict(kind.label_policy or schema.label_policy),
                 "ports": [asdict(port) for port in kind.ports],
                 "badges": [
                     {
@@ -108,6 +135,19 @@ def serialize_graph(
                         kind.sprites, key=lambda item: (item.layer, item.z, item.name)
                     )
                 ],
+                "childGroups": [
+                    {
+                        "edgeType": group.edge_type,
+                        "label": group.title,
+                        "threshold": group.threshold,
+                        "direction": group.direction.value,
+                        "collapsed": group.collapsed,
+                        "display": group.display.value,
+                    }
+                    for group in sorted(
+                        kind.child_groups, key=lambda item: item.edge_type
+                    )
+                ],
             }
             for name, kind in sorted(schema.node_types.items())
         },
@@ -132,6 +172,7 @@ def serialize_graph(
                 "type": node.type,
                 "width": node.width,
                 "height": node.height,
+                "layoutOrder": node.layout_order,
             }
             for node in graph.nodes
         ],
@@ -324,7 +365,7 @@ def serialize_graph(
             layers, key=lambda item: (item["layer"], item["z"], item["name"])
         )
 
-    packed = cache.resolve_tiles(tenant=atlas_tenant, tiles=required_tiles)
+    packed = cache.resolve_tiles(tiles=required_tiles)
     atlas_pages = [
         {
             "pageId": page.page_id,
@@ -358,10 +399,12 @@ def serialize_graph(
             {
                 "id": node.id,
                 "label": node.label,
+                "displayLabel": node.display_label,
                 "data": dict(node.data),
                 "badges": layers_by_node[node.id],
                 "disabled": node.disabled,
                 "dimmed": node.dimmed,
+                "opacity": node.opacity,
             }
             for node in graph.nodes
         ],
@@ -371,13 +414,47 @@ def serialize_graph(
                 "label": edge.label,
                 "data": dict(edge.data),
                 "dimmed": edge.dimmed,
+                "opacity": edge.opacity,
+                "emphasized": edge.emphasized,
+                "optional": edge.optional,
             }
             for edge in graph.edges
         ],
     }
+    # Keep the established topology/action identity while independently tracking
+    # inputs that can change layout. Appearance changes must still refresh nodes.
     topology_hash = _hash({"schema": schema_data, "topology": topology})
+    layout_hash = _hash(
+        {
+            "topology": topology,
+            "nodeTypes": {
+                name: {
+                    "width": kind.style.width,
+                    "height": kind.style.height,
+                    "ports": [
+                        {
+                            key: value
+                            for key, value in asdict(port).items()
+                            if key != "label"
+                        }
+                        for port in kind.ports
+                    ],
+                    "groups": [
+                        {key: value for key, value in group.items() if key != "label"}
+                        for group in schema_data["nodeTypes"][name]["childGroups"]
+                    ],
+                }
+                for name, kind in sorted(schema.node_types.items())
+            },
+        }
+    )
     presentation_hash = _hash(
-        {"presentation": presentation, "theme": atlas_theme, "resolution": bucket}
+        {
+            "schema": schema_data,
+            "presentation": presentation,
+            "theme": atlas_theme,
+            "resolution": bucket,
+        }
     )
     return SerializedGraph(
         envelope={
@@ -392,12 +469,12 @@ def serialize_graph(
                 "policy": {
                     "maxPages": policy.max_pages,
                     "maxBytes": policy.max_bytes,
-                    "scope": policy.scope.value,
                 },
                 "theme": atlas_theme,
                 "resolution": bucket,
             },
             "topologyHash": topology_hash,
+            "layoutHash": layout_hash,
             "presentationHash": presentation_hash,
         },
         topology_hash=topology_hash,

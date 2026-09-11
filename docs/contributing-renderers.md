@@ -74,8 +74,8 @@ Raster renderer authors must emit deterministic PRIMS, use literal colors for
 both theme variants, and test high-cardinality behavior under cache limits.
 Static and procedural raster tiles may share immutable multi-sprite pages, but
 renderer authors do not provide pages or crop coordinates. See
-[`transports-and-csp.md`](transports-and-csp.md) for the atlas, tenant, and CSP
-contract.
+[`transports-and-csp.md`](transports-and-csp.md) for the atlas, cache-scope, and
+CSP contract.
 
 ## PRIMS safety boundary
 

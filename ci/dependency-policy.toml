@@ -143,6 +143,11 @@ minimum = "8.2.0"
 supported = "^8.2.0"
 risk = "high"
 
+[npm.build.prettier]
+minimum = "3.6.2"
+supported = "3.6.2"
+risk = "low"
+
 [npm.build.vitest]
 minimum = "4.1.0"
 supported = "^4.1.0"

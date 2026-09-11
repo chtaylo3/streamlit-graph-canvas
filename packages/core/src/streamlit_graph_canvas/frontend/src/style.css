@@ -9,3 +9,45 @@
 .sgc-node-type { margin-bottom: 4px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .66; }
 .sgc-badge { position: absolute; z-index: 2; overflow: visible; pointer-events: none; }
 .sgc-badge text { font-family: ui-sans-serif, system-ui, sans-serif; font-weight: 700; }
+.sgc-group-markers { position: absolute; right: -13px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 3; }
+.sgc-group-marker { min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px; border: 2px solid var(--st-border-color); background: var(--st-background-color); color: var(--st-text-color); font: 700 11px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sgc-group-marker:hover { border-color: var(--st-primary-color); }
+.sgc-group-marker:focus-visible { outline: 3px solid var(--st-primary-color); outline-offset: 2px; }
+.sgc-group-marker.expanded { background: var(--st-primary-color); border-color: var(--st-primary-color); color: var(--st-background-color); }
+.sgc-group { width: 100%; height: 100%; box-sizing: border-box; border: 2px dashed var(--st-border-color); border-radius: 14px; background: color-mix(in srgb, var(--st-secondary-background-color) 45%, transparent); }
+.sgc-group-header { position: absolute; top: 6px; left: 10px; right: 10px; height: 22px; padding: 0 8px; border: 0; border-radius: 11px; background: transparent; color: var(--st-text-color); font: 700 11px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sgc-group-header:hover { color: var(--st-primary-color); }
+.sgc-group-header:focus-visible { outline: 3px solid var(--st-primary-color); outline-offset: 2px; }
+
+/* Compensate for the outer CSS viewport transform, including at minimum zoom. */
+.sgc-node { border-color: transparent !important; }
+.sgc-node-outline { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+
+.sgc-group { border-width: calc(1.5px / var(--sgc-zoom, 1)); }
+
+.sgc-budget-notice { position: absolute; top: 8px; left: 8px; right: 8px; z-index: 10; padding: 8px 12px; border-radius: 6px; background: var(--st-secondary-background-color, #f0f2f6); color: var(--st-text-color, #31333f); font-size: 12px; pointer-events: none; }
+
+.sgc-search-panel { width: min(380px, calc(100vw - 64px)); max-height: 340px; overflow-y: auto; padding: 10px; border: 1px solid var(--st-border-color, #aaa); border-radius: 8px; background: var(--st-background-color, white); color: var(--st-text-color, #222); font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; box-shadow: 0 2px 6px #0002; }
+.sgc-search-panel input, .sgc-search-panel select, .sgc-search-panel button { font: inherit; color: inherit; background: var(--st-secondary-background-color, #f0f2f6); border: 1px solid var(--st-border-color, #aaa); border-radius: 4px; padding: 4px; min-width: 0; }
+.sgc-search-panel button { cursor: pointer; }
+.sgc-search-panel button:disabled { opacity: .45; cursor: default; }
+.sgc-search-panel :focus-visible { outline: 2px solid var(--st-primary-color, #2563eb); outline-offset: 2px; }
+.sgc-search-row { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; }
+.sgc-search-row input { flex: 1; }
+.sgc-search-panel small { display: block; font-size: 11px; line-height: 1.4; }
+.sgc-search-count { margin: 5px 0; }
+.sgc-search-panel summary { cursor: pointer; margin: 6px 0; }
+.sgc-search-rule { display: grid; grid-template-columns: 1fr 70px 80px auto; gap: 4px; margin: 8px 0; }
+.sgc-search-rule small { grid-column: 1 / -1; }
+.sgc-search-context { display: flex; gap: 5px; align-items: center; margin: 8px 0; }
+.sgc-search-callback { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--st-border-color, #aaa); }
+.react-flow__node.sgc-search-match { outline: calc(2px / var(--sgc-zoom, 1)) dashed #b8860b; outline-offset: calc(4px / var(--sgc-zoom, 1)); border-radius: 12px; }
+.react-flow__node.sgc-search-current { outline-style: solid; outline-width: calc(4px / var(--sgc-zoom, 1)); }
+
+.sgc-search-root > summary { cursor: pointer; font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; padding: 5px 8px; border: 1px solid var(--st-border-color, #aaa); border-radius: 5px; color: var(--st-text-color, #222); background: var(--st-background-color, white); }
+.sgc-budget-notice { top: auto; bottom: 48px; left: 48px; }
+
+.sgc-node-label { display:block; min-width:0; width:100%; overflow:hidden; }
+.sgc-node-label > span { display:block; white-space:pre; overflow:hidden; }
+.sgc-label-reveal { position:absolute; bottom:2px; left:6px; z-index:4; padding:0 4px; line-height:14px; border:0; border-radius:3px; background:var(--st-background-color,white); color:var(--st-text-color,black); cursor:pointer; }
+.sgc-label-reveal:focus-visible { outline:2px solid var(--st-primary-color); }

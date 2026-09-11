@@ -21,6 +21,8 @@ classifiers = [
 [project.optional-dependencies]
 atlas = ["Pillow>=12.3.0,<13"]
 networkx = ["networkx>=3.6.1"]
+# API only, never the SDK: the application owns provider configuration.
+otel = ["opentelemetry-api>=1.30,<2"]
 
 [project.urls]
 Documentation = "https://github.com/chtaylo3/streamlit-graph-canvas"
