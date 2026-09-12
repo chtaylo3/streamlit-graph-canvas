@@ -163,7 +163,7 @@ def main() -> None:
                 ) as response:
                     if response.status == 200:
                         break
-            except urllib.error.URLError:
+            except (urllib.error.URLError, TimeoutError):
                 if attempt == 119:
                     raise RuntimeError("Streamlit health check timed out") from None
                 time.sleep(0.25)
