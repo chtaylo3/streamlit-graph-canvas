@@ -137,3 +137,15 @@ on a long, reverse-ordered chain without relying on machine-specific timings.
 The `--with-deps` operation needs package-manager privileges on Linux. It works
 on GitHub-hosted Ubuntu runners; a restricted local environment may be able to
 download Chromium but still lack its shared libraries.
+
+## Test the example application
+
+The dependency explorer owns its application integration tests in
+[`tests/browser`](https://github.com/chtaylo3/streamlit-canvas-graph-example/tree/main/tests/browser).
+Follow the [example app browser-test instructions](https://github.com/chtaylo3/streamlit-canvas-graph-example#browser-integration-checks)
+to run them. These tests install the app's pinned PyPI packages and cover its
+category controls, sibling context, and navigation behavior. They do not require
+a checkout of this component repository.
+
+The component's installed-wheel conformance matrix remains the release gate for
+its reusable API and renderer contracts.
