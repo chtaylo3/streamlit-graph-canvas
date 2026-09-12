@@ -35,29 +35,32 @@ def render(policy: dict[str, Any]) -> bytes:
         "",
         "## Python runtime",
         "",
-        "| Dependency | Minimum version | Supported range | Forward requirement | "
+        "| Dependency | Minimum supported | Latest supported | Install range | "
+        "Forward requirement | "
         "Risk |",
-        "| --- | --- | --- | --- | --- |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
     for name, entry in policy["python"].items():
         forward = f"`{entry['forward']}`" if entry.get("forward") else "Not configured"
         lines.append(
-            f"| `{name}` | {entry['minimum']} | `{entry['supported']}` | "
+            f"| `{name}` | {entry['minimum']} | {entry['latest_supported']} | "
+            f"`{entry['supported']}` | "
             f"{forward} | {entry['risk'].capitalize()} |"
         )
     lines.extend(
         [
             "",
-            "## Browser and build dependencies",
+            "## Browser runtime dependencies",
             "",
             (
-                "| Group | Dependency | Minimum version | Supported range | "
+                "| Group | Dependency | Minimum supported | Latest supported | "
+                "Install range | "
                 "Forward tag | Coupled with | Risk |"
             ),
-            "| --- | --- | --- | --- | --- | --- | --- |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
-    for group, entries in policy["npm"].items():
+    for group, entries in {"runtime": policy["npm"]["runtime"]}.items():
         for name, entry in entries.items():
             forward = (
                 f"`{entry['forward']}`" if entry.get("forward") else "Not configured"
@@ -72,8 +75,29 @@ def render(policy: dict[str, Any]) -> bytes:
             )
             lines.append(
                 f"| {group.capitalize()} | `{name}` | {entry['minimum']} | "
-                f"`{entry['supported']}` | {forward} | "
+                f"{entry['latest_supported']} | `{entry['supported']}` | {forward} | "
                 f"{coupling} | {entry['risk'].capitalize()} |"
+            )
+    lines.extend(
+        [
+            "",
+            "## Internal JavaScript tools",
+            "",
+            "Tool version declarations come from the frontend and browser-test",
+            "`package.json` files; exact resolutions come from their "
+            "`package-lock.json`",
+            "files. These tools have no separate minimum or latest-supported promise.",
+            "Compatibility lanes use locked tools; advisory probes can test "
+            "newer tools.",
+            "",
+            "| Group | Tool | Risk |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for group in ("build", "test"):
+        for name, entry in policy["npm"][group].items():
+            lines.append(
+                f"| {group.capitalize()} | `{name}` | {entry['risk'].capitalize()} |"
             )
     lines.extend(
         [

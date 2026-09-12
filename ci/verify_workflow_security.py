@@ -15,6 +15,54 @@ PUBLISH = "pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33"
 DIGEST = "cd release-bundle && sha256sum --check SHA256SUMS"
 PUBLISH_COMMAND = re.compile(r"(?:^|\s)uv\s+publish(?:\s|$)")
 RUNNER_CONTEXT = re.compile(r"\$\{\{[^}]*\brunner\.")
+APP_TOKEN = "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1"
+
+
+def _verify_dependency_publisher(workflow: dict[str, Any], errors: list[str]) -> None:
+    """Keep PR build execution out of the credential-bearing publisher."""
+    jobs = _mapping(workflow.get("jobs"))
+    if set(jobs) != {"publish"}:
+        errors.append("dependency publisher must have only the publish job")
+    job = _mapping(jobs.get("publish"))
+    steps = _steps(job, "dependency publisher", errors)
+    if len(steps) != 4:
+        errors.append("dependency publisher must have exactly four steps")
+        return
+    checkout, validate, mint, commit = steps
+    checkout_inputs = _mapping(checkout.get("with"))
+    if set(checkout_inputs) != {"persist-credentials"}:
+        errors.append("dependency publisher must check out trusted default context")
+    command = (
+        'python3 -m ci.publish_dependency_pr --run "$SOURCE_RUN" '
+        '--attempt "$SOURCE_ATTEMPT"'
+    )
+    if validate.get("run") != command or commit.get("run") != command + " --commit":
+        errors.append("dependency publisher may execute only the trusted validator")
+    if mint.get("uses") != APP_TOKEN:
+        errors.append("dependency publisher App action differs from allowlist")
+    switch = "vars.DEPENDENCY_PREPARATION_WRITE == 'true'"
+    if mint.get("if") != switch or commit.get("if") != switch:
+        errors.append("dependency publisher writes must be opt-in")
+    inputs = _mapping(mint.get("with"))
+    for name, expected in {
+        "permission-contents": "write",
+        "permission-pull-requests": "read",
+        "permission-actions": "read",
+        "owner": "${{ github.repository_owner }}",
+        "repositories": "${{ github.event.repository.name }}",
+    }.items():
+        if inputs.get(name) != expected:
+            errors.append(f"dependency publisher invalid App scope: {name}")
+    if set(inputs) != {
+        "app-id",
+        "private-key",
+        "owner",
+        "repositories",
+        "permission-contents",
+        "permission-pull-requests",
+        "permission-actions",
+    }:
+        errors.append("dependency publisher unexpected App inputs")
 
 
 def _mapping(value: object) -> dict[str, Any]:
@@ -98,6 +146,13 @@ def verify_workflows(directory: Path) -> list[str]:
             continue
         if _permissions(workflow.get("permissions")).get("id-token") == "write":
             errors.append(f"{path.name}: workflow-level id-token: write is forbidden")
+        if path.name == "dependency-publish.yml":
+            _verify_dependency_publisher(workflow, errors)
+        if path.name in {"dependency-prepare.yml", "candidate-compatibility.yml"}:
+            if _permissions(workflow.get("permissions")) != {"contents": "read"}:
+                errors.append(f"{path.name}: dependency execution must be read-only")
+            if "secrets." in path.read_text(encoding="utf-8"):
+                errors.append(f"{path.name}: dependency execution cannot use secrets")
         for job_name, raw_job in _mapping(workflow.get("jobs")).items():
             job = _mapping(raw_job)
             subject = f"{path.name}:{job_name}"

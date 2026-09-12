@@ -1,0 +1,81 @@
+name: Candidate compatibility (advisory)
+
+on:
+  schedule:
+    - cron: '43 9 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'uv.lock'
+      - '**/package*.json'
+      - '**/pyproject.toml'
+      - 'ci/**'
+      - '.github/workflows/candidate-compatibility.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: candidate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  latest-tested:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        surface: [python, frontend, browser]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: '3.12'
+          enable-cache: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: uv sync --locked
+      - name: Evaluate stable candidates at least seven days old
+        id: probe
+        continue-on-error: true
+        env:
+          SURFACE: ${{ matrix.surface }}
+        run: |
+          if [ "$SURFACE" = python ]; then
+            uv run python ci/run_compatibility.py python --lane latest-tested --python 3.12 --venv "$RUNNER_TEMP/candidate-python" --output candidate.json
+          elif [ "$SURFACE" = frontend ]; then
+            uv run python ci/run_compatibility.py frontend --lane latest-tested --output candidate.json
+          else
+            uv run python ci/run_compatibility.py frontend --lane latest-tested --output-tree "$RUNNER_TEMP/candidate-core" --output candidate.json
+            uv build "$RUNNER_TEMP/candidate-core" --out-dir candidate-wheels
+            uv build --package streamlit-graph-canvas-contrib --out-dir candidate-wheels
+            uv build tests/e2e/fixtures/javascript-renderer --out-dir candidate-wheels
+            uv run python -m ci.build_conformance_environment --set transports --dependency-lane latest-tested --wheelhouse candidate-wheels --venv "$RUNNER_TEMP/candidate-browser" --output candidate-browser.json
+            cd tests/e2e
+            npm ci
+            npx playwright install --with-deps chromium
+            CI=true SGC_CONTRIB_SET=transports SGC_CSP_PROXY=true SGC_CONFORMANCE_PYTHON="$RUNNER_TEMP/candidate-browser/bin/python" npm test
+          fi
+      - if: always()
+        name: Report candidate outcome without promoting support
+        env:
+          OUTCOME: ${{ steps.probe.outcome }}
+          SURFACE: ${{ matrix.surface }}
+        run: |
+          echo "### Latest tested: $SURFACE — $OUTCOME (advisory)" >> "$GITHUB_STEP_SUMMARY"
+          echo "See candidate.json for requested/resolved versions. Passing does not promote latest_supported; failures do not fail supported CI." >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: latest-tested-${{ matrix.surface }}
+          path: |
+            candidate*.json
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
+          if-no-files-found: warn
+          retention-days: 30

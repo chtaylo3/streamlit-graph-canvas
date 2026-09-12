@@ -12,6 +12,7 @@ from typing import Any
 
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+from packaging.version import InvalidVersion, Version
 
 RISKS = {"critical", "high", "medium", "low"}
 
@@ -69,12 +70,22 @@ def validate_policy(policy: dict[str, Any]) -> list[str]:
             _fields(
                 subject,
                 entry,
-                required={"minimum", "supported", "risk", "reason", "support_url"},
+                required={
+                    "minimum",
+                    "latest_supported",
+                    "supported",
+                    "risk",
+                    "reason",
+                    "support_url",
+                },
                 optional={"forward", "rasterizer_revision"},
             )
         )
         try:
-            SpecifierSet(entry.get("supported", "not-a-specifier"))
+            install_range = SpecifierSet(entry.get("supported", "not-a-specifier"))
+            for endpoint in ("minimum", "latest_supported"):
+                if entry.get(endpoint) and entry[endpoint] not in install_range:
+                    errors.append(f"{subject}: {endpoint} is outside install range")
         except Exception:
             errors.append(f"{subject} has invalid supported range")
         if entry.get("risk") == "critical" and "forward" not in entry:
@@ -109,12 +120,41 @@ def validate_policy(policy: dict[str, Any]) -> list[str]:
                 _fields(
                     subject,
                     entry,
-                    required={"minimum", "supported", "risk"},
+                    required={"minimum", "latest_supported", "supported", "risk"}
+                    if group == "runtime"
+                    else {"risk"},
                     optional={"forward", "coupling"},
                 )
             )
             if entry.get("risk") == "critical" and "forward" not in entry:
                 errors.append(f"{subject} critical dependency lacks a forward scenario")
+            if group == "runtime":
+                try:
+                    constraint = entry["supported"]
+                    lower = Version(constraint.lstrip("^"))
+                    if constraint.startswith("^"):
+                        upper = (
+                            Version(f"{lower.major + 1}.0.0")
+                            if lower.major
+                            else Version(f"0.{lower.minor + 1}.0")
+                            if lower.minor
+                            else Version(f"0.0.{lower.micro + 1}")
+                        )
+                        valid = all(
+                            lower <= Version(entry[k]) < upper
+                            for k in ("minimum", "latest_supported")
+                        )
+                    else:
+                        valid = all(
+                            Version(entry[k]) == lower
+                            for k in ("minimum", "latest_supported")
+                        )
+                    if not valid:
+                        errors.append(
+                            f"{subject}: approved endpoint outside install range"
+                        )
+                except (InvalidVersion, KeyError, TypeError):
+                    errors.append(f"{subject}: invalid npm endpoint or range")
             coupled = {
                 item.strip()
                 for item in str(entry.get("coupling", "")).split(",")
@@ -123,6 +163,13 @@ def validate_policy(policy: dict[str, Any]) -> list[str]:
             unknown = coupled - npm_names - external_couplings
             if unknown:
                 errors.append(f"{subject} has unknown couplings: {sorted(unknown)}")
+    for entries in [policy["python"], npm["runtime"]]:
+        for name, entry in entries.items():
+            try:
+                if Version(entry["latest_supported"]) < Version(entry["minimum"]):
+                    errors.append(f"{name}: latest_supported precedes minimum")
+            except (InvalidVersion, KeyError, TypeError):
+                errors.append(f"{name}: invalid supported endpoint")
     ci_fields = {
         "blocking_lanes",
         "advisory_lanes",
@@ -132,6 +179,10 @@ def validate_policy(policy: dict[str, Any]) -> list[str]:
     }
     if set(policy["ci"]) != ci_fields:
         errors.append("ci policy fields are incomplete or unknown")
+    if "latest-tested" in policy["ci"].get("blocking_lanes", []):
+        errors.append("latest-tested must remain advisory")
+    if "latest-supported" not in policy["ci"].get("blocking_lanes", []):
+        errors.append("latest-supported must remain blocking")
     return errors
 
 
@@ -248,22 +299,21 @@ def verify(root: Path) -> list[str]:
     ):
         errors.append("core/contrib compatibility boundary differs from policy")
 
-    frontend_declared = {
-        **frontend.get("dependencies", {}),
-        **frontend.get("devDependencies", {}),
-    }
-    for group in ("runtime", "build"):
-        for name, entry in policy["npm"][group].items():
-            if frontend_declared.get(name) != entry["supported"]:
-                errors.append(
-                    f"frontend {name} declares {frontend_declared.get(name)!r}, "
-                    f"policy requires {entry['supported']!r}"
-                )
-    for name, entry in policy["npm"]["test"].items():
-        if e2e.get("devDependencies", {}).get(name) != entry["supported"]:
+    for name, entry in policy["npm"]["runtime"].items():
+        declared = frontend.get("dependencies", {}).get(name)
+        if declared != entry["supported"]:
             errors.append(
-                f"e2e {name} declares {e2e.get('devDependencies', {}).get(name)!r}, "
+                f"frontend {name} declares {declared!r}, "
                 f"policy requires {entry['supported']!r}"
+            )
+    for group, declared in (
+        ("runtime", frontend.get("dependencies", {})),
+        ("build", frontend.get("devDependencies", {})),
+        ("test", e2e.get("devDependencies", {})),
+    ):
+        if set(declared) != set(policy["npm"][group]):
+            errors.append(
+                f"npm {group} dependency classification differs from manifest"
             )
 
     for label, package, lock in (

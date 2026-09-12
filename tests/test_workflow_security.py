@@ -19,6 +19,53 @@ def test_repository_workflows_keep_publication_fail_closed() -> None:
 
 
 @pytest.mark.parametrize(
+    ("old", "new"),
+    [
+        (
+            '--attempt "$SOURCE_ATTEMPT" --commit',
+            '--attempt "$SOURCE_ATTEMPT" --commit && npm install',
+        ),
+        ("permission-contents: write", "permission-contents: read"),
+        ("permission-pull-requests: read", "permission-pull-requests: write"),
+        ("vars.DEPENDENCY_PREPARATION_WRITE == 'true'", "always()"),
+        (
+            "persist-credentials: false",
+            "persist-credentials: false\n          ref: attacker",
+        ),
+    ],
+)
+def test_dependency_publisher_rejects_privilege_boundary_changes(tmp_path, old, new):
+    directory = tmp_path / "workflows"
+    directory.mkdir()
+    source = (ROOT / ".github/workflows/dependency-publish.yml").read_text()
+    assert old in source
+    (directory / "dependency-publish.yml").write_text(source.replace(old, new))
+    assert verify_workflows(directory)
+
+
+def test_candidate_failures_are_advisory_and_supported_matrix_stays_blocking():
+    import yaml
+
+    candidate = yaml.safe_load(
+        (ROOT / ".github/workflows/candidate-compatibility.yml").read_text()
+    )
+    probe = next(
+        step
+        for step in candidate["jobs"]["latest-tested"]["steps"]
+        if step.get("id") == "probe"
+    )
+    assert probe["continue-on-error"] is True
+    assert candidate["permissions"] == {"contents": "read"}
+    ci = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
+    for name in [
+        "python-compatibility",
+        "frontend-compatibility",
+        "chromium-compatibility",
+    ]:
+        assert not ci["jobs"][name].get("continue-on-error", False)
+
+
+@pytest.mark.parametrize(
     ("body", "message"),
     [
         (

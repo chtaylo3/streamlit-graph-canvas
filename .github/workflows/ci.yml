@@ -59,6 +59,13 @@ jobs:
           "$RUNNER_TEMP/actionlint" .github/workflows/*.yml
       - run: uv sync --locked
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
+        name: Scan dependency automation security
+        run: >-
+          uvx --from zizmor==1.15.0 zizmor --no-progress --offline
+          .github/workflows/dependency-prepare.yml
+          .github/workflows/dependency-publish.yml
+          .github/workflows/candidate-compatibility.yml
+      - if: runner.os == 'Linux' && matrix.python-version == '3.12'
         run: uv run python -m ci.sync_versions --check
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
         run: uv run python ci/sync_contracts.py --check
@@ -110,16 +117,16 @@ jobs:
             lane: minimum
             python-version: "3.12"
           - os: ubuntu-latest
-            lane: latest
+            lane: latest-supported
             python-version: "3.12"
           - os: windows-latest
-            lane: latest
+            lane: latest-supported
             python-version: "3.12"
           - os: ubuntu-latest
-            lane: latest
+            lane: latest-supported
             python-version: "3.14"
           - os: windows-latest
-            lane: latest
+            lane: latest-supported
             python-version: "3.14"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -169,7 +176,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane: [minimum, latest]
+        lane: [minimum, latest-supported]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -325,7 +332,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane: [minimum, latest]
+        lane: [minimum, latest-supported]
     env:
       CI: "true"
       SGC_CONTRIB_SET: transports

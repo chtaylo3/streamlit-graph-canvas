@@ -68,7 +68,9 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--constraints", type=Path)
     parser.add_argument(
-        "--dependency-lane", choices=("locked", "minimum", "latest"), default="locked"
+        "--dependency-lane",
+        choices=("locked", "minimum", "latest-supported", "latest-tested"),
+        default="locked",
     )
     parser.add_argument("--forward-scenario", choices=("streamlit", "pillow"))
     parser.add_argument("--root", type=Path, default=Path(__file__).parents[1])
@@ -106,7 +108,7 @@ def main() -> None:
             value = (
                 f"=={entry['minimum']}"
                 if args.dependency_lane == "minimum"
-                else entry["supported"]
+                else f"=={entry['latest_supported']}"
             )
             wheels.append(f"{name}{value}")
     python = args.venv / (
@@ -117,6 +119,25 @@ def main() -> None:
         install.extend(["--constraints", str(args.constraints.resolve())])
     install.extend(map(str, wheels))
     subprocess.run(install, check=True)
+    candidate_requested = []
+    if args.dependency_lane == "latest-tested":
+        from .run_compatibility import python_specs
+
+        candidate_requested = python_specs(policy, "latest-tested")
+        subprocess.run(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                str(python),
+                "--upgrade",
+                "--prerelease",
+                "disallow",
+                *candidate_requested,
+            ],
+            check=True,
+        )
     if args.forward_scenario is not None:
         policy = tomllib.loads(
             (args.root / "ci/dependency-policy.toml").read_text(encoding="utf-8")
@@ -137,7 +158,9 @@ def main() -> None:
             ],
             check=True,
         )
-    subprocess.run(["uv", "pip", "check", "--python", str(python)], check=True)
+    dependency_check = subprocess.run(
+        ["uv", "pip", "check", "--python", str(python)], check=False
+    )
     script = """
 import importlib.metadata as md, json
 names = %r
@@ -150,6 +173,8 @@ print(json.dumps({name: md.version(name) for name in names}, sort_keys=True))
     output = {
         "set": args.set_name,
         "dependency_lane": args.dependency_lane,
+        "candidate_requested": candidate_requested,
+        "dependency_check_exit_code": dependency_check.returncode,
         "forward_scenario": args.forward_scenario,
         "packages": sets[args.set_name],
         "python": str(python),
@@ -174,6 +199,8 @@ print(json.dumps({name: md.version(name) for name in names}, sort_keys=True))
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(rendered, encoding="utf-8")
     print(rendered, end="")
+    if dependency_check.returncode:
+        raise SystemExit("installed dependency requirements are incompatible")
 
 
 if __name__ == "__main__":
