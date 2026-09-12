@@ -8099,8 +8099,30 @@ var cee = (0, m.memo)(tf), nf = Go("React Flow", "https://reactflow.dev/"), rf =
 		debug: !1,
 		ariaLabelConfig: co,
 		zIndexMode: f,
+		defaultEdgeOptions: void 0,
 		onNodesChangeMiddlewareMap: /* @__PURE__ */ new Map(),
-		onEdgesChangeMiddlewareMap: /* @__PURE__ */ new Map()
+		onEdgesChangeMiddlewareMap: /* @__PURE__ */ new Map(),
+		onNodesDelete: void 0,
+		onEdgesDelete: void 0,
+		onDelete: void 0,
+		onBeforeDelete: void 0,
+		onViewportChangeStart: void 0,
+		onViewportChange: void 0,
+		onViewportChangeEnd: void 0,
+		onNodeDragStart: void 0,
+		onNodeDrag: void 0,
+		onNodeDragStop: void 0,
+		onSelectionDragStart: void 0,
+		onSelectionDrag: void 0,
+		onSelectionDragStop: void 0,
+		onMoveStart: void 0,
+		onMove: void 0,
+		onMoveEnd: void 0,
+		onConnect: void 0,
+		onConnectStart: void 0,
+		onConnectEnd: void 0,
+		onClickConnectStart: void 0,
+		onClickConnectEnd: void 0
 	};
 }, af = ({ nodes: e, edges: t, defaultNodes: n, defaultEdges: r, width: i, height: a, fitView: o, fitViewOptions: s, minZoom: c, maxZoom: l, nodeOrigin: u, nodeExtent: d, zIndexMode: f }) => rl((p, m) => {
 	async function h() {

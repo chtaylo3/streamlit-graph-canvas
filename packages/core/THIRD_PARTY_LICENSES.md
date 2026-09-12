@@ -7,7 +7,7 @@ to the locked dependency graph, by
 The project selects the EPL-2.0 option for elkjs. Bundled dependencies are
 redistributed without source modifications by this project.
 
-## @xyflow/react 12.11.5
+## @xyflow/react 12.11.6
 
 Declared license: `MIT`
 
@@ -35,7 +35,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @xyflow/system 0.0.81
+## @xyflow/system 0.0.82
 
 Declared license: `MIT`
 

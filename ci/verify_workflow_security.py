@@ -9,8 +9,8 @@ from typing import Any
 
 import yaml
 
-DOWNLOAD = "actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0"
-ATTEST = "actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a"
+DOWNLOAD = "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"
+ATTEST = "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8"
 PUBLISH = "pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33"
 DIGEST = "cd release-bundle && sha256sum --check SHA256SUMS"
 PUBLISH_COMMAND = re.compile(r"(?:^|\s)uv\s+publish(?:\s|$)")
