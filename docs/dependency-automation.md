@@ -56,6 +56,14 @@ using the current locked direct tool versions. Advisory frontend probes also
 try newer eligible tools. Browser-test tools use the browser-test lockfile.
 Runtime support endpoints never change as a side effect of a tool update.
 
+Automatic preparation accepts stable exact, caret, or tilde npm declarations
+and canonical public npm registry tarballs with integrity metadata. It checks
+direct and transitive lockfile entries. Package aliases, Git or arbitrary URL
+sources, local links, registry changes, and prerelease declarations require
+manual review. Stable tool downgrades remain eligible for testing and PR review;
+eligibility does not mean approval. These source checks also run independently
+in the publisher, including when the artifact contains no manifest changes.
+
 ## Cooldown and automatic preparation
 
 All four Dependabot entries have `cooldown.default-days: 7`, retaining weekly
@@ -120,6 +128,15 @@ duplicates, invalid hashes, and changes to scripts or resolved dependencies in
 manifest outputs. Generated JavaScript remains untrusted until reviewed and
 verified by ordinary CI; a path allowlist does not establish its correctness.
 
+Bot authorship alone does not establish commit provenance. For every source
+commit, the publisher additionally requires GitHub's GraphQL signature metadata
+to report a valid signature made with GitHub's signing key, with an expected
+signer and the same allowed bot author and commit SHA returned by REST. This
+accepts GitHub's `web-flow` signing of Dependabot commits but rejects a human's
+valid signature claiming bot authorship. Missing or incomplete provenance fails
+closed. The configured App's API-generated commit metadata must pass the same
+check during the live pilot; do not relax it to accommodate a human signing key.
+
 The publisher uses an atomic expected-head API commit. A moved head rejects the
 write. A changed base found during validation requires regeneration; branch
 protection and normal CI still govern merging if main changes afterward.
@@ -157,3 +174,4 @@ handled manually rather than automatically overwritten.
 - [GitHub Security Lab: Preventing pwn requests](https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/)
 - [GitHub Actions secure use](https://docs.github.com/en/actions/reference/security/secure-use)
 - [GitHub App registration](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app)
+- [GitHub signature metadata](https://docs.github.com/en/graphql/reference/git)

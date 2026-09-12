@@ -42,6 +42,48 @@ def git(root: Path, *args: str) -> bytes:
     return subprocess.check_output(["git", "-C", str(root), *args])
 
 
+def validate_npm_sources(package: dict, lock: dict) -> None:
+    """Automatic preparation accepts named packages from the public npm registry."""
+    for group in ("dependencies", "devDependencies"):
+        for name, value in package.get(group, {}).items():
+            if not isinstance(value, str) or not re.fullmatch(
+                r"[\^~]?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", value
+            ):
+                raise ValueError(
+                    f"{name}: package source or non-stable range requires review"
+                )
+            if "node_modules/" + name not in lock.get("packages", {}):
+                raise ValueError(f"{name}: missing locked package")
+    for path, entry in lock.get("packages", {}).items():
+        if not path:
+            continue
+        name = path.rsplit("node_modules/", 1)[-1]
+        version = entry.get("version")
+        expected = (
+            f"https://registry.npmjs.org/{name}/-/{name.split('/')[-1]}-{version}.tgz"
+        )
+        if (
+            not path.startswith("node_modules/")
+            or not re.fullmatch(r"(?:@[a-z0-9._-]+/)?[a-z0-9._-]+", name)
+            or entry.get("link")
+            or entry.get("name", name) != name
+            or not isinstance(version, str)
+            or not re.fullmatch(
+                r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+                r"(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?",
+                version,
+            )
+            or entry.get("resolved") != expected
+            or not isinstance(entry.get("integrity"), str)
+            or not re.fullmatch(
+                r"sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}", entry["integrity"]
+            )
+        ):
+            raise ValueError(
+                f"{path}: package identity or registry source requires review"
+            )
+
+
 def manifest_declarations(
     base: dict, candidate: dict, tooling: set[str] | frozenset[str] = frozenset()
 ) -> dict:
@@ -53,6 +95,16 @@ def manifest_declarations(
             raise ValueError("new or removed dependencies require policy review")
         if group == "devDependencies":
             for name in before.keys() & tooling:
+                if not all(
+                    isinstance(v, str)
+                    and re.fullmatch(
+                        r"[\^~]?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", v
+                    )
+                    for v in (before[name], after[name])
+                ):
+                    raise ValueError(
+                        f"{name}: package source or non-stable range requires review"
+                    )
                 result[group][name] = after[name]
     excluded = {"dependencies", "devDependencies"}
     if {k: v for k, v in base.items() if k not in excluded} != {
@@ -111,6 +163,7 @@ def prepare(root: Path, base: str, head: str, output: Path) -> None:
         lockfile = root / directory / "package-lock.json"
         original = json.loads(git(root, "show", f"{base}:{directory}/package.json"))
         lock = json.loads(lockfile.read_text())
+        validate_npm_sources(json.loads(manifest.read_text()), lock)
         normalized = normalize_manifest(
             original,
             json.loads(manifest.read_text()),

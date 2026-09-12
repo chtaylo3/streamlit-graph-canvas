@@ -11,13 +11,15 @@ import zipfile
 import pytest
 
 from ci.candidate_versions import select_release
-from ci.prepare_dependency_pr import FRONTEND, normalize_manifest
+from ci.prepare_dependency_pr import FRONTEND, normalize_manifest, validate_npm_sources
 from ci.publish_dependency_pr import (
     commit_input,
     read_payload,
     validate_payload,
+    verify_commit_provenance,
     verify_context,
     verify_manifest_outputs,
+    verify_source_manifests,
 )
 from ci.run_compatibility import npm_specs, python_specs
 
@@ -182,13 +184,17 @@ def test_publisher_rejects_forged_or_stale_github_context(monkeypatch, alter) ->
     }
     commits = [
         {
+            "node_id": "node1",
+            "sha": "b" * 40,
             "author": {"login": "dependabot[bot]"},
             "commit": {"verification": {"verified": True}},
         }
     ]
     files = [{"filename": "uv.lock"}]
 
-    def mock_api(path):
+    def mock_api(path, body=None):
+        if path == "graphql":
+            return {"data": {"nodes": [bot_signature()]}}
         if path.endswith("/runs/1"):
             return run
         if "/workflows/" in path:
@@ -303,3 +309,162 @@ def test_publisher_tool_version_must_match_source_pr(monkeypatch) -> None:
         ).decode()
         with pytest.raises(ValueError, match="scripts or resolved"):
             verify_manifest_outputs("owner/repo", data)
+
+
+def bot_signature(login="dependabot[bot]"):
+    return {
+        "oid": "b" * 40,
+        "author": {"user": {"login": login}},
+        "signature": {
+            "isValid": True,
+            "state": "VALID",
+            "wasSignedByGitHub": True,
+            "signer": {"login": "web-flow"},
+        },
+    }
+
+
+@pytest.mark.parametrize("login", ["dependabot[bot]", "dep-prep[bot]"])
+def test_github_signed_bot_provenance_accepted(monkeypatch, login):
+    node = bot_signature(login)
+    monkeypatch.setattr(
+        "ci.publish_dependency_pr.api", lambda *a: {"data": {"nodes": [node]}}
+    )
+    verify_commit_provenance(
+        [{"node_id": "node1", "sha": "b" * 40, "author": {"login": login}}], {login}
+    )
+
+
+@pytest.mark.parametrize(
+    "alter",
+    [
+        "human_signature",
+        "forged_signer",
+        "invalid",
+        "missing",
+        "sha",
+        "author",
+        "error",
+        "incomplete",
+    ],
+)
+def test_bot_author_alone_cannot_authorize_publication(monkeypatch, alter):
+    node = bot_signature()
+    response = {"data": {"nodes": [node]}}
+    if alter == "human_signature":
+        node["signature"].update(wasSignedByGitHub=False, signer={"login": "attacker"})
+    elif alter == "forged_signer":
+        node["signature"]["signer"] = {"login": "attacker"}
+    elif alter == "invalid":
+        node["signature"]["isValid"] = False
+    elif alter == "missing":
+        node["signature"] = None
+    elif alter == "sha":
+        node["oid"] = "c" * 40
+    elif alter == "author":
+        node["author"]["user"]["login"] = "attacker"
+    elif alter == "error":
+        response["errors"] = [{"message": "unavailable"}]
+    else:
+        response["data"]["nodes"] = []
+    monkeypatch.setattr("ci.publish_dependency_pr.api", lambda *a: response)
+    with pytest.raises(ValueError, match="provenance"):
+        verify_commit_provenance(
+            [
+                {
+                    "node_id": "node1",
+                    "sha": "b" * 40,
+                    "author": {"login": "dependabot[bot]"},
+                }
+            ],
+            {"dependabot[bot]"},
+        )
+
+
+@pytest.mark.parametrize(
+    "spec",
+    [
+        "npm:other-package@1.0.0",
+        "git+https://example.com/tool.git",
+        "https://example.com/tool.tgz",
+        "file:../../trusted",
+        "workspace:*",
+        "latest",
+        "3.10.0-rc.1",
+    ],
+)
+def test_tool_source_substitution_requires_review(spec):
+    base = {"devDependencies": {"prettier": "3.6.2"}}
+    candidate = {"devDependencies": {"prettier": spec}}
+    with pytest.raises(ValueError, match="requires review"):
+        normalize_manifest(base, candidate, {"packages": {}}, {"prettier"})
+
+
+def registry_fixture():
+    package = {"devDependencies": {"prettier": "3.9.6"}}
+    lock = {
+        "packages": {
+            "": package,
+            "node_modules/prettier": {
+                "version": "3.9.6",
+                "resolved": "https://registry.npmjs.org/prettier/-/prettier-3.9.6.tgz",
+                "integrity": "sha512-YWJjZA==",
+            },
+        }
+    }
+    return package, lock
+
+
+@pytest.mark.parametrize(
+    "alter",
+    [
+        "host",
+        "alias",
+        "link",
+        "missing_integrity",
+        "tarball_identity",
+        "credentials",
+        "query",
+    ],
+)
+def test_lockfile_source_substitution_requires_review(alter):
+    package, lock = registry_fixture()
+    validate_npm_sources(package, lock)
+    entry = lock["packages"]["node_modules/prettier"]
+    if alter == "host":
+        entry["resolved"] = entry["resolved"].replace(
+            "registry.npmjs.org", "evil.example"
+        )
+    elif alter == "alias":
+        entry["name"] = "different-package"
+    elif alter == "link":
+        entry["link"] = True
+    elif alter == "missing_integrity":
+        del entry["integrity"]
+    elif alter == "tarball_identity":
+        entry["resolved"] = "https://registry.npmjs.org/other/-/other-3.9.6.tgz"
+    elif alter == "credentials":
+        entry["resolved"] = entry["resolved"].replace("https://", "https://attacker@")
+    else:
+        entry["resolved"] += "?redirect=evil"
+    with pytest.raises(ValueError, match="requires review"):
+        validate_npm_sources(package, lock)
+
+
+def test_publisher_checks_source_even_without_manifest_artifact(monkeypatch):
+    package, lock = registry_fixture()
+
+    def api(path):
+        value = lock if "package-lock.json" in path else package
+        return {
+            "type": "file",
+            "encoding": "base64",
+            "content": base64.b64encode(json.dumps(value).encode()).decode(),
+        }
+
+    monkeypatch.setattr("ci.publish_dependency_pr.api", api)
+    pr = {"head": {"sha": "b" * 40}}
+    verify_source_manifests("owner/repo", pr)
+    lock["packages"]["node_modules/prettier"]["resolved"] = "file:../../trusted"
+    with pytest.raises(ValueError, match="requires review"):
+        verify_source_manifests("owner/repo", pr)

@@ -21,6 +21,7 @@ from .prepare_dependency_pr import (
     INPUTS,
     allowed_output,
     manifest_declarations,
+    validate_npm_sources,
 )
 
 MAX_BYTES = 32 * 1024 * 1024
@@ -89,6 +90,41 @@ def validate_payload(payload: dict) -> None:
             raise ValueError("invalid output bytes")
 
 
+def verify_commit_provenance(commits: list[dict], allowed: set[str]) -> None:
+    """A claimed bot author must be backed by GitHub's own signing provenance."""
+    result = api(
+        "graphql",
+        {
+            "query": "query($ids: [ID!]!) { nodes(ids: $ids) { ... on Commit { "
+            "oid author { user { login } } signature { isValid state "
+            "wasSignedByGitHub signer { login } } } } }",
+            "variables": {"ids": [c["node_id"] for c in commits]},
+        },
+    )
+    if result.get("errors"):
+        raise ValueError("could not establish bot commit provenance")
+    nodes = result.get("data", {}).get("nodes", [])
+    if len(nodes) != len(commits) or not commits:
+        raise ValueError("incomplete bot commit provenance")
+    for commit, node in zip(commits, nodes, strict=True):
+        node = node or {}
+        signature = node.get("signature") or {}
+        author = (node.get("author") or {}).get("user") or {}
+        signer = signature.get("signer") or {}
+        if (
+            node.get("oid") != commit["sha"]
+            or author.get("login") != commit["author"]["login"]
+            or author.get("login") not in allowed
+            or signature.get("isValid") is not True
+            or signature.get("state") != "VALID"
+            or signature.get("wasSignedByGitHub") is not True
+            or signer.get("login") not in allowed | {"web-flow"}
+        ):
+            raise ValueError(
+                "PR contains a commit without trusted bot signing provenance"
+            )
+
+
 def verify_context(repo: str, run_id: int, attempt: int, bot: str) -> tuple[dict, dict]:
     run = api(f"repos/{repo}/actions/runs/{run_id}")
     workflow = api(f"repos/{repo}/actions/workflows/dependency-prepare.yml")
@@ -115,6 +151,8 @@ def verify_context(repo: str, run_id: int, attempt: int, bot: str) -> tuple[dict
     if pr["commits"] > 100 or pr["changed_files"] > 100:
         raise ValueError("PR exceeds preparation limits")
     commits = api(f"repos/{repo}/pulls/{pr['number']}/commits?per_page=100")
+    if len(commits) != pr["commits"]:
+        raise ValueError("PR commit list changed or is incomplete")
     allowed = {"dependabot[bot]"} | ({bot} if bot else set())
     if any(
         not c.get("author")
@@ -123,12 +161,27 @@ def verify_context(repo: str, run_id: int, attempt: int, bot: str) -> tuple[dict
         for c in commits
     ):
         raise ValueError("PR contains unverified or unexpected authors")
+    verify_commit_provenance(commits, allowed)
     files = api(f"repos/{repo}/pulls/{pr['number']}/files?per_page=100")
     if any(
         f["filename"] not in INPUTS and not allowed_output(f["filename"]) for f in files
     ):
         raise ValueError("PR changes trusted code or unsupported files")
     return run, pr
+
+
+def verify_source_manifests(repo: str, pr: dict) -> None:
+    """Validate source PR locks even when the artifact contains no manifest edits."""
+    for directory in (FRONTEND, "tests/e2e"):
+        files = []
+        for name in ("package.json", "package-lock.json"):
+            result = api(
+                f"repos/{repo}/contents/{directory}/{name}?ref={pr['head']['sha']}"
+            )
+            if result.get("encoding") != "base64" or result.get("type") != "file":
+                raise ValueError("expected ordinary source manifest")
+            files.append(json.loads(base64.b64decode(result["content"])))
+        validate_npm_sources(*files)
 
 
 def commit_input(repo: str, pr: dict, payload: dict) -> dict:
@@ -204,6 +257,7 @@ def main() -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
     bot = os.environ.get("PREPARATION_BOT", "")
     _run, pr = verify_context(repo, args.run, args.attempt, bot)
+    verify_source_manifests(repo, pr)
     artifacts = api(f"repos/{repo}/actions/runs/{args.run}/artifacts?per_page=100")[
         "artifacts"
     ]
