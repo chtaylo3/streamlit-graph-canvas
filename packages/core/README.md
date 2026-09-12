@@ -46,3 +46,9 @@ compatibility contracts.
 The compatibility matrix tests Python 3.12 through 3.14. Node.js 24.x is used
 to build the packaged frontend and is not required when running an installed
 wheel.
+
+Application authors: see the [app-developer guide](https://chtaylo3.github.io/streamlit-graph-canvas/app-developer-guide.html)
+for configuration, budgets, callbacks, and troubleshooting, and the
+[interaction diagram](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/app-interactions.html)
+for local versus server-side behavior. Use documentation matching your installed
+release; repository main may contain unreleased APIs.

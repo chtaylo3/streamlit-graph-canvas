@@ -10,23 +10,25 @@ status is in [`docs/beta-contract.md`](docs/beta-contract.md).
 
 ## Install
 
-The project is currently pre-release. To run it from a checkout:
+Use a checkout for the current development API; match published packages to
+the documentation at their release tag. To run the checkout:
 
 ```bash
 git clone https://github.com/chtaylo3/streamlit-graph-canvas.git
 cd streamlit-graph-canvas
-uv sync
+uv sync --locked
 uv run streamlit run examples/basic.py
 ```
 
-Once distributions are published, install the core package and add only the
-optional integrations your application uses:
+For published prereleases, use `--pre` and add only the integrations your app
+uses. The collection/search/label additions on `main` target rc2; use the checkout
+until that release is published:
 
 ```bash
-pip install streamlit-graph-canvas
-pip install streamlit-graph-canvas-contrib       # stock renderers
-pip install "streamlit-graph-canvas[networkx]"   # NetworkX adapter
-pip install "streamlit-graph-canvas[atlas]"      # PNG sprites and raster transport
+pip install --pre streamlit-graph-canvas
+pip install --pre streamlit-graph-canvas-contrib       # stock renderers
+pip install --pre "streamlit-graph-canvas[networkx]"   # NetworkX adapter
+pip install --pre "streamlit-graph-canvas[atlas]"      # PNG sprites and raster transport
 ```
 
 ## Quick start
@@ -59,8 +61,10 @@ result = graph_canvas(graph, schema, key="service-map")
 st.write("Selected nodes", result.selected_node_ids)
 ```
 
-Run the fuller [`examples/basic.py`](examples/basic.py) application for styling
-and palette usage.
+Next, read the [app-developer guide](docs/app-developer-guide.md) and run
+[`examples/app_integration.py`](examples/app_integration.py) for collections,
+metadata search, fixed-box labels, and opt-in callbacks. The wheel includes the
+frontend; Node.js is needed for frontend development, not for using the package.
 
 ### Static PNG sprites
 
@@ -142,21 +146,35 @@ does not change graph topology or rerun layout.
 
 ## How it works
 
-The current beta architecture and the `graph_canvas()` request lifecycle are
-documented in [`docs/architecture.md`](docs/architecture.md). The interactive
-diagrams are generated from editable Archify specifications committed beside
-the rendered files.
+The [architecture and public API guide](docs/architecture.md) explains the Python
+validation boundary, browser layout and interaction, and renderer delivery.
 
-[![Streamlit Graph Canvas architecture](docs/diagrams/system-architecture.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/system-architecture.html)
+**System architecture** — follow graph data into the canvas, including collection
+budgets, local search, and shared atlas pages.
 
-Select the diagram to open the interactive GitHub Pages version.
+[![Streamlit Graph Canvas system architecture](docs/diagrams/system-architecture.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/system-architecture.html)
+
+**Request lifecycle** — see when layout runs, which interactions stay in the
+browser, and which submissions return to Streamlit.
+
+[![graph_canvas request lifecycle](docs/diagrams/request-lifecycle.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/request-lifecycle.html)
+
+**App interaction contract** — distinguish local search and ordering from the
+explicit submission that reruns Streamlit.
+
+[![App and canvas interaction contract](docs/diagrams/app-interactions.svg)](https://chtaylo3.github.io/streamlit-graph-canvas/diagrams/app-interactions.html)
+
+Select a diagram to open its interactive GitHub Pages version. Editable
+[Archify specifications](docs/diagrams) are committed beside the HTML and SVG
+artifacts.
 
 ## Documentation
 
+- [App-developer guide](docs/app-developer-guide.md)
 - [Architecture and public API](docs/architecture.md)
 - [Beta contract and implementation status](docs/beta-contract.md)
 - [Renderer authoring](docs/contributing-renderers.md)
-- [JavaScript, raster and sprite delivery, multi-tenancy, and CSP](docs/transports-and-csp.md)
+- [JavaScript, raster and sprite delivery, cache scope, and CSP](docs/transports-and-csp.md)
 - [Conformance testing](docs/conformance-testing.md)
 - [Dependency lifecycle](docs/dependency-lifecycle.md)
 - [Build and release process](docs/release-process.md)
@@ -223,10 +241,10 @@ enablement, and bounded PRIMS and raster transports demonstrated by the stock
 count-chip renderer. Static transparent PNG catalogs use separate sprite
 bindings and do not require renderer enablement. Static and procedural rasters
 share deterministic immutable atlas pages, real crop coordinates, bounded
-session/tenant caches, and Blob-backed browser delivery. Trusted JavaScript
+shared caches per distinct atlas policy, and Blob-backed browser delivery. Trusted JavaScript
 registration and the image paths are covered by CSP checks. Additional action
 gestures remain later milestones and fail closed in this release. Transport
-security, multi-tenant configuration, and deployment policy are documented in
+security, shared-cache limits, and deployment policy are documented in
 [`docs/transports-and-csp.md`](docs/transports-and-csp.md).
 
 Licensed under the Apache License, Version 2.0.

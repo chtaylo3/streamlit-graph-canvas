@@ -20,11 +20,11 @@ The initial matrix contains:
 | `javascript-adversarial` | core and a trusted-code contract-abuse fixture | Detect listener leaks and out-of-scope mutation; isolate factory, render, and cleanup failures |
 | `multi-canvas` | core and stock contrib rendered in two component instances | Prove one canvas cannot revoke another canvas's atlas-page Blob URLs |
 
-Every renderer distribution in `packages/` must occur in a set. Sets should be
-chosen to cover meaningful renderer combinations without creating an
-unbounded all-subsets matrix.
+Include every renderer distribution in `packages/` in at least one set. Choose
+sets that cover meaningful renderer combinations without testing every possible
+subset.
 
-The projects immediately below `tests/e2e/fixtures/` intentionally remain
+The projects in immediate subdirectories of `tests/e2e/fixtures/` intentionally remain
 outside the uv workspace. CI discovers them from their project metadata, builds
 them as independent wheels, and installs selected combinations so conformance
 exercises the same third-party packaging boundary users encounter. Adding an
@@ -37,9 +37,9 @@ fixture required by their narrower scenario.
 The required compatibility jobs also build fresh minimum and latest-supported
 Python/frontend stacks, package those generated browser bundles, and run the
 `transports` set in Chromium. Scheduled advisory jobs probe Python-next,
-dependency prereleases, React/React Flow next, ELK next, Component v2 next,
+dependency prereleases, React and React Flow next, ELK next, Component v2 next,
 Node-next, and Chrome Beta. See
-[`dependency-lifecycle.md`](dependency-lifecycle.md) for the support and
+[dependency lifecycle policy](dependency-lifecycle.md) for the support and
 promotion policy.
 
 ## Browser failure policy
@@ -47,27 +47,27 @@ promotion policy.
 Playwright runs pinned Chromium on a standard Ubuntu GitHub-hosted runner with
 one worker in CI. The suite fails on:
 
-- uncaught page errors or error-level console messages;
-- failed requests or HTTP responses with status 400 or greater;
-- any browser request to a non-local host;
-- missing component readiness markers or expected renderer output;
-- selection/rerun and topology-update regressions;
-- serious or critical automated accessibility violations;
+- Uncaught page errors or error-level console messages.
+- Failed requests or HTTP responses with status 400 or greater.
+- Any browser request to a non-local host.
+- Missing component readiness markers or expected renderer output.
+- Selection/rerun and topology-update regressions.
+- Serious or critical automated accessibility violations.
 - CSP violations, missing JavaScript registration, external code fetches,
   missing/revoked atlas Blob pages, invalid page dimensions/digests, or
-  out-of-page sprite rectangles;
-- stale/conflicting installed JavaScript identities, trusted-renderer listener
-  leaks or out-of-scope DOM mutation, and non-isolated renderer exceptions;
-- cross-canvas atlas Blob revocation and unsupported-Pillow raster/static-image
-  output;
-- incorrect non-zero sprite crops, neighboring-sprite bleed, alpha loss,
-  light/dark variant selection, dark-to-light fallback, or theme-triggered
-  relayout;
-- malformed unrequested contrib or cross-distribution import isolation failures;
-- empty or implausibly sized canvas screenshots;
-- fatal traceback, app-execution, or component-error signatures in the
-  Streamlit server log;
-- flaky tests, after retaining a trace from the retry.
+  out-of-page sprite rectangles.
+- Stale/conflicting installed JavaScript identities, trusted-renderer listener
+  leaks or out-of-scope DOM mutation, and non-isolated renderer exceptions.
+- Cross-canvas atlas Blob revocation and unsupported-Pillow raster/static-image
+  output.
+- Incorrect non-zero sprite crops, neighboring-sprite bleed, alpha loss,
+  light and dark variant selection, dark-to-light fallback, or theme-triggered
+  relayout.
+- Malformed unrequested contrib or cross-distribution import isolation failures.
+- Empty or implausibly sized canvas screenshots.
+- Fatal traceback, app-execution, or component-error signatures in the
+  Streamlit server log.
+- Flaky tests, after retaining a trace from the retry.
 
 Static-sprite browser coverage must use at least two transparent PNGs packed
 into the same page and prove that two nodes crop different rectangles from the
@@ -82,7 +82,9 @@ canvas screenshot, and the complete Streamlit log are retained as workflow
 artifacts. Service workers are blocked to reduce nondeterminism and to ensure a
 stale cache cannot hide missing wheel assets.
 
-## Local execution
+<a id="local-execution"></a>
+
+## Run conformance tests locally
 
 Build wheels and prepare a selected environment:
 
@@ -126,7 +128,8 @@ npm run test:features
 
 `test:features` runs the budget, search, and label galleries, including layout
 invalidation and reveal-overlay behavior. Each gallery honors the candidate-wheel
-interpreter above; without it, local runs use the repository virtual environment.
+interpreter specified by `SGC_CONFORMANCE_PYTHON`. If you omit that variable,
+local runs use the repository virtual environment.
 The core-only Chromium CI lane and the release gate run these suites in addition
 to the main conformance suite. The grouping unit suite also bounds edge visits
 on a long, reverse-ordered chain without relying on machine-specific timings.

@@ -1,9 +1,12 @@
 # Static sprite atlas implementation plan
 
-Status: implementation plan for `feat/static-sprite-atlas`.
+Status: Historical implementation plan for `feat/static-sprite-atlas`.
+Some proposals, including session and tenant cache isolation, were superseded.
+For current behavior, see the [beta contract](beta-contract.md) and
+[transport and cache guide](transports-and-csp.md).
 
-This plan turns the existing one-raster-per-page beta implementation into a
-real, bounded sprite atlas and adds a first-class way for applications to map
+This plan describes replacing the original one-raster-per-page beta
+implementation with a bounded sprite atlas and adding an API for applications to map
 static transparent PNG images to nodes. It also separates server-side PRIMS
 rasterization from atlas packing so both renderer-generated rasters and
 application-provided images can use the same page, delta, cache, and browser
@@ -15,7 +18,7 @@ cropping machinery.
   reference those names from nodes without placing paths or image bytes in graph
   data.
 - Preserve PNG alpha transparency.
-- Require a light/default image for every catalog entry and allow an optional
+- Require a light or default image for every catalog entry and allow an optional
   dark-theme image.
 - Resolve a dark-theme request to the dark image when present and otherwise
   fall back deterministically to the light image.
@@ -23,7 +26,8 @@ cropping machinery.
   coordinates with each node sprite reference.
 - Make the browser crop the correct rectangle from the packed page.
 - Reuse the existing content-addressed page deltas, Blob URL lifecycle, CSP,
-  session/tenant isolation, DPR buckets, and fail-closed limits.
+  session and tenant isolation, device pixel ratio (DPR) buckets, and
+  fail-closed limits.
 - Let PRIMS-derived raster output use the same packer.
 - Correct the public terminology before a stable release while providing a
   migration path from the `0.1.0rc1` API.
@@ -41,7 +45,7 @@ cropping machinery.
 
 ## Terminology and compatibility
 
-The current `Transport.ATLAS` behavior is server-side rasterization of a PRIMS
+The original `Transport.ATLAS` behavior is server-side rasterization of a PRIMS
 renderer followed by a one-tile PNG cache. Rename that public behavior to
 `Transport.RASTER` and describe it as the **raster transport**.
 
@@ -133,7 +137,7 @@ Node(
 )
 ```
 
-Pass the catalog explicitly to both validation/serialization and the mounted
+Pass the catalog explicitly to both validation and serialization and the mounted
 component:
 
 ```python
@@ -179,7 +183,7 @@ active variant; a change causes a presentation-only rerun. The frontend should
 retain the previous valid sprite until the selected variant page is available,
 then swap atomically. It must not briefly show a missing-image icon.
 
-Document that light is the deterministic initial/default theme. A later,
+Document that light is the deterministic initial and default theme. A later,
 separately measured enhancement may send both variants and switch entirely in
 the browser, but doubling initial image payload must not be the default without
 evidence.
@@ -235,13 +239,13 @@ pixels remain transparent.
 
 The tile content key must contain:
 
-- source normalized hash;
-- normalizer/rasterizer revision and supported Pillow identity;
-- logical width and height;
-- resolution bucket;
-- fit policy;
-- selected theme variant where it affects the source;
-- renderer kind/version/options/data/palette for PRIMS-derived tiles.
+- Source normalized hash.
+- Normalizer/rasterizer revision and supported Pillow identity.
+- Logical width and height.
+- Resolution bucket.
+- Fit policy.
+- Selected theme variant where it affects the source.
+- Renderer kind, version, options, data, and palette for PRIMS-derived tiles.
 
 Do not include node ID. Nodes with identical effective images and geometry must
 share a tile and atlas location.
@@ -285,15 +289,15 @@ does.
 Split limits that currently conflate tiles and pages. The reviewed policy must
 cover at least:
 
-- maximum source bytes per image;
-- maximum source decoded pixels per image;
-- maximum catalog entries;
-- maximum catalog aggregate bytes/pixels;
-- maximum prepared tile pixels;
-- atlas page width, height, decoded pixels, and encoded bytes;
-- padding;
-- aggregate and per-tenant page count and bytes;
-- supported DPR buckets.
+- Maximum source bytes per image.
+- Maximum source decoded pixels per image.
+- Maximum catalog entries.
+- Maximum catalog aggregate bytes and pixels.
+- Maximum prepared tile pixels.
+- Atlas page width, height, decoded pixels, and encoded bytes.
+- Padding.
+- Aggregate and per-tenant page count and bytes.
+- Supported DPR buckets.
 
 Keep conservative hard ceilings in the generated cross-language contract.
 Browser validation must independently enforce page byte, PNG signature,
@@ -302,7 +306,7 @@ limits.
 
 ## Serialization contract
 
-Bump `CODEC_VERSION` and update the generated TypeScript contract.
+Increment `CODEC_VERSION` and update the generated TypeScript contract.
 
 Atlas page deltas retain:
 
@@ -339,7 +343,7 @@ Each resolved sprite contains:
 ```
 
 Coordinates and sprite dimensions are physical pixels within the page. Region
-dimensions are logical CSS/SVG units. Validate all coordinates on both sides:
+dimensions are logical CSS and SVG units. Validate all coordinates on both sides:
 positive dimensions, non-negative origin, safe integers, supported resolution,
 and rectangle fully contained in the declared page.
 
@@ -348,7 +352,7 @@ selected theme belong to presentation, never topology.
 
 ## Browser rendering and cache changes
 
-Change `BrowserAtlasCache` to retain a descriptor rather than only URL/bytes:
+Change `BrowserAtlasCache` to retain a descriptor rather than only URL and bytes:
 
 ```ts
 type CachedPage = {
@@ -360,7 +364,7 @@ type CachedPage = {
 ```
 
 Render a sprite by clipping its atlas page to the serialized rectangle. Either
-an SVG viewBox over the physical page coordinates or an explicit clip path is
+an SVG `viewBox` over the physical page coordinates or an explicit clip path is
 acceptable, provided tests prove exact crop behavior at every DPR bucket.
 
 Requirements:
@@ -390,7 +394,7 @@ Suggested source organization:
 - `atlas.py`: packing, immutable pages, mappings, policy, page cache, tenant
   manager.
 - `serialization.py`: orchestration only; resolve bindings, request tiles,
-  collect mappings/deltas, and construct the envelope.
+  collect mappings and deltas, and construct the envelope.
 - `frontend/src/atlas-cache.ts`: validated page cache and leases.
 - `frontend/src/index.tsx` or a focused `sprite.tsx`: cropping and theme-safe
   rendering.
@@ -407,7 +411,7 @@ small validated services whose behavior is independently unit tested.
 - Light mode selects light.
 - Dark mode selects dark when present.
 - Dark mode falls back to light when absent.
-- Identical light/dark content deduplicates.
+- Identical light and dark content deduplicates.
 - Alpha survives normalization, resizing, packing, and PNG encoding.
 - Paths never appear in the envelope, diagnostics, content IDs, or logs.
 - Invalid signature, malformed PNG, truncation, multiple frames, oversized
@@ -421,7 +425,7 @@ small validated services whose behavior is independently unit tested.
 - An active page cannot be evicted; an oversized working set fails atomically.
 - Session and tenant isolation remain intact.
 - PRIMS-derived raster tiles and static images can coexist on one atlas page.
-- Theme changes affect presentation hash/revision but not topology.
+- Theme changes affect presentation hash and revision but not topology.
 - Compatibility aliases behave as documented.
 
 ### TypeScript unit tests
@@ -434,11 +438,13 @@ small validated services whose behavior is independently unit tested.
 - A stale asynchronous page delta cannot replace current state.
 - Theme transition retains the previous sprite until the replacement exists.
 
-### Browser/conformance tests
+<a id="browserconformance-tests"></a>
+
+### Browser conformance tests
 
 - A page visibly contains at least two distinct transparent sprites.
 - Two nodes crop different regions from the same Blob URL.
-- Pixel/screenshot checks prove no neighboring-sprite bleed.
+- Pixel and screenshot checks prove no neighboring-sprite bleed.
 - Light mode displays the light image.
 - Dark mode displays the supplied dark image.
 - Dark mode displays the light fallback when no dark image exists.
@@ -452,14 +458,14 @@ small validated services whose behavior is independently unit tested.
 
 Add a representative workload using 500 nodes and record:
 
-- number of unique source images and deduplicated tiles;
-- atlas page count and fill ratio;
-- initial encoded page bytes;
-- rerun delta bytes with no change;
-- delta bytes after one new or changed image;
-- browser decoded image memory estimate;
-- Blob URL count compared with the one-tile implementation;
-- serialization, packing, and browser render time.
+- Number of unique source images and deduplicated tiles.
+- Atlas page count and fill ratio.
+- Initial encoded page bytes.
+- Rerun delta bytes with no change.
+- Delta bytes after one new or changed image.
+- Browser decoded image memory estimate.
+- Blob URL count compared with the one-tile implementation.
+- Serialization, packing, and browser render time.
 
 Do not claim a performance improvement until these measurements are recorded.
 
@@ -468,13 +474,13 @@ Do not claim a performance improvement until these measurements are recorded.
 - Update the README installation extra and examples using the project's chosen
   package-manager conventions.
 - Explain raster transport versus atlas delivery.
-- Add a static sprite quick start with transparent PNGs and theme variants.
-- Document light-required/dark-optional fallback behavior.
+- Add a static sprite quickstart with transparent PNGs and theme variants.
+- Document required-light and optional-dark fallback behavior.
 - Update CSP, multi-tenancy, image security, renderer authoring, architecture,
   beta-contract, and conformance documents.
 - State that static sprites do not require renderer discovery or enablement.
 - Explain that changing catalog contents may change presentation and page
-  deltas but not topology/layout.
+  deltas but not topology or layout.
 - Remove or revise every statement that pages currently contain one tile once
   packing ships.
 
@@ -485,20 +491,23 @@ Do not claim a performance improvement until these measurements are recorded.
 2. Extract the existing rasterizer and tile cache responsibilities.
 3. Implement PNG normalization and theme selection.
 4. Implement deterministic immutable-batch packing and page mappings.
-5. Bump the codec and update Python serialization.
+5. Increment the codec version and update Python serialization.
 6. Implement frontend coordinate validation and cropping.
 7. Route PRIMS raster output through the packer.
 8. Complete unit, clean-wheel browser, CSP, multi-canvas, and performance tests.
 9. Update all public documentation and generated artifacts.
-10. Run the full release gate and inspect built wheel/sdist contents before
+10. Run the full release gate and inspect built wheel and source distribution
+    contents before
     preparing the next release candidate.
 
-## Definition of done
+<a id="definition-of-done"></a>
+
+## Completion criteria
 
 The feature is complete when an application can provide multiple named
-transparent PNGs, including light/default and optional dark variants; assign
+transparent PNGs, including light or default and optional dark variants; assign
 them to nodes; observe multiple images packed into shared content-addressed
 pages; and verify that every node displays only its assigned crop at all
 supported DPR buckets and themes. All bounds, tenant isolation, CSP behavior,
 Blob URL lifecycle, accessibility, deterministic builds, clean-wheel tests, and
-release gates must remain green.
+release gates must continue to pass.

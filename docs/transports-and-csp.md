@@ -1,4 +1,4 @@
-# JavaScript, raster and sprite delivery, cache scope, and CSP
+# JavaScript, raster, and sprite delivery, cache scope, and CSP
 
 The canvas supports PRIMS, trusted JavaScript, and raster transports per badge
 binding. It also accepts application-provided static PNG sprites through a
@@ -33,10 +33,9 @@ root. Changing the enabled renderer set requires a page reload.
 
 `Transport.RASTER` runs the same validated Python PRIMS renderer as the vector
 transport, resolves a literal light or dark palette, and rasterizes the closed
-primitive vocabulary to a lossless PNG tile. It accurately names the
-procedural operation that the 0.1.0rc1 API called `Transport.ATLAS`. The legacy
-name remains compatibility behavior during the 0.1 release-candidate series;
-new bindings and renderer manifests should declare `raster`.
+primitive vocabulary to a lossless PNG tile. The 0.1.0rc1 API called this operation `Transport.ATLAS`. The legacy
+name remains compatibility behavior during the 0.1 release-candidate series.
+For new bindings and renderer manifests, declare `raster`.
 
 Raster transport is distinct from atlas delivery. Static PNGs and procedural
 raster tiles both enter the same deterministic packer. Missing tiles are
@@ -119,8 +118,8 @@ before packing. Alpha transparency is preserved.
 `SpriteBinding.fit` accepts:
 
 - `contain` (default), which preserves aspect ratio and shows the whole image
-  with transparent unused space;
-- `cover`, which preserves aspect ratio and center-crops to fill the region;
+  with transparent unused space.
+- `cover`, which preserves aspect ratio and center-crops to fill the region.
 - `fill`, which scales independently in each dimension.
 
 The first static-image contract accepts only complete, single-frame PNGs. It
@@ -150,11 +149,12 @@ catalog entry, aggregate-byte, and aggregate-pixel limits; prepared-tile pixels;
 and atlas page dimensions, pixels, padding, and encoded bytes. All limits fail
 closed before a partial presentation is emitted.
 
-`max_pages` and `max_bytes` bound **one distinct policy cache**, not one session.
+`max_pages` and `max_bytes` bound one distinct policy cache, not one session.
 Sessions sharing that policy do not multiply its allowance. Different policies
 multiply the potential aggregate residency; applications should reuse a stable
 set of policies and monitor `atlas_cache_snapshot()` when exposing policy choices.
-Each policy cache has its own locked LRU, and it fails closed when
+Each policy cache has its own locked least recently used (LRU) cache, and it
+fails closed when
 the current graph's working set cannot fit at all, so eviction never produces
 partial output.
 
@@ -177,9 +177,9 @@ primitives, and the Pillow rasterizer version. Static sprites cover the source
 content hash together with logical geometry and fit. Two tiles therefore share
 storage only when they are the same image.
 
-One residual is worth stating. Because the cache is content-addressed, a cache
-hit is observable as latency, so a caller could in principle infer that some
-other session rendered byte-identical content. For low-cardinality badge domains
+Because the cache is content-addressed, a caller might use cache-hit latency
+to infer that another session rendered byte-identical content. For
+low-cardinality badge domains
 such as counts, severities, and statuses this conveys nothing. It would become
 meaningful only if a renderer rasterized high-cardinality identifying text, such
 as a customer name, which no bundled renderer does.
@@ -188,7 +188,9 @@ Page identifiers are `sha256` over the packed page bytes and their tile mapping.
 They are stable across processes, so a browser that already holds a page keeps
 it across a server restart.
 
-#### Warming the cache at startup
+<a id="warming-the-cache-at-startup"></a>
+
+#### Prepare the cache at startup
 
 A binding's tile set is a function of its renderer, options, value domain,
 palette, theme, and device-scale bucket. When an application can enumerate that
@@ -220,6 +222,8 @@ provide literal light and dark colors for every emitted tone.
 
 ## Content Security Policy
 
+Content Security Policy (CSP) restricts the resources a browser can load.
+
 The transport-specific additions are deliberately narrow:
 
 - JavaScript: `script-src 'self'`; no remote, `data:`, Blob script, or
@@ -236,7 +240,8 @@ sources with the one corresponding `ws://` or `wss://` origin. The optional
 `frame_ancestors` argument accepts only `'self'`, `'none'`, or exact HTTP(S)
 origins; wildcard, credential-bearing, path, query, and fragment sources are
 rejected. Use `frame_ancestors=("'none'",)` for deployments that must never be
-framed:
+framed. The following example shows the default `frame-ancestors 'self'`
+policy before that override:
 
 ```text
 default-src 'self';

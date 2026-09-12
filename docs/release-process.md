@@ -9,7 +9,9 @@ prereleases, and stable releases. Development distributions remain GitHub
 Actions artifacts. Alpha, beta, release-candidate, and stable distributions are
 published to PyPI by `.github/workflows/release.yml` using Trusted Publishing.
 
-## Development wheels
+<a id="development-wheels"></a>
+
+## Build development wheels
 
 Development versions use the PEP 440 `.devN` suffix, for example
 `0.1.0.dev1`. They are build artifacts, not public PyPI releases.
@@ -28,7 +30,7 @@ Development versions use the PEP 440 `.devN` suffix, for example
    and automatically refreshes their build identities, content-addressed
    filenames, and manifest references.
 
-3. Push the branch, or manually run the `CI` workflow for that branch:
+3. Push the branch, or manually run the **CI** workflow for that branch:
 
    ```bash
    gh workflow run ci.yml --ref BRANCH
@@ -40,17 +42,19 @@ Development versions use the PEP 440 `.devN` suffix, for example
 
 Do not create release tags for development builds. As a fail-closed safeguard,
 the release-tag verifier rejects every PEP 440 development release before the
-release workflow builds or publishes it. The `CI` workflow has read-only
+release workflow builds or publishes it. The **CI** workflow has read-only
 repository permissions, does not use the `pypi` environment, and is not a PyPI
 Trusted Publisher.
 
-## Alpha, beta, and release-candidate releases
+<a id="alpha-beta-and-release-candidate-releases"></a>
+
+## Publish a prerelease
 
 Public prereleases use lowercase PEP 440 suffixes:
 
-- alpha: `0.1.0a1`, tagged `v0.1.0a1`
-- beta: `0.1.0b1`, tagged `v0.1.0b1`
-- release candidate: `0.1.0rc1`, tagged `v0.1.0rc1`
+- Alpha: `0.1.0a1`, tagged `v0.1.0a1`
+- Beta: `0.1.0b1`, tagged `v0.1.0b1`
+- Release candidate: `0.1.0rc1`, tagged `v0.1.0rc1`
 
 For each prerelease:
 
@@ -75,7 +79,7 @@ For each prerelease:
    git push origin v0.1.0rc1
    ```
 
-5. Review the `Publish release` run and approve its `pypi` environment
+5. Review the **Publish release** run and approve its `pypi` environment
    deployment. The workflow verifies the exact tag, protected-main ancestry,
    exact-SHA CI results, artifacts, conformance suite, checksums, and
    attestations before publishing both distributions.
@@ -86,7 +90,9 @@ file reached PyPI. Never reuse its version identifier. Once any file is
 published, keep the Git tag and yank a defective PyPI release before publishing
 the next prerelease number.
 
-## Stable releases
+<a id="stable-releases"></a>
+
+## Publish a stable release
 
 Stable versions omit a suffix, for example `0.1.0` with tag `v0.1.0`. Follow
 the same version PR, exact-SHA checks, release workflow, and environment
@@ -105,7 +111,7 @@ The release gate requires GitHub to report the stable annotated-tag signature
 as verified before it builds or publishes artifacts. It also records the tag
 object SHA and sanitized verification result in the release evidence. A
 lightweight, unsigned, invalid, expired, or otherwise unverified stable tag
-fails closed. GitHub's tag-ruleset `Require signed commits` control verifies
+fails closed. GitHub's tag-ruleset **Require signed commits** control verifies
 commits, not annotated tag objects, so it is not a substitute for this
 release-gate check.
 
