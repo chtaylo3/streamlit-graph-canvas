@@ -11,11 +11,17 @@ import os
 import re
 import stat
 import subprocess
+import tomllib
 import urllib.parse
 import zipfile
 from pathlib import Path
 
-from .prepare_dependency_pr import INPUTS, allowed_output
+from .prepare_dependency_pr import (
+    FRONTEND,
+    INPUTS,
+    allowed_output,
+    manifest_declarations,
+)
 
 MAX_BYTES = 32 * 1024 * 1024
 
@@ -156,23 +162,35 @@ def verify_manifest_outputs(repo: str, payload: dict) -> None:
             continue
         directory = path.rsplit("/", 1)[0]
 
-        def read_json(name: str, sha: str) -> dict:
+        def read_file(name: str, sha: str) -> bytes:
             result = api(
                 f"repos/{repo}/contents/{urllib.parse.quote(name, safe='/')}?ref={sha}"
             )
             if result.get("encoding") != "base64" or result.get("type") != "file":
                 raise ValueError("expected ordinary GitHub file contents")
-            return json.loads(base64.b64decode(result["content"]))
+            return base64.b64decode(result["content"])
+
+        def read_json(name: str, sha: str) -> dict:
+            return json.loads(read_file(name, sha))
 
         original = read_json(directory + "/package.json", payload["base"])
+        candidate = read_json(directory + "/package.json", payload["head"])
+        policy = tomllib.loads(
+            read_file("ci/dependency-policy.toml", payload["base"]).decode()
+        )
+        normalized = manifest_declarations(
+            original,
+            candidate,
+            set(policy["npm"]["build" if directory == FRONTEND else "test"]),
+        )
         actual = json.loads(base64.b64decode(item["content"], validate=True))
         if path.endswith("/package.json"):
-            expected = original
+            expected = normalized
         else:
             expected = read_json(path, payload["head"])
             for group in ("dependencies", "devDependencies"):
-                if group in original:
-                    expected["packages"][""][group] = original[group]
+                if group in normalized:
+                    expected["packages"][""][group] = normalized[group]
         if actual != expected:
             raise ValueError("preparation changed scripts or resolved dependencies")
 

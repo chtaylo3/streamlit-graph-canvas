@@ -223,10 +223,14 @@ def test_publisher_does_not_trust_generated_manifest_scripts(monkeypatch) -> Non
     original = {"dependencies": {"sample": "^1.0.0"}}
     monkeypatch.setattr(
         "ci.publish_dependency_pr.api",
-        lambda *a: {
+        lambda path: {
             "type": "file",
             "encoding": "base64",
-            "content": base64.b64encode(json.dumps(original).encode()).decode(),
+            "content": base64.b64encode(
+                b"[npm.build]\n[npm.test]\n"
+                if "ci/dependency-policy.toml" in path
+                else json.dumps(original).encode()
+            ).decode(),
         },
     )
     data = payload()
@@ -241,3 +245,61 @@ def test_publisher_does_not_trust_generated_manifest_scripts(monkeypatch) -> Non
     ).decode()
     with pytest.raises(ValueError, match="scripts"):
         verify_manifest_outputs("owner/repo", data)
+
+
+def test_exact_tool_upgrade_preserved_but_runtime_pin_requires_review() -> None:
+    base = {
+        "dependencies": {"sample": "1.0.0"},
+        "devDependencies": {"prettier": "3.6.2"},
+    }
+    candidate = {**base, "devDependencies": {"prettier": "3.9.6"}}
+    lock = {"packages": {"node_modules/sample": {"version": "1.0.0"}}}
+    assert normalize_manifest(base, candidate, lock, {"prettier"}) == candidate
+    lock["packages"]["node_modules/sample"]["version"] = "2.0.0"
+    with pytest.raises(ValueError, match="policy review"):
+        normalize_manifest(base, candidate, lock, {"prettier"})
+
+
+def test_publisher_tool_version_must_match_source_pr(monkeypatch) -> None:
+    original = {"devDependencies": {"prettier": "3.6.2"}}
+    candidate = {"devDependencies": {"prettier": "3.9.6"}}
+    source_lock = {
+        "packages": {"": candidate, "node_modules/prettier": {"version": "3.9.6"}}
+    }
+
+    def api(path):
+        if "ci/dependency-policy.toml" in path:
+            content = b"[npm.build.prettier]\nrisk = 'low'\n"
+        elif "package-lock.json" in path:
+            content = json.dumps(source_lock).encode()
+        else:
+            content = json.dumps(
+                original if path.endswith("a" * 40) else candidate
+            ).encode()
+        return {
+            "type": "file",
+            "encoding": "base64",
+            "content": base64.b64encode(content).decode(),
+        }
+
+    monkeypatch.setattr("ci.publish_dependency_pr.api", api)
+    data = payload()
+    for filename, expected in (
+        ("package.json", candidate),
+        ("package-lock.json", source_lock),
+    ):
+        data["files"][0]["path"] = f"{FRONTEND}/{filename}"
+        data["files"][0]["content"] = base64.b64encode(
+            json.dumps(expected).encode()
+        ).decode()
+        verify_manifest_outputs("owner/repo", data)
+        altered = json.loads(json.dumps(expected))
+        if filename == "package.json":
+            altered["devDependencies"]["prettier"] = "99.0.0"
+        else:
+            altered["packages"]["node_modules/prettier"]["version"] = "99.0.0"
+        data["files"][0]["content"] = base64.b64encode(
+            json.dumps(altered).encode()
+        ).decode()
+        with pytest.raises(ValueError, match="scripts or resolved"):
+            verify_manifest_outputs("owner/repo", data)

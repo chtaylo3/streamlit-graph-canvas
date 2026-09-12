@@ -50,7 +50,7 @@ def render(policy: dict[str, Any]) -> bytes:
     lines.extend(
         [
             "",
-            "## Browser and build dependencies",
+            "## Browser runtime dependencies",
             "",
             (
                 "| Group | Dependency | Minimum supported | Latest supported | "
@@ -60,7 +60,7 @@ def render(policy: dict[str, Any]) -> bytes:
             "| --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
-    for group, entries in policy["npm"].items():
+    for group, entries in {"runtime": policy["npm"]["runtime"]}.items():
         for name, entry in entries.items():
             forward = (
                 f"`{entry['forward']}`" if entry.get("forward") else "Not configured"
@@ -77,6 +77,27 @@ def render(policy: dict[str, Any]) -> bytes:
                 f"| {group.capitalize()} | `{name}` | {entry['minimum']} | "
                 f"{entry['latest_supported']} | `{entry['supported']}` | {forward} | "
                 f"{coupling} | {entry['risk'].capitalize()} |"
+            )
+    lines.extend(
+        [
+            "",
+            "## Internal JavaScript tools",
+            "",
+            "Tool version declarations come from the frontend and browser-test",
+            "`package.json` files; exact resolutions come from their "
+            "`package-lock.json`",
+            "files. These tools have no separate minimum or latest-supported promise.",
+            "Compatibility lanes use locked tools; advisory probes can test "
+            "newer tools.",
+            "",
+            "| Group | Tool | Risk |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for group in ("build", "test"):
+        for name, entry in policy["npm"][group].items():
+            lines.append(
+                f"| {group.capitalize()} | `{name}` | {entry['risk'].capitalize()} |"
             )
     lines.extend(
         [

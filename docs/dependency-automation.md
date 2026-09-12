@@ -20,7 +20,7 @@ not automatically rejected or promoted.
 | Locked | Versions in the committed lockfiles | Blocking |
 | Latest tested | Stable candidates released at least seven days ago | Advisory |
 
-The initial latest-supported endpoints come from the dependency set approved in
+Runtime dependency latest-supported endpoints come from the dependency set approved in
 PR #27. Future promotion requires a reviewed policy change. Raising the minimum
 is a separate decision because it drops older versions from the support interval.
 Updating the lockfile does not itself promote either endpoint.
@@ -38,6 +38,24 @@ Only the locked lane guarantees the full committed resolution. Candidate release
 age selection applies to direct dependencies; package-manager resolution can
 still introduce newer transitive dependencies.
 
+## Internal JavaScript tools
+
+Frontend build tools, formatters, type declarations, and browser-test tools take
+version declarations from `package.json` and exact resolutions from
+`package-lock.json`. Policy records their classification, risk, and coupling,
+without duplicating version pins or defining separate support endpoints.
+
+For example, a Prettier update from `3.6.2` to `3.9.6` can keep its new manifest
+and lockfile declarations without a policy edit. Preparation checks formatting,
+runs frontend tests, and rebuilds and verifies generated assets and licenses.
+A formatting or build failure still blocks preparation and requires review;
+the workflow does not silently reformat source files.
+
+Minimum and latest-supported frontend lanes vary runtime dependencies while
+using the current locked direct tool versions. Advisory frontend probes also
+try newer eligible tools. Browser-test tools use the browser-test lockfile.
+Runtime support endpoints never change as a side effect of a tool update.
+
 ## Cooldown and automatic preparation
 
 All four Dependabot entries have `cooldown.default-days: 7`, retaining weekly
@@ -46,14 +64,15 @@ PR age. Weekly checks can add up to another scheduling interval after eligibilit
 Security updates bypass Dependabot's cooldown. Candidate surveillance still uses
 its seven-day filter; security PRs receive normal locked CI immediately.
 
-The preparation command handles existing npm dependency updates that fit the
-approved installation ranges. It restores unnecessary manifest-minimum increases,
+The preparation command handles existing npm runtime dependency updates that fit
+the approved installation ranges and existing internal JavaScript tool updates.
+It restores unnecessary runtime manifest-minimum increases,
 preserves resolved lock entries, rebuilds affected frontend assets and licenses,
 and verifies a second generation matches. Python lock-only changes need no
 generated commit. Preparation cannot alter support endpoints.
 
-New dependencies, versions outside the installation range, exact tooling-pin
-changes, source edits, and workflow or release-allowlist changes require review.
+New dependencies, runtime versions outside the installation range, source edits,
+and workflow or release-allowlist changes require review.
 The workflow reports failure instead of guessing a policy change. Apply an
 intentional policy change in a maintainer PR, then refresh the dependency branch.
 Ordinary Actions updates with no companion changes still use the normal CI path.

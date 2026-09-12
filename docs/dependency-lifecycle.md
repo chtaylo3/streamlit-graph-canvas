@@ -46,7 +46,10 @@ define a user-facing minimum unless they ship or run in user environments.
 Minimum resolution does not force arbitrary transitive packages to their oldest
 versions. It pins each public direct minimum and tests coupled stacks together;
 this avoids combinations no upstream project supports. Test-only tooling has a
-locked version but is not part of the user compatibility contract.
+locked version but is not part of the user compatibility contract. Internal
+JavaScript build and test tools use manifest declarations and lockfile versions;
+policy records their risk and classification without duplicate version pins.
+Minimum and latest-supported frontend lanes use the locked direct tool versions.
 
 Every compatibility run records the resolved inventory. Browser failures retain
 traces, screenshots, video, Streamlit logs, and JUnit output. The Chromium

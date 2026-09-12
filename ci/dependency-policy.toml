@@ -126,71 +126,38 @@ risk = "critical"
 coupling = "react,@xyflow/react"
 
 [npm.build."@vitejs/plugin-react"]
-latest_supported = "6.1.1"
-minimum = "6.1.0"
-supported = "^6.1.0"
 risk = "high"
 
 [npm.build."@types/react"]
-latest_supported = "19.2.18"
-minimum = "19.2.0"
-supported = "^19.2.0"
 risk = "high"
 coupling = "react,react-dom,@types/react-dom,@xyflow/react"
 
 [npm.build."@types/react-dom"]
-latest_supported = "19.2.7"
-minimum = "19.2.0"
-supported = "^19.2.0"
 risk = "high"
 coupling = "react,react-dom,@types/react,@xyflow/react"
 
 [npm.build.typescript]
-latest_supported = "7.0.2"
-minimum = "7.0.2"
-supported = "^7.0.2"
 risk = "high"
 
 [npm.build.vite]
-latest_supported = "8.2.2"
-minimum = "8.2.0"
-supported = "^8.2.0"
 risk = "high"
 
 [npm.build.prettier]
-latest_supported = "3.6.2"
-minimum = "3.6.2"
-supported = "3.6.2"
 risk = "low"
 
 [npm.build.vitest]
-latest_supported = "5.0.0"
-minimum = "5.0.0"
-supported = "^5.0.0"
 risk = "medium"
 
 [npm.test."@playwright/test"]
-latest_supported = "1.63.0"
-minimum = "1.52.0"
-supported = "^1.52.0"
 risk = "high"
 
 [npm.test."@axe-core/playwright"]
-latest_supported = "4.13.0"
-minimum = "4.13.0"
-supported = "^4.13.0"
 risk = "medium"
 
 [npm.test."@types/node"]
-latest_supported = "24.13.3"
-minimum = "24.0.0"
-supported = "^24.0.0"
 risk = "low"
 
 [npm.test.typescript]
-latest_supported = "7.0.2"
-minimum = "7.0.2"
-supported = "^7.0.2"
 risk = "medium"
 
 [ci]

@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import subprocess
+import tomllib
 from pathlib import Path
 
 FRONTEND = "packages/core/src/streamlit_graph_canvas/frontend"
@@ -41,16 +42,40 @@ def git(root: Path, *args: str) -> bytes:
     return subprocess.check_output(["git", "-C", str(root), *args])
 
 
-def normalize_manifest(base: dict, candidate: dict, lock: dict) -> dict:
-    """Retain approved declarations; only compatible locked versions may advance."""
-    from packaging.version import Version
-
-    result = json.loads(json.dumps(candidate))
+def manifest_declarations(
+    base: dict, candidate: dict, tooling: set[str] | frozenset[str] = frozenset()
+) -> dict:
+    """Preserve runtime declarations and accept classified tool version updates."""
+    result = json.loads(json.dumps(base))
     for group in ("dependencies", "devDependencies"):
         before, after = base.get(group, {}), candidate.get(group, {})
         if before.keys() != after.keys():
             raise ValueError("new or removed dependencies require policy review")
-        for name, requirement in before.items():
+        if group == "devDependencies":
+            for name in before.keys() & tooling:
+                result[group][name] = after[name]
+    excluded = {"dependencies", "devDependencies"}
+    if {k: v for k, v in base.items() if k not in excluded} != {
+        k: v for k, v in candidate.items() if k not in excluded
+    }:
+        raise ValueError("non-dependency manifest changes require review")
+    return result
+
+
+def normalize_manifest(
+    base: dict,
+    candidate: dict,
+    lock: dict,
+    tooling: set[str] | frozenset[str] = frozenset(),
+) -> dict:
+    """Retain runtime ranges while preserving candidate internal tool upgrades."""
+    from packaging.version import Version
+
+    result = manifest_declarations(base, candidate, tooling)
+    for group in ("dependencies", "devDependencies"):
+        for name, requirement in base.get(group, {}).items():
+            if group == "devDependencies" and name in tooling:
+                continue  # npm ci validates the candidate manifest and lockfile.
             version = lock["packages"]["node_modules/" + name]["version"]
             # The repository policy uses only exact and caret npm ranges.
             minimum = Version(requirement.lstrip("^"))
@@ -68,21 +93,13 @@ def normalize_manifest(base: dict, candidate: dict, lock: dict) -> dict:
                 compatible = current == minimum
             if not compatible:
                 raise ValueError(f"{name}@{version} requires explicit policy review")
-        result[group] = before
-    unchanged = {
-        k: v
-        for k, v in candidate.items()
-        if k not in {"dependencies", "devDependencies"}
-    }
-    expected = {
-        k: v for k, v in base.items() if k not in {"dependencies", "devDependencies"}
-    }
-    if unchanged != expected:
-        raise ValueError("non-dependency manifest changes require review")
     return result
 
 
 def prepare(root: Path, base: str, head: str, output: Path) -> None:
+    policy = tomllib.loads(
+        git(root, "show", f"{base}:ci/dependency-policy.toml").decode()
+    )
     changed = set(git(root, "diff", "--name-only", base, head).decode().splitlines())
     unknown = {p for p in changed if p not in INPUTS and not allowed_output(p)}
     if unknown:
@@ -95,7 +112,10 @@ def prepare(root: Path, base: str, head: str, output: Path) -> None:
         original = json.loads(git(root, "show", f"{base}:{directory}/package.json"))
         lock = json.loads(lockfile.read_text())
         normalized = normalize_manifest(
-            original, json.loads(manifest.read_text()), lock
+            original,
+            json.loads(manifest.read_text()),
+            lock,
+            set(policy["npm"]["build" if directory == FRONTEND else "test"]),
         )
         for group in ("dependencies", "devDependencies"):
             if group in normalized:
@@ -104,6 +124,7 @@ def prepare(root: Path, base: str, head: str, output: Path) -> None:
         lockfile.write_text(json.dumps(lock, indent=2) + "\n")
         subprocess.run(["npm", "ci"], cwd=root / directory, check=True)
     if any(p.startswith(FRONTEND + "/") for p in changed):
+        subprocess.run(["npm", "run", "format:check"], cwd=root / FRONTEND, check=True)
         subprocess.run(["npm", "test"], cwd=root / FRONTEND, check=True)
         import sys
 

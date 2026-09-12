@@ -165,9 +165,16 @@ def python_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
         raise SystemExit("Pillow runtime guard rejected the compatibility environment")
 
 
-def npm_specs(policy: dict[str, Any], lane: str, scenario: str) -> list[str]:
+def npm_specs(
+    policy: dict[str, Any],
+    lane: str,
+    scenario: str,
+    *,
+    package: dict | None = None,
+    lock: dict | None = None,
+) -> list[str]:
     groups = policy["npm"]
-    entries = {**groups["runtime"], **groups["build"]}
+    entries = groups["runtime"]
     if scenario == "react-flow":
         names = {
             "react",
@@ -183,7 +190,7 @@ def npm_specs(policy: dict[str, Any], lane: str, scenario: str) -> list[str]:
     else:
         names = set(entries)
     specs = []
-    for name in sorted(names):
+    for name in sorted(names & entries.keys()):
         entry = entries[name]
         if lane == "minimum":
             value = entry["minimum"]
@@ -194,6 +201,16 @@ def npm_specs(policy: dict[str, Any], lane: str, scenario: str) -> list[str]:
         else:
             value = entry.get("forward", entry["supported"])
         specs.append(f"{name}@{value}")
+    if package is not None and lock is not None:
+        for name, declaration in sorted(package.get("devDependencies", {}).items()):
+            if scenario != "all" and name not in names:
+                continue
+            value = lock["packages"]["node_modules/" + name]["version"]
+            if lane == "latest-tested":
+                value = candidate_version("npm", name, value)
+            elif lane == "forward":
+                value = declaration
+            specs.append(f"{name}@{value}")
     return specs
 
 
@@ -208,10 +225,13 @@ def frontend_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
         )
         package_path = workspace / "package.json"
         package = json.loads(package_path.read_text(encoding="utf-8"))
+        lock = json.loads((workspace / "package-lock.json").read_text(encoding="utf-8"))
         (workspace / "package-lock.json").unlink(missing_ok=True)
         selected = {
             spec.rsplit("@", 1)[0]: spec.rsplit("@", 1)[1]
-            for spec in npm_specs(policy, args.lane, args.scenario)
+            for spec in npm_specs(
+                policy, args.lane, args.scenario, package=package, lock=lock
+            )
         }
         for group in ("dependencies", "devDependencies"):
             for name in package.get(group, {}):
