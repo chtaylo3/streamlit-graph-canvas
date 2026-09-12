@@ -8,6 +8,7 @@ node_forward = "26"
 browser = "chromium"
 
 [python.streamlit]
+latest_supported = "1.63.0"
 minimum = "1.62.0"
 supported = ">=1.62.0"
 forward = "streamlit>=1.62.0"
@@ -16,6 +17,7 @@ reason = "Component v2 host protocol and rerun lifecycle"
 support_url = "https://docs.streamlit.io/develop/concepts/custom-components/components-v2"
 
 [python.packaging]
+latest_supported = "26.3"
 minimum = "26.0"
 supported = ">=26.0"
 risk = "high"
@@ -23,6 +25,7 @@ reason = "Runtime validation of renderer and rasterizer version ranges"
 support_url = "https://packaging.pypa.io/"
 
 [python.Pillow]
+latest_supported = "12.3.0"
 minimum = "12.3.0"
 supported = ">=12.3.0,<13"
 forward = "Pillow>=13.0.0a0"
@@ -32,6 +35,7 @@ reason = "ATLAS raster output and image-decoder security"
 support_url = "https://pillow.readthedocs.io/en/latest/releasenotes/index.html"
 
 [python.networkx]
+latest_supported = "3.6.1"
 minimum = "3.6.1"
 supported = ">=3.6.1"
 forward = "networkx>=3.6.1"
@@ -82,6 +86,7 @@ supported = ">=6.0.12.20250915"
 risk = "low"
 
 [npm.runtime."@streamlit/component-v2-lib"]
+latest_supported = "0.2.0"
 minimum = "0.2.0"
 supported = "^0.2.0"
 forward = "next"
@@ -89,6 +94,7 @@ risk = "critical"
 coupling = "streamlit"
 
 [npm.runtime."@xyflow/react"]
+latest_supported = "12.11.6"
 minimum = "12.11.3"
 supported = "^12.11.3"
 forward = "next"
@@ -96,6 +102,7 @@ risk = "critical"
 coupling = "react,react-dom"
 
 [npm.runtime.elkjs]
+latest_supported = "0.12.0"
 minimum = "0.12.0"
 supported = "^0.12.0"
 forward = "next"
@@ -103,6 +110,7 @@ risk = "critical"
 coupling = "@xyflow/react"
 
 [npm.runtime.react]
+latest_supported = "19.2.8"
 minimum = "19.2.0"
 supported = "^19.2.0"
 forward = "canary"
@@ -110,6 +118,7 @@ risk = "critical"
 coupling = "react-dom,@xyflow/react"
 
 [npm.runtime."react-dom"]
+latest_supported = "19.2.8"
 minimum = "19.2.0"
 supported = "^19.2.0"
 forward = "canary"
@@ -117,65 +126,76 @@ risk = "critical"
 coupling = "react,@xyflow/react"
 
 [npm.build."@vitejs/plugin-react"]
+latest_supported = "6.1.1"
 minimum = "6.1.0"
 supported = "^6.1.0"
 risk = "high"
 
 [npm.build."@types/react"]
+latest_supported = "19.2.18"
 minimum = "19.2.0"
 supported = "^19.2.0"
 risk = "high"
 coupling = "react,react-dom,@types/react-dom,@xyflow/react"
 
 [npm.build."@types/react-dom"]
+latest_supported = "19.2.7"
 minimum = "19.2.0"
 supported = "^19.2.0"
 risk = "high"
 coupling = "react,react-dom,@types/react,@xyflow/react"
 
 [npm.build.typescript]
+latest_supported = "7.0.2"
 minimum = "7.0.2"
 supported = "^7.0.2"
 risk = "high"
 
 [npm.build.vite]
+latest_supported = "8.2.2"
 minimum = "8.2.0"
 supported = "^8.2.0"
 risk = "high"
 
 [npm.build.prettier]
+latest_supported = "3.6.2"
 minimum = "3.6.2"
 supported = "3.6.2"
 risk = "low"
 
 [npm.build.vitest]
+latest_supported = "5.0.0"
 minimum = "5.0.0"
 supported = "^5.0.0"
 risk = "medium"
 
 [npm.test."@playwright/test"]
+latest_supported = "1.63.0"
 minimum = "1.52.0"
 supported = "^1.52.0"
 risk = "high"
 
 [npm.test."@axe-core/playwright"]
+latest_supported = "4.13.0"
 minimum = "4.13.0"
 supported = "^4.13.0"
 risk = "medium"
 
 [npm.test."@types/node"]
+latest_supported = "24.13.3"
 minimum = "24.0.0"
 supported = "^24.0.0"
 risk = "low"
 
 [npm.test.typescript]
+latest_supported = "7.0.2"
 minimum = "7.0.2"
 supported = "^7.0.2"
 risk = "medium"
 
 [ci]
-blocking_lanes = ["locked", "release-artifact", "minimum", "latest", "security"]
-advisory_lanes = ["forward", "browser-beta"]
+blocking_lanes = ["locked", "release-artifact", "minimum", "latest-supported", "security"]
+advisory_lanes = ["latest-tested", "forward", "browser-beta"]
 playwright_projects = ["chromium"]
 required_contrib_sets = [
   "core-only",

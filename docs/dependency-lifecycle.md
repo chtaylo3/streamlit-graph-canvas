@@ -37,8 +37,9 @@ define a user-facing minimum unless they ship or run in user environments.
 | Locked | exact `uv.lock` and npm locks | Ubuntu and Windows, Python 3.12–3.14; Node 24.x | yes |
 | Release artifact | exact wheel bytes later passed to `uv publish` | Ubuntu and Chromium | yes |
 | Minimum | exact supported direct minimums; coherent coupled stacks | Ubuntu and Windows; Chromium transports set | yes |
-| Latest | fresh resolution inside declared ranges | Ubuntu and Windows on oldest and newest Python versions; Chromium transports set | yes |
+| Latest supported | exact approved direct endpoints | Ubuntu and Windows on oldest and newest Python versions; Chromium transports set | yes |
 | Security | `pip-audit`, `npm audit`, dependency review, CodeQL | Ubuntu | yes |
+| Latest tested | stable candidates at least seven days old; no automatic promotion | Ubuntu, frontend, and Chromium | advisory |
 | Forward | prerelease Python and runtime scenarios | scheduled Ubuntu | advisory |
 | Browser beta | locked app and selected contrib in Chrome Beta | scheduled Ubuntu | advisory |
 
@@ -87,9 +88,13 @@ when the advisory test process exits unsuccessfully.
 
 ## Update dependencies and minimum versions
 
+See [dependency PR preparation](dependency-automation.md) for cooldowns,
+automatic generated-file commits, GitHub App configuration, and explicit
+promotion from latest tested to latest supported.
+
 Dependabot uses the `uv` ecosystem and focused npm groups. Minor and patch updates
 for coupled families share a PR; majors remain separate. Runtime updates are
-never auto-merged. A dependency PR must pass locked, minimum, latest, security,
+never auto-merged. A dependency PR must pass locked, minimum, latest-supported, security,
 wheel, and Chromium checks. Regenerate the frontend bundle and license inventory
 when bundled dependencies change.
 

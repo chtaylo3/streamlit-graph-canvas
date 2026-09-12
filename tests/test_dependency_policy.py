@@ -84,16 +84,15 @@ def test_forward_frontend_scenarios_keep_coupled_packages_together() -> None:
     ]
 
 
-def test_latest_frontend_stays_inside_declared_ranges() -> None:
-    latest = npm_specs(POLICY, "latest", "react-flow")
+def test_latest_supported_uses_approved_exact_versions() -> None:
+    latest = npm_specs(POLICY, "latest-supported", "react-flow")
     assert set(latest) == {
-        "react@^19.2.0",
-        "react-dom@^19.2.0",
-        "@types/react@^19.2.0",
-        "@types/react-dom@^19.2.0",
-        "@xyflow/react@^12.11.3",
+        "react@19.2.8",
+        "react-dom@19.2.8",
+        "@types/react@19.2.18",
+        "@types/react-dom@19.2.7",
+        "@xyflow/react@12.11.6",
     }
-    assert all("@next" not in spec and "@canary" not in spec for spec in latest)
 
 
 def test_next_minor_compatibility_range_derivation() -> None:

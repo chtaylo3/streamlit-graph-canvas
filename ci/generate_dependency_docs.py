@@ -35,14 +35,16 @@ def render(policy: dict[str, Any]) -> bytes:
         "",
         "## Python runtime",
         "",
-        "| Dependency | Minimum version | Supported range | Forward requirement | "
+        "| Dependency | Minimum supported | Latest supported | Install range | "
+        "Forward requirement | "
         "Risk |",
-        "| --- | --- | --- | --- | --- |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
     for name, entry in policy["python"].items():
         forward = f"`{entry['forward']}`" if entry.get("forward") else "Not configured"
         lines.append(
-            f"| `{name}` | {entry['minimum']} | `{entry['supported']}` | "
+            f"| `{name}` | {entry['minimum']} | {entry['latest_supported']} | "
+            f"`{entry['supported']}` | "
             f"{forward} | {entry['risk'].capitalize()} |"
         )
     lines.extend(
@@ -51,10 +53,11 @@ def render(policy: dict[str, Any]) -> bytes:
             "## Browser and build dependencies",
             "",
             (
-                "| Group | Dependency | Minimum version | Supported range | "
+                "| Group | Dependency | Minimum supported | Latest supported | "
+                "Install range | "
                 "Forward tag | Coupled with | Risk |"
             ),
-            "| --- | --- | --- | --- | --- | --- | --- |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for group, entries in policy["npm"].items():
@@ -72,7 +75,7 @@ def render(policy: dict[str, Any]) -> bytes:
             )
             lines.append(
                 f"| {group.capitalize()} | `{name}` | {entry['minimum']} | "
-                f"`{entry['supported']}` | {forward} | "
+                f"{entry['latest_supported']} | `{entry['supported']}` | {forward} | "
                 f"{coupling} | {entry['risk'].capitalize()} |"
             )
     lines.extend(

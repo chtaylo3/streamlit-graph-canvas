@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import os
 import shutil
@@ -16,6 +17,15 @@ if __package__:
     from .generate_frontend_licenses import generate
 else:
     from generate_frontend_licenses import generate
+
+
+def candidate_version(ecosystem: str, name: str, minimum: str) -> str:
+    # Supported lanes run before uv sync and must require only the standard library.
+    if __package__:
+        from .candidate_versions import candidate_version as resolve
+    else:
+        from candidate_versions import candidate_version as resolve
+    return resolve(ecosystem, name, minimum)
 
 
 def load_policy(root: Path) -> dict[str, Any]:
@@ -56,8 +66,12 @@ def python_specs(policy: dict[str, Any], lane: str, scenario: str = "all") -> li
     for name, entry in policy["python"].items():
         if lane == "minimum":
             specs.append(f"{name}=={entry['minimum']}")
-        elif lane == "latest":
-            specs.append(f"{name}{entry['supported']}")
+        elif lane == "latest-supported":
+            specs.append(f"{name}=={entry['latest_supported']}")
+        elif lane == "latest-tested":
+            specs.append(
+                f"{name}=={candidate_version('python', name, entry['minimum'])}"
+            )
         elif "forward" in entry and scenario in {"all", name.casefold()}:
             specs.append(entry["forward"])
     return specs
@@ -87,12 +101,19 @@ def python_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
         "hypothesis>=6.0.0",
         # Telemetry tests require an SDK provider, not just the optional API.
         "opentelemetry-sdk>=1.30,<2",
-        *python_specs(policy, args.lane if args.lane != "forward" else "latest"),
+        *python_specs(
+            policy,
+            args.lane
+            if args.lane not in {"forward", "latest-tested"}
+            else "latest-supported",
+        ),
     ]
+    args.output.write_text(json.dumps({"requested": command}) + "\n")
     run(command)
-    if args.lane == "forward":
-        forward = python_specs(policy, "forward", args.scenario)
+    if args.lane in {"forward", "latest-tested"}:
+        forward = python_specs(policy, args.lane, args.scenario)
         if forward:
+            args.output.write_text(json.dumps({"requested": forward}) + "\n")
             run(
                 [
                     "uv",
@@ -101,14 +122,15 @@ def python_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
                     "--python",
                     str(python),
                     "--prerelease",
-                    "allow",
+                    "allow" if args.lane == "forward" else "disallow",
                     "--upgrade",
-                    "--no-deps",
+                    *(["--no-deps"] if args.lane == "forward" else []),
                     *forward,
                 ]
             )
-    else:
-        run(["uv", "pip", "check", "--python", str(python)])
+    dependency_check = subprocess.run(
+        ["uv", "pip", "check", "--python", str(python)], check=False
+    )
     tests = subprocess.run(
         [str(python), "-m", "pytest", "packages/core/tests", "packages/contrib/tests"],
         cwd=root,
@@ -126,11 +148,15 @@ def python_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
                 "python": args.python,
                 "packages": inventory,
                 "runtime": runtime,
+                "requested": json.loads(args.output.read_text()).get("requested"),
+                "dependency_check_exit_code": dependency_check.returncode,
             },
             indent=2,
         )
         + "\n"
     )
+    if dependency_check.returncode and args.lane != "forward":
+        raise SystemExit("candidate dependency requirements are incompatible")
     if tests.returncode:
         raise SystemExit(
             f"compatibility tests failed with exit code {tests.returncode}"
@@ -161,8 +187,10 @@ def npm_specs(policy: dict[str, Any], lane: str, scenario: str) -> list[str]:
         entry = entries[name]
         if lane == "minimum":
             value = entry["minimum"]
-        elif lane == "latest":
-            value = entry["supported"]
+        elif lane == "latest-supported":
+            value = entry["latest_supported"]
+        elif lane == "latest-tested":
+            value = candidate_version("npm", name, entry["minimum"])
         else:
             value = entry.get("forward", entry["supported"])
         specs.append(f"{name}@{value}")
@@ -190,6 +218,7 @@ def frontend_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
                 if name in selected:
                     package[group][name] = selected[name]
         package_path.write_text(json.dumps(package, indent=2) + "\n", encoding="utf-8")
+        args.output.write_text(json.dumps({"requested": selected}) + "\n")
         run(["npm", "install", "--legacy-peer-deps"], cwd=workspace)
         inventory_result = subprocess.run(
             ["npm", "ls", "--all", "--json"],
@@ -198,6 +227,10 @@ def frontend_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             check=False,
+        )
+        args.output.write_text(
+            json.dumps({"requested": selected, "npm_ls": inventory_result.stdout})
+            + "\n"
         )
         if inventory_result.returncode and args.lane != "forward":
             raise SystemExit(
@@ -248,7 +281,11 @@ def main() -> None:
     parser.add_argument("--root", type=Path, default=Path(__file__).parents[1])
     subparsers = parser.add_subparsers(dest="command", required=True)
     py = subparsers.add_parser("python")
-    py.add_argument("--lane", choices=("minimum", "latest", "forward"), required=True)
+    py.add_argument(
+        "--lane",
+        choices=("minimum", "latest-supported", "latest-tested", "forward"),
+        required=True,
+    )
     py.add_argument("--python", required=True)
     py.add_argument(
         "--scenario",
@@ -259,7 +296,9 @@ def main() -> None:
     py.add_argument("--output", type=Path, required=True)
     frontend = subparsers.add_parser("frontend")
     frontend.add_argument(
-        "--lane", choices=("minimum", "latest", "forward"), required=True
+        "--lane",
+        choices=("minimum", "latest-supported", "latest-tested", "forward"),
+        required=True,
     )
     frontend.add_argument(
         "--scenario", choices=("all", "react-flow", "elk", "component"), default="all"
@@ -274,10 +313,26 @@ def main() -> None:
     )
     args = parser.parse_args()
     policy = load_policy(args.root)
-    if args.command == "python":
-        python_lane(args, policy)
-    else:
-        frontend_lane(args, policy)
+    evidence = {
+        "lane": args.lane,
+        "status": "failed",
+        "tested_at": dt.datetime.now(dt.UTC).isoformat(),
+        "support_promoted": False,
+    }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.unlink(missing_ok=True)
+    try:
+        if args.command == "python":
+            python_lane(args, policy)
+        else:
+            frontend_lane(args, policy)
+        evidence["status"] = "passed"
+    except (Exception, SystemExit) as error:
+        evidence["error"] = str(error)
+        raise
+    finally:
+        prior = json.loads(args.output.read_text()) if args.output.exists() else {}
+        args.output.write_text(json.dumps({**prior, **evidence}, indent=2) + "\n")
 
 
 if __name__ == "__main__":

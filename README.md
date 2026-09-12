@@ -177,6 +177,7 @@ artifacts.
 - [JavaScript, raster and sprite delivery, cache scope, and CSP](docs/transports-and-csp.md)
 - [Conformance testing](docs/conformance-testing.md)
 - [Dependency lifecycle](docs/dependency-lifecycle.md)
+- [Dependency PR automation and supported versus tested versions](docs/dependency-automation.md)
 - [Build and release process](docs/release-process.md)
 - [Release activation](docs/release-activation.md)
 - [Long-term design](docs/generalized-node-canvas-design.md)
