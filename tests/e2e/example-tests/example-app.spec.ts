@@ -2,6 +2,15 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { waitForGalleryStable } from "../tests/harness";
 
+async function useManifestCollections(page: import("@playwright/test").Page) {
+  await page.getByText("Canvas display", { exact: true }).click();
+  await page.getByRole("radiogroup", { name: "Manifest children", exact: true })
+    .getByRole("radio", { name: "Always collection", exact: true }).press("Space");
+  await waitForGalleryStable(page);
+  await page.getByText("Canvas display", { exact: true }).click();
+  await waitForGalleryStable(page);
+}
+
 test("real app preserves categories through emphasis, expansion, and display changes", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -9,6 +18,11 @@ test("real app preserves categories through emphasis, expansion, and display cha
   await expect(page.locator('[data-testid="stMetric"]')).toHaveCount(4, { timeout: 30_000 });
   await waitForGalleryStable(page);
   await page.getByRole("button", { name: "Explore dependency groups", exact: true }).click();
+  // The fixture has 8 direct and 9 resolved children, both below cutoff 12.
+  // Verify the default tree view before opting into collection behavior.
+  await expect(page.locator(".sgc-group-marker")).toHaveCount(0);
+  await expect(page.locator(".sgc-node")).toHaveCount(20);
+  await useManifestCollections(page);
   const direct = page.locator('.sgc-group-marker[data-sgc-group="depends_on"]').first();
   const resolved = page.locator('.sgc-group-marker[data-sgc-group="resolves"]').first();
   await expect(direct).toHaveText("8", { timeout: 20_000 });
@@ -22,10 +36,21 @@ test("real app preserves categories through emphasis, expansion, and display cha
   await expect(page.locator(".sgc-node")).toHaveCount(11);
   await expect(page.getByRole("button", { name: "dependency depends_on-0, Direct", exact: true })).toBeVisible();
   await expect.poll(() => page.locator(".react-flow__edge-path[marker-end]").count()).toBeGreaterThan(0);
-  // Rendered paths use ELK's orthogonal sections rather than generic curves.
-  const paths = page.locator(".react-flow__edge-routed .react-flow__edge-path");
-  await expect.poll(async () => paths.count()).toBeGreaterThan(2);
-  const geometry = await paths.evaluateAll((items) => items.map((el) => el.getAttribute("d")));
+  await waitForGalleryStable(page);
+  // Internal collection edges use ELK sections. Ancestor and collection-boundary
+  // connectors can legitimately use the smooth-step fallback.
+  const memberIds = await page.locator('.react-flow__node').evaluateAll(nodes => nodes
+    .filter(n => n.querySelector('.sgc-node-type')?.textContent === 'dependency')
+    .map(n => n.getAttribute('data-id')));
+  const geometry = await page.locator('.react-flow__edge').evaluateAll((edges, ids) => edges
+    .filter(edge => {
+      const id = edge.getAttribute('data-id') ?? '';
+      if (!id.startsWith('edge-')) return false;
+      const [source, target] = JSON.parse(id.slice(5));
+      return ids.includes(source) && ids.includes(target);
+    })
+    .map(edge => edge.querySelector('.react-flow__edge-path')?.getAttribute('d')), memberIds);
+  expect(geometry).toHaveLength(8);
   expect(geometry.every((d) => d && !/[CQ]/.test(d))).toBe(true);
   await direct.focus();
   await page.keyboard.press("Enter");
@@ -69,6 +94,7 @@ test("peer exploration uses eager component groups and retains optional peers", 
   await expect(page.locator('[data-testid="stMetric"]')).toHaveCount(4, { timeout: 30_000 });
   await waitForGalleryStable(page);
   await page.getByRole("button", { name: "Explore dependency groups", exact: true }).click();
+  await useManifestCollections(page);
   const direct = page.locator('.sgc-group-marker[data-sgc-group="depends_on"]').first();
   await expect(direct).toHaveText("8", { timeout: 20_000 });
   await direct.click();
@@ -162,6 +188,7 @@ test("hierarchy navigation animates a persistent canvas and interrupted groups s
   await page.goto('/');
   await expect(page.locator('[data-testid="stMetric"]')).toHaveCount(4, {timeout:30_000});
   await waitForGalleryStable(page);
+  await useManifestCollections(page);
   await recordMotion(page);
   await page.getByRole('button', {name:/^repository payments-api,/}).click();
   await expect(page.getByRole('heading', {name:'payments-api', exact:true})).toBeVisible();
@@ -184,9 +211,9 @@ test("hierarchy navigation animates a persistent canvas and interrupted groups s
     return { persistent:probe.viewport===host.querySelector('.react-flow__viewport'), count:probe.frames.length,
       faded:probe.frames.some((f:any)=>f.fading), changed:new Set(probe.frames.map((f:any)=>JSON.stringify(f.transforms))).size };
   });
-  expect(result.persistent).toBe(true);
+  expect(result.persistent, JSON.stringify(result)).toBe(true);
   expect(result.count).toBeGreaterThan(2);
-  expect(result.faded).toBe(true);
+  expect(result.faded, JSON.stringify(result)).toBe(true);
   expect(result.changed).toBeGreaterThan(2);
   expect(errors).toEqual([]);
   await expect(page.locator('[data-testid="stException"]')).toHaveCount(0);
