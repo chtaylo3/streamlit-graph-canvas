@@ -6,7 +6,7 @@
       "license_sha256": "afdbdf326065131fd5b3dc06457b77a241bba5c6714c856c0e978d254469b045",
       "name": "@xyflow/react",
       "selected_license": "MIT",
-      "version": "12.11.5"
+      "version": "12.11.6"
     },
     {
       "declared_license": "MIT",
@@ -14,7 +14,7 @@
       "license_sha256": "afdbdf326065131fd5b3dc06457b77a241bba5c6714c856c0e978d254469b045",
       "name": "@xyflow/system",
       "selected_license": "MIT",
-      "version": "0.0.81"
+      "version": "0.0.82"
     },
     {
       "declared_license": "MIT",
