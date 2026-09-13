@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tomllib
 from pathlib import Path
 
@@ -15,6 +16,9 @@ from ci.sync_versions import supported_range
 from ci.verify_dependency_policy import validate_policy, verify
 
 ROOT = Path(__file__).parents[1]
+FRONTEND = ROOT / "packages/core/src/streamlit_graph_canvas/frontend"
+PACKAGE = json.loads((FRONTEND / "package.json").read_text())
+LOCK = json.loads((FRONTEND / "package-lock.json").read_text())
 POLICY = tomllib.loads((ROOT / "ci/dependency-policy.toml").read_text(encoding="utf-8"))
 
 
@@ -71,7 +75,9 @@ def test_python_forward_scenarios_are_isolated() -> None:
 
 
 def test_forward_frontend_scenarios_keep_coupled_packages_together() -> None:
-    assert set(npm_specs(POLICY, "forward", "react-flow")) == {
+    assert set(
+        npm_specs(POLICY, "forward", "react-flow", package=PACKAGE, lock=LOCK)
+    ) == {
         "react@canary",
         "react-dom@canary",
         "@types/react@^19.2.0",
@@ -84,16 +90,17 @@ def test_forward_frontend_scenarios_keep_coupled_packages_together() -> None:
     ]
 
 
-def test_latest_frontend_stays_inside_declared_ranges() -> None:
-    latest = npm_specs(POLICY, "latest", "react-flow")
+def test_latest_supported_uses_approved_exact_versions() -> None:
+    latest = npm_specs(
+        POLICY, "latest-supported", "react-flow", package=PACKAGE, lock=LOCK
+    )
     assert set(latest) == {
-        "react@^19.2.0",
-        "react-dom@^19.2.0",
-        "@types/react@^19.2.0",
-        "@types/react-dom@^19.2.0",
-        "@xyflow/react@^12.11.3",
+        "react@19.2.8",
+        "react-dom@19.2.8",
+        "@types/react@19.2.18",
+        "@types/react-dom@19.2.7",
+        "@xyflow/react@12.11.6",
     }
-    assert all("@next" not in spec and "@canary" not in spec for spec in latest)
 
 
 def test_next_minor_compatibility_range_derivation() -> None:
@@ -121,3 +128,36 @@ def test_policy_schema_rejects_unknown_and_incomplete_entries() -> None:
     incomplete = copy.deepcopy(POLICY)
     del incomplete["npm"]["runtime"]["react"]["forward"]
     assert any("critical dependency" in error for error in validate_policy(incomplete))
+
+
+def test_tool_upgrade_needs_no_duplicate_policy_update(monkeypatch) -> None:
+    original_read = Path.read_text
+
+    def read(path, *args, **kwargs):
+        text = original_read(path, *args, **kwargs)
+        if path == FRONTEND / "package.json":
+            data = json.loads(text)
+            data["devDependencies"]["prettier"] = "3.9.6"
+            return json.dumps(data)
+        if path == FRONTEND / "package-lock.json":
+            data = json.loads(text)
+            data["packages"][""]["devDependencies"]["prettier"] = "3.9.6"
+            data["packages"]["node_modules/prettier"]["version"] = "3.9.6"
+            return json.dumps(data)
+        return text
+
+    monkeypatch.setattr(Path, "read_text", read)
+    assert verify(ROOT) == []
+
+
+def test_supported_lanes_use_locked_tools_and_reject_duplicate_tool_endpoints() -> None:
+    import copy
+
+    lock = copy.deepcopy(LOCK)
+    lock["packages"]["node_modules/prettier"]["version"] = "3.9.6"
+    for lane in ("minimum", "latest-supported"):
+        specs = npm_specs(POLICY, lane, "all", package=PACKAGE, lock=lock)
+        assert "prettier@3.9.6" in specs
+    policy = copy.deepcopy(POLICY)
+    policy["npm"]["build"]["prettier"]["supported"] = "3.6.2"
+    assert any("unknown fields" in error for error in validate_policy(policy))

@@ -1,0 +1,73 @@
+name: Prepare dependency PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-prepare-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: '3.12'
+          enable-cache: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install trusted preparation tooling
+        run: uv sync --project trusted --locked
+      - name: Prepare candidate without changing support policy
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          trusted/.venv/bin/python trusted/ci/prepare_dependency_pr.py
+          --root "$GITHUB_WORKSPACE/candidate"
+          --base "$BASE_SHA" --head "$HEAD_SHA"
+          --output "$RUNNER_TEMP/preparation/prepared.json"
+      - name: Validate the prepared dependency environment
+        working-directory: candidate
+        run: |
+          uv sync --locked
+          uv run pytest
+          uv run python ci/verify_dependency_policy.py
+          uv run python ci/verify_workflow_security.py
+          uv run python ci/generate_dependency_docs.py --check
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dependency-preparation-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/preparation/prepared.json
+          if-no-files-found: error
+          retention-days: 7
+      - if: always()
+        name: Report preparation status
+        env:
+          RESULT: ${{ job.status }}
+        run: |
+          echo "Dependency preparation: $RESULT. Support promotion is always explicit." >> "$GITHUB_STEP_SUMMARY"
+          echo "A failed preparation requires review; normal CI remains authoritative." >> "$GITHUB_STEP_SUMMARY"
