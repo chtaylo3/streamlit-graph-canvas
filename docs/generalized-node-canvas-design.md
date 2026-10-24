@@ -171,7 +171,7 @@ The first public release uses the following minimums and test boundaries:
 | Area | Supported target |
 | --- | --- |
 | Python | 3.12 or later within the tested release matrix |
-| Streamlit | 1.62.0 or later within the tested release matrix |
+| Streamlit | 1.66.1 or later within the tested release matrix |
 | Frontend development | Node.js 24.x |
 | Streamlit server runtime | Windows and Linux x86-64 in the tested matrix |
 | End-user runtime | Standards-capable browser; operating system is not the compatibility boundary |

@@ -10,7 +10,7 @@ readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md"]
 requires-python = ">=3.12"
-dependencies = ["packaging>=26.0", "streamlit>=1.62.0"]
+dependencies = ["packaging>=26.0", "streamlit>=1.66.1"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python :: 3.12",
@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-atlas = ["Pillow>=12.3.0,<13"]
+atlas = ["Pillow>=13.0.0,<14"]
 networkx = ["networkx>=3.6.1"]
 # API only, never the SDK: the application owns provider configuration.
 otel = ["opentelemetry-api>=1.30,<2"]

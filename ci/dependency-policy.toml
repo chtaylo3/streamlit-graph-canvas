@@ -8,10 +8,10 @@ node_forward = "26"
 browser = "chromium"
 
 [python.streamlit]
-latest_supported = "1.63.0"
-minimum = "1.62.0"
-supported = ">=1.62.0"
-forward = "streamlit>=1.62.0"
+latest_supported = "1.66.1"
+minimum = "1.66.1"
+supported = ">=1.66.1"
+forward = "streamlit>=1.66.1"
 risk = "critical"
 reason = "Component v2 host protocol and rerun lifecycle"
 support_url = "https://docs.streamlit.io/develop/concepts/custom-components/components-v2"
@@ -25,11 +25,11 @@ reason = "Runtime validation of renderer and rasterizer version ranges"
 support_url = "https://packaging.pypa.io/"
 
 [python.Pillow]
-latest_supported = "12.3.0"
-minimum = "12.3.0"
-supported = ">=12.3.0,<13"
-forward = "Pillow>=13.0.0a0"
-rasterizer_revision = 1
+latest_supported = "13.0.0"
+minimum = "13.0.0"
+supported = ">=13.0.0,<14"
+forward = "Pillow>=14.0.0a0"
+rasterizer_revision = 2
 risk = "critical"
 reason = "ATLAS raster output and image-decoder security"
 support_url = "https://pillow.readthedocs.io/en/latest/releasenotes/index.html"

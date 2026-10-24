@@ -80,7 +80,7 @@ def test_atlas_rasterizer_records_a_supported_pillow_version() -> None:
     assert identity.removeprefix(prefix) in PILLOW_SUPPORTED
 
 
-@pytest.mark.parametrize("version", ["12.2.0", "13.0.0", "not-a-version"])
+@pytest.mark.parametrize("version", ["12.3.0", "14.0.0", "not-a-version"])
 def test_atlas_rejects_unsupported_or_invalid_pillow_versions(
     monkeypatch: pytest.MonkeyPatch, version: str
 ) -> None:
@@ -90,16 +90,16 @@ def test_atlas_rejects_unsupported_or_invalid_pillow_versions(
 
 
 def test_atlas_accepts_supported_pillow_minor(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(PIL, "__version__", "12.4.0")
-    assert pillow_rasterizer_version().endswith(":pillow:12.4.0")
+    monkeypatch.setattr(PIL, "__version__", "13.1.0")
+    assert pillow_rasterizer_version().endswith(":pillow:13.1.0")
 
 
 def test_atlas_content_key_always_varies_with_rasterizer(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(PIL, "__version__", "12.3.0")
+    monkeypatch.setattr(PIL, "__version__", "13.0.0")
     first = atlas_content_key({"same": "payload"})
-    monkeypatch.setattr(PIL, "__version__", "12.4.0")
+    monkeypatch.setattr(PIL, "__version__", "13.1.0")
     second = atlas_content_key({"same": "payload"})
     assert first != second
 
@@ -267,7 +267,7 @@ def test_atlas_serialization_emits_content_addressed_page_delta(
     assert second.envelope["atlas"]["pages"] == []
 
     original_version = PIL.__version__
-    alternate_version = "12.4.0" if original_version != "12.4.0" else "12.3.0"
+    alternate_version = "13.1.0" if original_version != "13.1.0" else "13.0.0"
     monkeypatch.setattr(PIL, "__version__", alternate_version)
     changed_rasterizer = serialize_graph(
         schema,
