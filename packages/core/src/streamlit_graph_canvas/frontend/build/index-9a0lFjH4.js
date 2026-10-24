@@ -1,5 +1,5 @@
-//#region \0rolldown/runtime.js
-var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), s = (e, i, o, s) => {
+// \0rolldown/runtime.js
+var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e = null), t.exports), s = (e, i, o, s) => {
 	if (i && typeof i == "object" || typeof i == "function") for (var c = r(i), l = 0, u = c.length, d; l < u; l++) d = c[l], !a.call(e, d) && d !== o && t(e, d, {
 		get: ((e) => i[e]).bind(null, d),
 		enumerable: !(s = n(i, d)) || s.enumerable
@@ -421,7 +421,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 	}, e.version = "19.2.8";
 })), p = /* @__PURE__ */ o(((e, t) => {
 	function n() {
-		if (!(typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ > "u" || typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE != "function")) try {
+		if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ < "u" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE == "function") try {
 			__REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE(n);
 		} catch (e) {
 			console.error(e);
@@ -501,8 +501,7 @@ function b(e, t, n, r, i = t.lines) {
 		truncated: u !== l
 	};
 }
-//#endregion
-//#region node_modules/react/cjs/react-jsx-runtime.production.js
+// node_modules/react/cjs/react-jsx-runtime.production.js
 var x = /* @__PURE__ */ o(((e) => {
 	var t = Symbol.for("react.transitional.element"), n = Symbol.for("react.fragment");
 	function r(e, n, r) {
@@ -533,7 +532,7 @@ function w({ text: e, policy: t }) {
 				lines: [],
 				truncated: !0
 			};
-			for (; l >= (t.min_font_size ?? t.font_size) && (ee.font = `700 ${l}px ${n.fontFamily}`, u = b(e, t, s, (e) => ee.measureText(e).width, Math.min(t.lines, Math.floor(c / (l * 1.2)))), !(!u.truncated || l === (t.min_font_size ?? t.font_size))); l--);
+			for (; l >= (t.min_font_size ?? t.font_size) && (ee.font = `700 ${l}px ${n.fontFamily}`, u = b(e, t, s, (e) => ee.measureText(e).width, Math.min(t.lines, Math.floor(c / (l * 1.2)))), u.truncated && l !== (t.min_font_size ?? t.font_size)); l--);
 			o((e) => e.size === l && e.lines.length === u.lines.length && e.lines.every((e, t) => e === u.lines[t]) ? e : {
 				lines: u.lines,
 				size: l
@@ -685,8 +684,7 @@ function T({ label: e, policy: t, opacity: n, children: r }) {
 		]
 	});
 }
-//#endregion
-//#region src/search-model.ts
+// src/search-model.ts
 var te = {
 	key: "$label",
 	label: "Name",
@@ -773,8 +771,7 @@ function se(e, t, n, r, i, a) {
 	}
 	return d;
 }
-//#endregion
-//#region src/transition.ts
+// src/transition.ts
 var ce = (e, t, n) => e + (t - e) * n, le = (e, t, n) => ({
 	x: ce(e.x, t.x, n),
 	y: ce(e.y, t.y, n)
@@ -1043,8 +1040,7 @@ function be(e, t, n) {
 		zoom: ce(e.zoom, t.zoom, r)
 	};
 }
-//#endregion
-//#region src/use-node-search.ts
+// src/use-node-search.ts
 function xe(e, t, n) {
 	let [r, i] = (0, m.useState)({
 		query: "",
@@ -1086,8 +1082,7 @@ function xe(e, t, n) {
 		enabled: e != null
 	};
 }
-//#endregion
-//#region src/node-search.tsx
+// src/node-search.tsx
 var Se = {
 	contains: "contains",
 	eq: "equals",
@@ -1298,8 +1293,7 @@ function Ce({ search: e, config: t, onNavigate: n, onSubmit: r, onApply: i, onCl
 		})]
 	});
 }
-//#endregion
-//#region src/display-budget.ts
+// src/display-budget.ts
 function we(e, t, n, r, i) {
 	let a = e.filter((e) => !n.hiddenNodeIds.has(e.id)), o = new Set(a.map((e) => e.id)), s = /* @__PURE__ */ new Map(), c = /* @__PURE__ */ new Map();
 	for (let e of t) {
@@ -1315,7 +1309,7 @@ function we(e, t, n, r, i) {
 	let l = i && o.has(i) ? [i] : [], u = new Set(l);
 	for (let e = 0; e < l.length; e++) for (let t of c.get(l[e]) ?? []) u.has(t) || (u.add(t), l.push(t));
 	let d = e.find((e) => e.id === i)?.type, f = new Set(i ? c.get(i) ?? [] : []), p = new Set(a.filter((e) => e.id !== i && e.type === d && (c.get(e.id) ?? []).some((e) => f.has(e))).map((e) => e.id));
-	for (let e of a) !n.containerOf.has(e.id) && !p.has(e.id) && !u.has(e.id) && (u.add(e.id), l.push(e.id));
+	for (let e of a) n.containerOf.has(e.id) || p.has(e.id) || u.has(e.id) || (u.add(e.id), l.push(e.id));
 	for (let e of a) !p.has(e.id) && !u.has(e.id) && (u.add(e.id), l.push(e.id));
 	for (let e of a) u.has(e.id) || (u.add(e.id), l.push(e.id));
 	let m = /* @__PURE__ */ new Set(), h = /* @__PURE__ */ new Set(), g = 0, _ = l;
@@ -1353,8 +1347,7 @@ function we(e, t, n, r, i) {
 		omittedCollections: n.groups.length - y.length
 	};
 }
-//#endregion
-//#region node_modules/classcat/index.js
+// node_modules/classcat/index.js
 function Te(e) {
 	if (typeof e == "string" || typeof e == "number") return "" + e;
 	let t = "";
@@ -1362,8 +1355,7 @@ function Te(e) {
 	else for (let n in e) e[n] && (t += (t && " ") + n);
 	return t;
 }
-//#endregion
-//#region node_modules/d3-dispatch/src/dispatch.js
+// node_modules/d3-dispatch/src/dispatch.js
 var Ee = { value: () => {} };
 function De() {
 	for (var e = 0, t = arguments.length, n = {}, r; e < t; ++e) {
@@ -1391,12 +1383,12 @@ Oe.prototype = De.prototype = {
 		var n = this._, r = ke(e + "", n), i, a = -1, o = r.length;
 		if (arguments.length < 2) {
 			for (; ++a < o;) if ((i = (e = r[a]).type) && (i = Ae(n[i], e.name))) return i;
-			return;
+		} else {
+			if (t != null && typeof t != "function") throw Error("invalid callback: " + t);
+			for (; ++a < o;) if (i = (e = r[a]).type) n[i] = je(n[i], e.name, t);
+			else if (t == null) for (i in n) n[i] = je(n[i], e.name, null);
+			return this;
 		}
-		if (t != null && typeof t != "function") throw Error("invalid callback: " + t);
-		for (; ++a < o;) if (i = (e = r[a]).type) n[i] = je(n[i], e.name, t);
-		else if (t == null) for (i in n) n[i] = je(n[i], e.name, null);
-		return this;
 	},
 	copy: function() {
 		var e = {}, t = this._;
@@ -1433,8 +1425,7 @@ var Me = {
 	xml: "http://www.w3.org/XML/1998/namespace",
 	xmlns: "http://www.w3.org/2000/xmlns/"
 };
-//#endregion
-//#region node_modules/d3-selection/src/namespace.js
+// node_modules/d3-selection/src/namespace.js
 function Ne(e) {
 	var t = e += "", n = t.indexOf(":");
 	return n >= 0 && (t = e.slice(0, n)) !== "xmlns" && (e = e.slice(n + 1)), Me.hasOwnProperty(t) ? {
@@ -1442,8 +1433,7 @@ function Ne(e) {
 		local: e
 	} : e;
 }
-//#endregion
-//#region node_modules/d3-selection/src/creator.js
+// node_modules/d3-selection/src/creator.js
 function Pe(e) {
 	return function() {
 		var t = this.ownerDocument, n = this.namespaceURI;
@@ -1459,28 +1449,24 @@ function Ie(e) {
 	var t = Ne(e);
 	return (t.local ? Fe : Pe)(t);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selector.js
+// node_modules/d3-selection/src/selector.js
 function Le() {}
 function Re(e) {
 	return e == null ? Le : function() {
 		return this.querySelector(e);
 	};
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/select.js
+// node_modules/d3-selection/src/selection/select.js
 function ze(e) {
 	typeof e != "function" && (e = Re(e));
 	for (var t = this._groups, n = t.length, r = Array(n), i = 0; i < n; ++i) for (var a = t[i], o = a.length, s = r[i] = Array(o), c, l, u = 0; u < o; ++u) (c = a[u]) && (l = e.call(c, c.__data__, u, a)) && ("__data__" in c && (l.__data__ = c.__data__), s[u] = l);
 	return new Dn(r, this._parents);
 }
-//#endregion
-//#region node_modules/d3-selection/src/array.js
+// node_modules/d3-selection/src/array.js
 function Be(e) {
 	return e == null ? [] : Array.isArray(e) ? e : Array.from(e);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selectorAll.js
+// node_modules/d3-selection/src/selectorAll.js
 function Ve() {
 	return [];
 }
@@ -1489,8 +1475,7 @@ function He(e) {
 		return this.querySelectorAll(e);
 	};
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/selectAll.js
+// node_modules/d3-selection/src/selection/selectAll.js
 function Ue(e) {
 	return function() {
 		return Be(e.apply(this, arguments));
@@ -1501,8 +1486,7 @@ function We(e) {
 	for (var t = this._groups, n = t.length, r = [], i = [], a = 0; a < n; ++a) for (var o = t[a], s = o.length, c, l = 0; l < s; ++l) (c = o[l]) && (r.push(e.call(c, c.__data__, l, o)), i.push(c));
 	return new Dn(r, i);
 }
-//#endregion
-//#region node_modules/d3-selection/src/matcher.js
+// node_modules/d3-selection/src/matcher.js
 function Ge(e) {
 	return function() {
 		return this.matches(e);
@@ -1513,8 +1497,7 @@ function Ke(e) {
 		return t.matches(e);
 	};
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/selectChild.js
+// node_modules/d3-selection/src/selection/selectChild.js
 var qe = Array.prototype.find;
 function Je(e) {
 	return function() {
@@ -1527,8 +1510,7 @@ function Ye() {
 function Xe(e) {
 	return this.select(e == null ? Ye : Je(typeof e == "function" ? e : Ke(e)));
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/selectChildren.js
+// node_modules/d3-selection/src/selection/selectChildren.js
 var Ze = Array.prototype.filter;
 function Qe() {
 	return Array.from(this.children);
@@ -1541,20 +1523,17 @@ function $e(e) {
 function et(e) {
 	return this.selectAll(e == null ? Qe : $e(typeof e == "function" ? e : Ke(e)));
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/filter.js
+// node_modules/d3-selection/src/selection/filter.js
 function tt(e) {
 	typeof e != "function" && (e = Ge(e));
 	for (var t = this._groups, n = t.length, r = Array(n), i = 0; i < n; ++i) for (var a = t[i], o = a.length, s = r[i] = [], c, l = 0; l < o; ++l) (c = a[l]) && e.call(c, c.__data__, l, a) && s.push(c);
 	return new Dn(r, this._parents);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/sparse.js
+// node_modules/d3-selection/src/selection/sparse.js
 function nt(e) {
 	return Array(e.length);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/enter.js
+// node_modules/d3-selection/src/selection/enter.js
 function rt() {
 	return new Dn(this._enter || this._groups.map(nt), this._parents);
 }
@@ -1576,15 +1555,13 @@ it.prototype = {
 		return this._parent.querySelectorAll(e);
 	}
 };
-//#endregion
-//#region node_modules/d3-selection/src/constant.js
+// node_modules/d3-selection/src/constant.js
 function at(e) {
 	return function() {
 		return e;
 	};
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/data.js
+// node_modules/d3-selection/src/selection/data.js
 function ot(e, t, n, r, i, a) {
 	for (var o = 0, s, c = t.length, l = a.length; o < l; ++o) (s = t[o]) ? (s.__data__ = a[o], r[o] = s) : n[o] = new it(e, a[o]);
 	for (; o < c; ++o) (s = t[o]) && (i[o] = s);
@@ -1615,32 +1592,27 @@ function lt(e, t) {
 function ut(e) {
 	return typeof e == "object" && "length" in e ? e : Array.from(e);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/exit.js
+// node_modules/d3-selection/src/selection/exit.js
 function dt() {
 	return new Dn(this._exit || this._groups.map(nt), this._parents);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/join.js
+// node_modules/d3-selection/src/selection/join.js
 function ft(e, t, n) {
 	var r = this.enter(), i = this, a = this.exit();
 	return typeof e == "function" ? (r = e(r), r &&= r.selection()) : r = r.append(e + ""), t != null && (i = t(i), i &&= i.selection()), n == null ? a.remove() : n(a), r && i ? r.merge(i).order() : i;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/merge.js
+// node_modules/d3-selection/src/selection/merge.js
 function pt(e) {
 	for (var t = e.selection ? e.selection() : e, n = this._groups, r = t._groups, i = n.length, a = r.length, o = Math.min(i, a), s = Array(i), c = 0; c < o; ++c) for (var l = n[c], u = r[c], d = l.length, f = s[c] = Array(d), p, m = 0; m < d; ++m) (p = l[m] || u[m]) && (f[m] = p);
 	for (; c < i; ++c) s[c] = n[c];
 	return new Dn(s, this._parents);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/order.js
+// node_modules/d3-selection/src/selection/order.js
 function mt() {
 	for (var e = this._groups, t = -1, n = e.length; ++t < n;) for (var r = e[t], i = r.length - 1, a = r[i], o; --i >= 0;) (o = r[i]) && (a && o.compareDocumentPosition(a) ^ 4 && a.parentNode.insertBefore(o, a), a = o);
 	return this;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/sort.js
+// node_modules/d3-selection/src/selection/sort.js
 function ht(e) {
 	e ||= gt;
 	function t(t, n) {
@@ -1655,19 +1627,16 @@ function ht(e) {
 function gt(e, t) {
 	return e < t ? -1 : e > t ? 1 : e >= t ? 0 : NaN;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/call.js
+// node_modules/d3-selection/src/selection/call.js
 function _t() {
 	var e = arguments[0];
 	return arguments[0] = this, e.apply(null, arguments), this;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/nodes.js
+// node_modules/d3-selection/src/selection/nodes.js
 function vt() {
 	return Array.from(this);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/node.js
+// node_modules/d3-selection/src/selection/node.js
 function yt() {
 	for (var e = this._groups, t = 0, n = e.length; t < n; ++t) for (var r = e[t], i = 0, a = r.length; i < a; ++i) {
 		var o = r[i];
@@ -1675,26 +1644,22 @@ function yt() {
 	}
 	return null;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/size.js
+// node_modules/d3-selection/src/selection/size.js
 function bt() {
 	let e = 0;
 	for (let t of this) ++e;
 	return e;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/empty.js
+// node_modules/d3-selection/src/selection/empty.js
 function xt() {
 	return !this.node();
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/each.js
+// node_modules/d3-selection/src/selection/each.js
 function St(e) {
 	for (var t = this._groups, n = 0, r = t.length; n < r; ++n) for (var i = t[n], a = 0, o = i.length, s; a < o; ++a) (s = i[a]) && e.call(s, s.__data__, a, i);
 	return this;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/attr.js
+// node_modules/d3-selection/src/selection/attr.js
 function Ct(e) {
 	return function() {
 		this.removeAttribute(e);
@@ -1735,13 +1700,11 @@ function kt(e, t) {
 	}
 	return this.each((t == null ? n.local ? wt : Ct : typeof t == "function" ? n.local ? Ot : Dt : n.local ? Et : Tt)(n, t));
 }
-//#endregion
-//#region node_modules/d3-selection/src/window.js
+// node_modules/d3-selection/src/window.js
 function At(e) {
 	return e.ownerDocument && e.ownerDocument.defaultView || e.document && e || e.defaultView;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/style.js
+// node_modules/d3-selection/src/selection/style.js
 function jt(e) {
 	return function() {
 		this.style.removeProperty(e);
@@ -1764,8 +1727,7 @@ function Pt(e, t, n) {
 function Ft(e, t) {
 	return e.style.getPropertyValue(t) || At(e).getComputedStyle(e, null).getPropertyValue(t);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/property.js
+// node_modules/d3-selection/src/selection/property.js
 function It(e) {
 	return function() {
 		delete this[e];
@@ -1785,8 +1747,7 @@ function Rt(e, t) {
 function zt(e, t) {
 	return arguments.length > 1 ? this.each((t == null ? It : typeof t == "function" ? Rt : Lt)(e, t)) : this.node()[e];
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/classed.js
+// node_modules/d3-selection/src/selection/classed.js
 function Bt(e) {
 	return e.trim().split(/^|\s+/);
 }
@@ -1837,8 +1798,7 @@ function Jt(e, t) {
 	}
 	return this.each((typeof t == "function" ? qt : t ? Gt : Kt)(n, t));
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/text.js
+// node_modules/d3-selection/src/selection/text.js
 function Yt() {
 	this.textContent = "";
 }
@@ -1856,8 +1816,7 @@ function Zt(e) {
 function Qt(e) {
 	return arguments.length ? this.each(e == null ? Yt : (typeof e == "function" ? Zt : Xt)(e)) : this.node().textContent;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/html.js
+// node_modules/d3-selection/src/selection/html.js
 function $t() {
 	this.innerHTML = "";
 }
@@ -1875,32 +1834,28 @@ function tn(e) {
 function nn(e) {
 	return arguments.length ? this.each(e == null ? $t : (typeof e == "function" ? tn : en)(e)) : this.node().innerHTML;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/raise.js
+// node_modules/d3-selection/src/selection/raise.js
 function rn() {
 	this.nextSibling && this.parentNode.appendChild(this);
 }
 function an() {
 	return this.each(rn);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/lower.js
+// node_modules/d3-selection/src/selection/lower.js
 function on() {
 	this.previousSibling && this.parentNode.insertBefore(this, this.parentNode.firstChild);
 }
 function sn() {
 	return this.each(on);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/append.js
+// node_modules/d3-selection/src/selection/append.js
 function cn(e) {
 	var t = typeof e == "function" ? e : Ie(e);
 	return this.select(function() {
 		return this.appendChild(t.apply(this, arguments));
 	});
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/insert.js
+// node_modules/d3-selection/src/selection/insert.js
 function eee() {
 	return null;
 }
@@ -1910,8 +1865,7 @@ function ln(e, t) {
 		return this.insertBefore(n.apply(this, arguments), r.apply(this, arguments) || null);
 	});
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/remove.js
+// node_modules/d3-selection/src/selection/remove.js
 function un() {
 	var e = this.parentNode;
 	e && e.removeChild(this);
@@ -1919,8 +1873,7 @@ function un() {
 function dn() {
 	return this.each(un);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/clone.js
+// node_modules/d3-selection/src/selection/clone.js
 function fn() {
 	var e = this.cloneNode(!1), t = this.parentNode;
 	return t ? t.insertBefore(e, this.nextSibling) : e;
@@ -1932,13 +1885,11 @@ function pn() {
 function mn(e) {
 	return this.select(e ? pn : fn);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/datum.js
+// node_modules/d3-selection/src/selection/datum.js
 function hn(e) {
 	return arguments.length ? this.property("__data__", e) : this.node().__data__;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/on.js
+// node_modules/d3-selection/src/selection/on.js
 function gn(e) {
 	return function(t) {
 		e.call(this, t, this.__data__);
@@ -1987,13 +1938,12 @@ function bn(e, t, n) {
 		if (s) {
 			for (var c = 0, l = s.length, u; c < l; ++c) for (i = 0, u = s[c]; i < a; ++i) if ((o = r[i]).type === u.type && o.name === u.name) return u.value;
 		}
-		return;
+	} else {
+		for (s = t ? yn : vn, i = 0; i < a; ++i) this.each(s(r[i], t, n));
+		return this;
 	}
-	for (s = t ? yn : vn, i = 0; i < a; ++i) this.each(s(r[i], t, n));
-	return this;
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/dispatch.js
+// node_modules/d3-selection/src/selection/dispatch.js
 function xn(e, t, n) {
 	var r = At(e), i = r.CustomEvent;
 	typeof i == "function" ? i = new i(t, n) : (i = r.document.createEvent("Event"), n ? (i.initEvent(t, n.bubbles, n.cancelable), i.detail = n.detail) : i.initEvent(t, !1, !1)), e.dispatchEvent(i);
@@ -2011,13 +1961,11 @@ function Cn(e, t) {
 function wn(e, t) {
 	return this.each((typeof t == "function" ? Cn : Sn)(e, t));
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/iterator.js
+// node_modules/d3-selection/src/selection/iterator.js
 function* Tn() {
 	for (var e = this._groups, t = 0, n = e.length; t < n; ++t) for (var r = e[t], i = 0, a = r.length, o; i < a; ++i) (o = r[i]) && (yield o);
 }
-//#endregion
-//#region node_modules/d3-selection/src/selection/index.js
+// node_modules/d3-selection/src/selection/index.js
 var En = [null];
 function Dn(e, t) {
 	this._groups = e, this._parents = t;
@@ -2066,20 +2014,17 @@ Dn.prototype = On.prototype = {
 	dispatch: wn,
 	[Symbol.iterator]: Tn
 };
-//#endregion
-//#region node_modules/d3-selection/src/select.js
+// node_modules/d3-selection/src/select.js
 function An(e) {
 	return typeof e == "string" ? new Dn([[document.querySelector(e)]], [document.documentElement]) : new Dn([[e]], En);
 }
-//#endregion
-//#region node_modules/d3-selection/src/sourceEvent.js
+// node_modules/d3-selection/src/sourceEvent.js
 function jn(e) {
 	let t;
 	for (; t = e.sourceEvent;) e = t;
 	return e;
 }
-//#endregion
-//#region node_modules/d3-selection/src/pointer.js
+// node_modules/d3-selection/src/pointer.js
 function Mn(e, t) {
 	if (e = jn(e), t === void 0 && (t = e.currentTarget), t) {
 		var n = t.ownerSVGElement || t;
@@ -2094,8 +2039,7 @@ function Mn(e, t) {
 	}
 	return [e.pageX, e.pageY];
 }
-//#endregion
-//#region node_modules/d3-drag/src/noevent.js
+// node_modules/d3-drag/src/noevent.js
 var Nn = { passive: !1 }, Pn = {
 	capture: !0,
 	passive: !1
@@ -2106,8 +2050,7 @@ function Fn(e) {
 function In(e) {
 	e.preventDefault(), e.stopImmediatePropagation();
 }
-//#endregion
-//#region node_modules/d3-drag/src/nodrag.js
+// node_modules/d3-drag/src/nodrag.js
 function Ln(e) {
 	var t = e.document.documentElement, n = An(e).on("dragstart.drag", In, Pn);
 	"onselectstart" in t ? n.on("selectstart.drag", In, Pn) : (t.__noselect = t.style.MozUserSelect, t.style.MozUserSelect = "none");
@@ -2118,11 +2061,9 @@ function Rn(e, t) {
 		r.on("click.drag", null);
 	}, 0)), "onselectstart" in n ? r.on("selectstart.drag", null) : (n.style.MozUserSelect = n.__noselect, delete n.__noselect);
 }
-//#endregion
-//#region node_modules/d3-drag/src/constant.js
+// node_modules/d3-drag/src/constant.js
 var zn = (e) => () => e;
-//#endregion
-//#region node_modules/d3-drag/src/event.js
+// node_modules/d3-drag/src/event.js
 function Bn(e, { sourceEvent: t, subject: n, target: r, identifier: i, active: a, x: o, y: s, dx: c, dy: l, dispatch: u }) {
 	Object.defineProperties(this, {
 		type: {
@@ -2182,8 +2123,7 @@ Bn.prototype.on = function() {
 	var e = this._.on.apply(this._, arguments);
 	return e === this._ ? this : e;
 };
-//#endregion
-//#region node_modules/d3-drag/src/drag.js
+// node_modules/d3-drag/src/drag.js
 function Vn(e) {
 	return !e.ctrlKey && !e.button;
 }
@@ -2205,7 +2145,7 @@ function Un() {
 		e.on("mousedown.drag", p).filter(r).on("touchstart.drag", g).on("touchmove.drag", _, Nn).on("touchend.drag touchcancel.drag", v).style("touch-action", "none").style("-webkit-tap-highlight-color", "rgba(0,0,0,0)");
 	}
 	function p(n, r) {
-		if (!(u || !e.call(this, n, r))) {
+		if (!u && e.call(this, n, r)) {
 			var i = y(this, t.call(this, n, r), n, r, "mouse");
 			i && (An(n.view).on("mousemove.drag", m, Pn).on("mouseup.drag", h, Pn), Ln(n.view), Fn(n), l = !1, s = n.clientX, c = n.clientY, i("start", n));
 		}
@@ -2221,14 +2161,10 @@ function Un() {
 		An(e.view).on("mousemove.drag mouseup.drag", null), Rn(e.view, l), In(e), i.mouse("end", e);
 	}
 	function g(n, r) {
-		if (e.call(this, n, r)) {
-			var i = n.changedTouches, a = t.call(this, n, r), o = i.length, s, c;
-			for (s = 0; s < o; ++s) (c = y(this, a, n, r, i[s].identifier, i[s])) && (Fn(n), c("start", n, i[s]));
-		}
+		if (e.call(this, n, r)) for (var i = n.changedTouches, a = t.call(this, n, r), o = i.length, s = 0, c; s < o; ++s) (c = y(this, a, n, r, i[s].identifier, i[s])) && (Fn(n), c("start", n, i[s]));
 	}
 	function _(e) {
-		var t = e.changedTouches, n = t.length, r, a;
-		for (r = 0; r < n; ++r) (a = i[t[r].identifier]) && (In(e), a("drag", e, t[r]));
+		for (var t = e.changedTouches, n = t.length, r = 0, a; r < n; ++r) (a = i[t[r].identifier]) && (In(e), a("drag", e, t[r]));
 	}
 	function v(e) {
 		var t = e.changedTouches, n = t.length, r, a;
@@ -2286,8 +2222,7 @@ function Un() {
 		return arguments.length ? (d = (e = +e) * e, f) : Math.sqrt(d);
 	}, f;
 }
-//#endregion
-//#region node_modules/d3-color/src/define.js
+// node_modules/d3-color/src/define.js
 function Wn(e, t, n) {
 	e.prototype = t.prototype = n, n.constructor = e;
 }
@@ -2296,8 +2231,7 @@ function Gn(e, t) {
 	for (var r in t) n[r] = t[r];
 	return n;
 }
-//#endregion
-//#region node_modules/d3-color/src/color.js
+// node_modules/d3-color/src/color.js
 function Kn() {}
 var qn = .7, Jn = 1 / qn, Yn = "\\s*([+-]?\\d+)\\s*", Xn = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)\\s*", Zn = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)%\\s*", Qn = /^#([0-9a-f]{3,8})$/, $n = RegExp(`^rgb\\(${Yn},${Yn},${Yn}\\)$`), er = RegExp(`^rgb\\(${Zn},${Zn},${Zn}\\)$`), tr = RegExp(`^rgba\\(${Yn},${Yn},${Yn},${Xn}\\)$`), nr = RegExp(`^rgba\\(${Zn},${Zn},${Zn},${Xn}\\)$`), rr = RegExp(`^hsl\\(${Xn},${Zn},${Zn}\\)$`), ir = RegExp(`^hsla\\(${Xn},${Zn},${Zn},${Xn}\\)$`), ar = {
 	aliceblue: 15792383,
@@ -2583,11 +2517,9 @@ function Dr(e) {
 function Or(e, t, n) {
 	return (e < 60 ? t + (n - t) * e / 60 : e < 180 ? n : e < 240 ? t + (n - t) * (240 - e) / 60 : t) * 255;
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/constant.js
+// node_modules/d3-interpolate/src/constant.js
 var kr = (e) => () => e;
-//#endregion
-//#region node_modules/d3-interpolate/src/color.js
+// node_modules/d3-interpolate/src/color.js
 function Ar(e, t) {
 	return function(n) {
 		return e + n * t;
@@ -2607,8 +2539,7 @@ function Nr(e, t) {
 	var n = t - e;
 	return n ? Ar(e, n) : kr(isNaN(e) ? t : e);
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/rgb.js
+// node_modules/d3-interpolate/src/rgb.js
 var Pr = (function e(t) {
 	var n = Mr(t);
 	function r(e, t) {
@@ -2619,8 +2550,7 @@ var Pr = (function e(t) {
 	}
 	return r.gamma = e, r;
 })(1);
-//#endregion
-//#region node_modules/d3-interpolate/src/numberArray.js
+// node_modules/d3-interpolate/src/numberArray.js
 function Fr(e, t) {
 	t ||= [];
 	var n = e ? Math.min(t.length, e.length) : 0, r = t.slice(), i;
@@ -2632,44 +2562,38 @@ function Fr(e, t) {
 function Ir(e) {
 	return ArrayBuffer.isView(e) && !(e instanceof DataView);
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/array.js
+// node_modules/d3-interpolate/src/array.js
 function Lr(e, t) {
-	var n = t ? t.length : 0, r = e ? Math.min(n, e.length) : 0, i = Array(r), a = Array(n), o;
-	for (o = 0; o < r; ++o) i[o] = Kr(e[o], t[o]);
+	for (var n = t ? t.length : 0, r = e ? Math.min(n, e.length) : 0, i = Array(r), a = Array(n), o = 0; o < r; ++o) i[o] = Kr(e[o], t[o]);
 	for (; o < n; ++o) a[o] = t[o];
 	return function(e) {
 		for (o = 0; o < r; ++o) a[o] = i[o](e);
 		return a;
 	};
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/date.js
+// node_modules/d3-interpolate/src/date.js
 function Rr(e, t) {
 	var n = /* @__PURE__ */ new Date();
 	return e = +e, t = +t, function(r) {
 		return n.setTime(e * (1 - r) + t * r), n;
 	};
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/number.js
+// node_modules/d3-interpolate/src/number.js
 function zr(e, t) {
 	return e = +e, t = +t, function(n) {
 		return e * (1 - n) + t * n;
 	};
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/object.js
+// node_modules/d3-interpolate/src/object.js
 function Br(e, t) {
 	var n = {}, r = {}, i;
-	for (i in (typeof e != "object" || !e) && (e = {}), (typeof t != "object" || !t) && (t = {}), t) i in e ? n[i] = Kr(e[i], t[i]) : r[i] = t[i];
+	for (i in typeof e == "object" && e || (e = {}), typeof t == "object" && t || (t = {}), t) i in e ? n[i] = Kr(e[i], t[i]) : r[i] = t[i];
 	return function(e) {
 		for (i in n) r[i] = n[i](e);
 		return r;
 	};
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/string.js
+// node_modules/d3-interpolate/src/string.js
 var Vr = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g, Hr = new RegExp(Vr.source, "g");
 function Ur(e) {
 	return function() {
@@ -2692,14 +2616,12 @@ function Gr(e, t) {
 		return s.join("");
 	});
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/value.js
+// node_modules/d3-interpolate/src/value.js
 function Kr(e, t) {
 	var n = typeof t, r;
 	return t == null || n === "boolean" ? kr(t) : (n === "number" ? zr : n === "string" ? (r = ur(t)) ? (t = r, Pr) : Gr : t instanceof ur ? Pr : t instanceof Date ? Rr : Ir(t) ? Fr : Array.isArray(t) ? Lr : typeof t.valueOf != "function" && typeof t.toString != "function" || isNaN(t) ? Br : zr)(e, t);
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/transform/decompose.js
+// node_modules/d3-interpolate/src/transform/decompose.js
 var qr = 180 / Math.PI, Jr = {
 	translateX: 0,
 	translateY: 0,
@@ -2719,8 +2641,7 @@ function Yr(e, t, n, r, i, a) {
 		scaleY: s
 	};
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/transform/parse.js
+// node_modules/d3-interpolate/src/transform/parse.js
 var Xr;
 function Zr(e) {
 	let t = new (typeof DOMMatrix == "function" ? DOMMatrix : WebKitCSSMatrix)(e + "");
@@ -2729,8 +2650,7 @@ function Zr(e) {
 function Qr(e) {
 	return e == null || (Xr ||= document.createElementNS("http://www.w3.org/2000/svg", "g"), Xr.setAttribute("transform", e), !(e = Xr.transform.baseVal.consolidate())) ? Jr : (e = e.matrix, Yr(e.a, e.b, e.c, e.d, e.e, e.f));
 }
-//#endregion
-//#region node_modules/d3-interpolate/src/transform/index.js
+// node_modules/d3-interpolate/src/transform/index.js
 function $r(e, t, n, r) {
 	function i(e) {
 		return e.length ? e.pop() + " " : "";
@@ -2866,16 +2786,14 @@ function Ti() {
 function Ei(e) {
 	si || (ci &&= clearTimeout(ci), e - mi > 24 ? (e < Infinity && (ci = setTimeout(Ci, e - gi.now() - hi)), li &&= clearInterval(li)) : (li ||= (pi = gi.now(), setInterval(wi, ui)), si = 1, _i(Ci)));
 }
-//#endregion
-//#region node_modules/d3-timer/src/timeout.js
+// node_modules/d3-timer/src/timeout.js
 function Di(e, t, n) {
 	var r = new bi();
 	return t = t == null ? 0 : +t, r.restart((n) => {
 		r.stop(), e(n + t);
 	}, t, n), r;
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/schedule.js
+// node_modules/d3-transition/src/transition/schedule.js
 var Oi = De("start", "end", "cancel", "interrupt"), ki = [];
 function Ai(e, t, n, r, i, a) {
 	var o = e.__transition;
@@ -2939,30 +2857,21 @@ function Pi(e, t, n) {
 		delete e.__transition;
 	}
 }
-//#endregion
-//#region node_modules/d3-transition/src/interrupt.js
+// node_modules/d3-transition/src/interrupt.js
 function Fi(e, t) {
 	var n = e.__transition, r, i, a = !0, o;
 	if (n) {
-		for (o in t = t == null ? null : t + "", n) {
-			if ((r = n[o]).name !== t) {
-				a = !1;
-				continue;
-			}
-			i = r.state > 2 && r.state < 5, r.state = 6, r.timer.stop(), r.on.call(i ? "interrupt" : "cancel", e, e.__data__, r.index, r.group), delete n[o];
-		}
+		for (o in t = t == null ? null : t + "", n) (r = n[o]).name === t ? (i = r.state > 2 && r.state < 5, r.state = 6, r.timer.stop(), r.on.call(i ? "interrupt" : "cancel", e, e.__data__, r.index, r.group), delete n[o]) : a = !1;
 		a && delete e.__transition;
 	}
 }
-//#endregion
-//#region node_modules/d3-transition/src/selection/interrupt.js
+// node_modules/d3-transition/src/selection/interrupt.js
 function Ii(e) {
 	return this.each(function() {
 		Fi(this, e);
 	});
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/tween.js
+// node_modules/d3-transition/src/transition/tween.js
 function Li(e, t) {
 	var n, r;
 	return function() {
@@ -3013,14 +2922,12 @@ function Bi(e, t, n) {
 		return Ni(e, r).value[t];
 	};
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/interpolate.js
+// node_modules/d3-transition/src/transition/interpolate.js
 function Vi(e, t) {
 	var n;
 	return (typeof t == "number" ? zr : t instanceof ur ? Pr : (n = ur(t)) ? (t = n, Pr) : Gr)(e, t);
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/attr.js
+// node_modules/d3-transition/src/transition/attr.js
 function Hi(e) {
 	return function() {
 		this.removeAttribute(e);
@@ -3063,8 +2970,7 @@ function Ji(e, t) {
 	var n = Ne(e), r = n === "transform" ? ti : Vi;
 	return this.attrTween(e, typeof t == "function" ? (n.local ? qi : Ki)(n, r, Bi(this, "attr." + e, t)) : t == null ? (n.local ? Ui : Hi)(n) : (n.local ? Gi : Wi)(n, r, t));
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/attrTween.js
+// node_modules/d3-transition/src/transition/attrTween.js
 function Yi(e, t) {
 	return function(n) {
 		this.setAttribute(e, t.call(this, n));
@@ -3099,8 +3005,7 @@ function $i(e, t) {
 	var r = Ne(e);
 	return this.tween(n, (r.local ? Zi : Qi)(r, t));
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/delay.js
+// node_modules/d3-transition/src/transition/delay.js
 function ea(e, t) {
 	return function() {
 		ji(this, e).delay = +t.apply(this, arguments);
@@ -3115,8 +3020,7 @@ function na(e) {
 	var t = this._id;
 	return arguments.length ? this.each((typeof e == "function" ? ea : ta)(t, e)) : Ni(this.node(), t).delay;
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/duration.js
+// node_modules/d3-transition/src/transition/duration.js
 function ra(e, t) {
 	return function() {
 		Mi(this, e).duration = +t.apply(this, arguments);
@@ -3131,8 +3035,7 @@ function aa(e) {
 	var t = this._id;
 	return arguments.length ? this.each((typeof e == "function" ? ra : ia)(t, e)) : Ni(this.node(), t).duration;
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/ease.js
+// node_modules/d3-transition/src/transition/ease.js
 function oa(e, t) {
 	if (typeof t != "function") throw Error();
 	return function() {
@@ -3143,8 +3046,7 @@ function sa(e) {
 	var t = this._id;
 	return arguments.length ? this.each(oa(t, e)) : Ni(this.node(), t).ease;
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/easeVarying.js
+// node_modules/d3-transition/src/transition/easeVarying.js
 function ca(e, t) {
 	return function() {
 		var n = t.apply(this, arguments);
@@ -3156,23 +3058,20 @@ function la(e) {
 	if (typeof e != "function") throw Error();
 	return this.each(ca(this._id, e));
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/filter.js
+// node_modules/d3-transition/src/transition/filter.js
 function ua(e) {
 	typeof e != "function" && (e = Ge(e));
 	for (var t = this._groups, n = t.length, r = Array(n), i = 0; i < n; ++i) for (var a = t[i], o = a.length, s = r[i] = [], c, l = 0; l < o; ++l) (c = a[l]) && e.call(c, c.__data__, l, a) && s.push(c);
 	return new Ra(r, this._parents, this._name, this._id);
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/merge.js
+// node_modules/d3-transition/src/transition/merge.js
 function da(e) {
 	if (e._id !== this._id) throw Error();
 	for (var t = this._groups, n = e._groups, r = t.length, i = n.length, a = Math.min(r, i), o = Array(r), s = 0; s < a; ++s) for (var c = t[s], l = n[s], u = c.length, d = o[s] = Array(u), f, p = 0; p < u; ++p) (f = c[p] || l[p]) && (d[p] = f);
 	for (; s < r; ++s) o[s] = t[s];
 	return new Ra(o, this._parents, this._name, this._id);
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/on.js
+// node_modules/d3-transition/src/transition/on.js
 function fa(e) {
 	return (e + "").trim().split(/^|\s+/).every(function(e) {
 		var t = e.indexOf(".");
@@ -3190,8 +3089,7 @@ function ma(e, t) {
 	var n = this._id;
 	return arguments.length < 2 ? Ni(this.node(), n).on.on(e) : this.each(pa(n, e, t));
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/remove.js
+// node_modules/d3-transition/src/transition/remove.js
 function ha(e) {
 	return function() {
 		var t = this.parentNode;
@@ -3202,16 +3100,14 @@ function ha(e) {
 function ga() {
 	return this.on("end.remove", ha(this._id));
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/select.js
+// node_modules/d3-transition/src/transition/select.js
 function _a(e) {
 	var t = this._name, n = this._id;
 	typeof e != "function" && (e = Re(e));
 	for (var r = this._groups, i = r.length, a = Array(i), o = 0; o < i; ++o) for (var s = r[o], c = s.length, l = a[o] = Array(c), u, d, f = 0; f < c; ++f) (u = s[f]) && (d = e.call(u, u.__data__, f, s)) && ("__data__" in u && (d.__data__ = u.__data__), l[f] = d, Ai(l[f], t, n, f, l, Ni(u, n)));
 	return new Ra(a, this._parents, t, n);
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/selectAll.js
+// node_modules/d3-transition/src/transition/selectAll.js
 function va(e) {
 	var t = this._name, n = this._id;
 	typeof e != "function" && (e = He(e));
@@ -3221,14 +3117,12 @@ function va(e) {
 	}
 	return new Ra(a, o, t, n);
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/selection.js
+// node_modules/d3-transition/src/transition/selection.js
 var ya = On.prototype.constructor;
 function ba() {
 	return new ya(this._groups, this._parents);
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/style.js
+// node_modules/d3-transition/src/transition/style.js
 function xa(e, t) {
 	var n, r, i;
 	return function() {
@@ -3266,8 +3160,7 @@ function ree(e, t, n) {
 	var r = (e += "") == "transform" ? ei : Vi;
 	return t == null ? this.styleTween(e, xa(e, r)).on("end.style." + e, Sa(e)) : typeof t == "function" ? this.styleTween(e, wa(e, r, Bi(this, "style." + e, t))).each(Ta(this._id, e)) : this.styleTween(e, Ca(e, r, t), n).on("end.style." + e, null);
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/styleTween.js
+// node_modules/d3-transition/src/transition/styleTween.js
 function Ea(e, t, n) {
 	return function(r) {
 		this.style.setProperty(e, t.call(this, r), n);
@@ -3288,8 +3181,7 @@ function Oa(e, t, n) {
 	if (typeof t != "function") throw Error();
 	return this.tween(r, Da(e, t, n ?? ""));
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/text.js
+// node_modules/d3-transition/src/transition/text.js
 function ka(e) {
 	return function() {
 		this.textContent = e;
@@ -3304,8 +3196,7 @@ function Aa(e) {
 function ja(e) {
 	return this.tween("text", typeof e == "function" ? Aa(Bi(this, "text", e)) : ka(e == null ? "" : e + ""));
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/textTween.js
+// node_modules/d3-transition/src/transition/textTween.js
 function Ma(e) {
 	return function(t) {
 		this.textContent = e.call(this, t);
@@ -3326,8 +3217,7 @@ function Pa(e) {
 	if (typeof e != "function") throw Error();
 	return this.tween(t, Na(e));
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/transition.js
+// node_modules/d3-transition/src/transition/transition.js
 function Fa() {
 	for (var e = this._name, t = this._id, n = za(), r = this._groups, i = r.length, a = 0; a < i; ++a) for (var o = r[a], s = o.length, c, l = 0; l < s; ++l) if (c = o[l]) {
 		var u = Ni(c, t);
@@ -3340,8 +3230,7 @@ function Fa() {
 	}
 	return new Ra(r, this._parents, e, n);
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/end.js
+// node_modules/d3-transition/src/transition/end.js
 function Ia() {
 	var e, t, n = this, r = n._id, i = n.size();
 	return new Promise(function(a, o) {
@@ -3354,8 +3243,7 @@ function Ia() {
 		}), i === 0 && a();
 	});
 }
-//#endregion
-//#region node_modules/d3-transition/src/transition/index.js
+// node_modules/d3-transition/src/transition/index.js
 var La = 0;
 function Ra(e, t, n, r) {
 	this._groups = e, this._parents = t, this._name = n, this._id = r;
@@ -3396,13 +3284,11 @@ Ra.prototype = {
 	end: Ia,
 	[Symbol.iterator]: Ba[Symbol.iterator]
 };
-//#endregion
-//#region node_modules/d3-ease/src/cubic.js
+// node_modules/d3-ease/src/cubic.js
 function Va(e) {
 	return ((e *= 2) <= 1 ? e * e * e : (e -= 2) * e * e + 2) / 2;
 }
-//#endregion
-//#region node_modules/d3-transition/src/selection/transition.js
+// node_modules/d3-transition/src/selection/transition.js
 var Ha = {
 	time: null,
 	delay: 0,
@@ -3420,11 +3306,9 @@ function Wa(e) {
 	return new Ra(r, this._parents, e, t);
 }
 On.prototype.interrupt = Ii, On.prototype.transition = Wa;
-//#endregion
-//#region node_modules/d3-zoom/src/constant.js
+// node_modules/d3-zoom/src/constant.js
 var Ga = (e) => () => e;
-//#endregion
-//#region node_modules/d3-zoom/src/event.js
+// node_modules/d3-zoom/src/event.js
 function Ka(e, { sourceEvent: t, target: n, transform: r, dispatch: i }) {
 	Object.defineProperties(this, {
 		type: {
@@ -3450,8 +3334,7 @@ function Ka(e, { sourceEvent: t, target: n, transform: r, dispatch: i }) {
 		_: { value: i }
 	});
 }
-//#endregion
-//#region node_modules/d3-zoom/src/transform.js
+// node_modules/d3-zoom/src/transform.js
 function qa(e, t, n) {
 	this.k = e, this.x = t, this.y = n;
 }
@@ -3497,16 +3380,14 @@ function Ya(e) {
 	for (; !e.__zoom;) if (!(e = e.parentNode)) return Ja;
 	return e.__zoom;
 }
-//#endregion
-//#region node_modules/d3-zoom/src/noevent.js
+// node_modules/d3-zoom/src/noevent.js
 function Xa(e) {
 	e.stopImmediatePropagation();
 }
 function Za(e) {
 	e.preventDefault(), e.stopImmediatePropagation();
 }
-//#endregion
-//#region node_modules/d3-zoom/src/zoom.js
+// node_modules/d3-zoom/src/zoom.js
 function Qa(e) {
 	return (!e.ctrlKey || e.type === "wheel") && !e.button;
 }
@@ -3710,8 +3591,7 @@ function io() {
 		return arguments.length ? (g = +e, _) : g;
 	}, _;
 }
-//#endregion
-//#region node_modules/@xyflow/system/dist/esm/index.js
+// node_modules/@xyflow/system/dist/esm/index.js
 var ao = {
 	error001: (e = "react") => `Seems like you have not used ${e === "svelte" ? "SvelteFlowProvider" : "ReactFlowProvider"} as an ancestor. Help: https://${e}flow.dev/error#001`,
 	error002: () => "It looks like you've created a new nodeTypes or edgeTypes object. If this wasn't on purpose please define the nodeTypes/edgeTypes outside of the component or memoize them.",
@@ -4538,7 +4418,7 @@ function Js(e, t, n, r = {}) {
 				}
 			}, t.set(u.id, e);
 		}
-		(e.measured === void 0 || e.measured.width === void 0 || e.measured.height === void 0) && !e.hidden && (c = !1), u.parentId && Xs(e, t, n, r, a), l ||= u.selected ?? !1;
+		e.measured !== void 0 && e.measured.width !== void 0 && e.measured.height !== void 0 || e.hidden || (c = !1), u.parentId && Xs(e, t, n, r, a), l ||= u.selected ?? !1;
 	}
 	return {
 		nodesInitialized: c,
@@ -4866,7 +4746,7 @@ function cc({ onNodeMouseDown: e, getStoreItems: t, onDragStart: n, onDrag: r, o
 		}
 		function ee(r) {
 			let { nodeLookup: i, multiSelectionActive: o, nodesDraggable: c, transform: l, snapGrid: f, snapToGrid: p, selectNodesOnDrag: m, onNodeDragStart: h, onSelectionDragStart: g, unselectNodesAndEdges: _ } = t();
-			d = !0, (!m || !y) && !o && b && (i.get(b)?.selected || _()), y && m && b && e?.(b);
+			d = !0, m && y || o || !b || i.get(b)?.selected || _(), y && m && b && e?.(b);
 			let v = cs(r.sourceEvent, {
 				transform: l,
 				snapGrid: f,
@@ -4905,11 +4785,8 @@ function cc({ onNodeMouseDown: e, getStoreItems: t, onDragStart: n, onDrag: r, o
 				(a.x !== g.xSnapped || a.y !== g.ySnapped) && s && d && (l = ms(e.sourceEvent, u), S(g));
 			}
 		}).on("end", (e) => {
-			if (!d || p) {
-				p && s.size > 0 && t().updateNodePositions(s, !1);
-				return;
-			}
-			if (c = !1, d = !1, cancelAnimationFrame(o), s.size > 0) {
+			if (!d || p) p && s.size > 0 && t().updateNodePositions(s, !1);
+			else if (c = !1, d = !1, cancelAnimationFrame(o), s.size > 0) {
 				let { nodeLookup: n, updateNodePositions: r, onNodeDragStop: a, onSelectionDragStop: o } = t();
 				if (m &&= (r(s, !1), !1), i || a || !b && o) {
 					let [t, r] = oc({
@@ -5549,8 +5426,7 @@ function Gc({ domNode: e, nodeId: t, getStoreItems: n, onChange: r, onEnd: i }) 
 		destroy: c
 	};
 }
-//#endregion
-//#region node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js
+// node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js
 var Kc = /* @__PURE__ */ o(((e) => {
 	var t = d();
 	function n(e, t) {
@@ -5664,8 +5540,7 @@ var nl = (e, t) => {
 	let n = Zc(e), r = (e, r = t) => tl(n, e, r);
 	return Object.assign(r, n), r;
 }, rl = (e, t) => e ? nl(e, t) : nl;
-//#endregion
-//#region node_modules/zustand/esm/shallow.mjs
+// node_modules/zustand/esm/shallow.mjs
 function il(e, t) {
 	if (Object.is(e, t)) return !0;
 	if (typeof e != "object" || !e || typeof t != "object" || !t) return !1;
@@ -5684,8 +5559,7 @@ function il(e, t) {
 	for (let r of n) if (!Object.prototype.hasOwnProperty.call(t, r) || !Object.is(e[r], t[r])) return !1;
 	return !0;
 }
-//#endregion
-//#region node_modules/@xyflow/react/dist/esm/index.js
+// node_modules/@xyflow/react/dist/esm/index.js
 var al = (0, m.createContext)(null), ol = al.Provider, sl = ao.error001("react");
 function cl(e, t) {
 	let n = (0, m.useContext)(al);
@@ -6009,7 +5883,7 @@ function Gl(e, t = /* @__PURE__ */ new Set(), n = !1) {
 	let r = [];
 	for (let [i, a] of e) {
 		let e = t.has(i);
-		!(a.selected === void 0 && !e) && a.selected !== e && (n && (a.selected = e), r.push(Wl(a.id, e)));
+		(a.selected !== void 0 || e) && a.selected !== e && (n && (a.selected = e), r.push(Wl(a.id, e)));
 	}
 	return r;
 }
@@ -6439,17 +6313,9 @@ function vu({ isSelecting: e, selectionKeyPressed: t, selectionMode: n = fo.Full
 		x: 0,
 		y: 0
 	}), se = (0, m.useRef)(!1), ce = (e) => {
-		if (ae.current || ie.current || v.getState().connection.inProgress) {
-			ae.current = !1, ie.current = !1;
-			return;
-		}
-		l?.(e), v.getState().resetSelectedElements(), v.setState({ nodesSelectionActive: !1 });
+		ae.current || ie.current || v.getState().connection.inProgress ? (ae.current = !1, ie.current = !1) : (l?.(e), v.getState().resetSelectedElements(), v.setState({ nodesSelectionActive: !1 }));
 	}, le = (e) => {
-		if (Array.isArray(r) && r?.includes(2)) {
-			e.preventDefault();
-			return;
-		}
-		u?.(e);
+		Array.isArray(r) && r?.includes(2) ? e.preventDefault() : u?.(e);
 	}, ue = d ? (e) => d(e) : void 0, de = (e) => {
 		ae.current &&= (e.stopPropagation(), !1);
 	}, fe = (n) => {
@@ -6539,14 +6405,10 @@ function vu({ isSelecting: e, selectionKeyPressed: t, selectionMode: n = fo.Full
 		}
 		ae.current = !0, se.current ||= (me(), !0), pe(o, c);
 	}, _e = (e) => {
-		if (!w) {
-			e.target === T.current && v.getState().connection.inProgress && (ie.current = !0);
-			return;
-		}
-		e.button === 0 && (e.target?.releasePointerCapture?.(e.pointerId), !y && e.target === T.current && v.getState().userSelectionRect && ce?.(e), v.setState({
+		w ? e.button === 0 && (e.target?.releasePointerCapture?.(e.pointerId), !y && e.target === T.current && v.getState().userSelectionRect && ce?.(e), v.setState({
 			userSelectionActive: !1,
 			userSelectionRect: null
-		}), ae.current && (c?.(e), v.setState({ nodesSelectionActive: ne.current.size > 0 })), he());
+		}), ae.current && (c?.(e), v.setState({ nodesSelectionActive: ne.current.size > 0 })), he()) : e.target === T.current && v.getState().connection.inProgress && (ie.current = !0);
 	}, ve = (e) => {
 		e.target?.releasePointerCapture?.(e.pointerId), he();
 	}, ye = r === !0 || Array.isArray(r) && r.includes(0);
@@ -6573,14 +6435,10 @@ function vu({ isSelecting: e, selectionKeyPressed: t, selectionMode: n = fo.Full
 }
 function yu({ id: e, store: t, unselect: n = !1, nodeRef: r }) {
 	let { addSelectedNodes: i, unselectNodesAndEdges: a, multiSelectionActive: o, nodeLookup: s, onError: c } = t.getState(), l = s.get(e);
-	if (!l) {
-		c?.("012", ao.error012(e));
-		return;
-	}
-	t.setState({ nodesSelectionActive: !1 }), l.selected ? (n || l.selected && o) && (a({
+	l ? (t.setState({ nodesSelectionActive: !1 }), l.selected ? (n || l.selected && o) && (a({
 		nodes: [l],
 		edges: []
-	}), requestAnimationFrame(() => r?.current?.blur())) : i([e]);
+	}), requestAnimationFrame(() => r?.current?.blur())) : i([e])) : c?.("012", ao.error012(e));
 }
 function bu({ nodeRef: e, disabled: t = !1, noDragClassName: n, handleSelector: r, nodeId: i, isSelectable: a, nodeClickDistance: o }) {
 	let s = ll(), [c, l] = (0, m.useState)(!1), u = (0, m.useRef)();
@@ -6608,7 +6466,7 @@ function bu({ nodeRef: e, disabled: t = !1, noDragClassName: n, handleSelector: 
 		s,
 		e
 	]), (0, m.useEffect)(() => {
-		t || !e.current || !u.current || u.current.update({
+		!t && e.current && u.current && u.current.update({
 			noDragClassName: n,
 			handleSelector: r,
 			domNode: e.current,
@@ -7001,7 +6859,7 @@ function Yu() {
 function Xu({ node: e, nodeType: t, hasDimensions: n, resizeObserver: r }) {
 	let i = ll(), a = (0, m.useRef)(null), o = (0, m.useRef)(null), s = (0, m.useRef)(e.sourcePosition), c = (0, m.useRef)(e.targetPosition), l = (0, m.useRef)(t), u = n && !!e.internals.handleBounds;
 	return (0, m.useEffect)(() => {
-		a.current && !e.hidden && (!u || o.current !== a.current) && (o.current && r?.unobserve(o.current), r?.observe(a.current), o.current = a.current);
+		!a.current || e.hidden || u && o.current === a.current || (o.current && r?.unobserve(o.current), r?.observe(a.current), o.current = a.current);
 	}, [u, e.hidden]), (0, m.useEffect)(() => () => {
 		o.current &&= (r?.unobserve(o.current), null);
 	}, []), (0, m.useEffect)(() => {
@@ -8030,7 +7888,7 @@ var cee = (0, m.memo)(tf), nf = Go("React Flow", "https://reactflow.dev/"), rf =
 		1
 	];
 	if (o && i && a) {
-		let { x: e, y: t, zoom: n } = Qo(Co(p, { filter: (e) => !!((e.width || e.initialWidth) && (e.height || e.initialHeight)) }), i, a, c, l, s?.padding ?? .1);
+		let { x: e, y: t, zoom: n } = Qo(Co(p, { filter: (e) => !(!e.width && !e.initialWidth || !e.height && !e.initialHeight) }), i, a, c, l, s?.padding ?? .1);
 		S = [
 			e,
 			t,
@@ -8243,19 +8101,11 @@ var cee = (0, m.memo)(tf), nf = Go("React Flow", "https://reactflow.dev/"), rf =
 		},
 		addSelectedNodes: (e) => {
 			let { multiSelectionActive: t, edgeLookup: n, nodeLookup: r, triggerNodeChanges: i, triggerEdgeChanges: a } = m();
-			if (t) {
-				i(e.map((e) => Wl(e, !0)));
-				return;
-			}
-			i(Gl(r, /* @__PURE__ */ new Set([...e]), !0)), a(Gl(n));
+			t ? i(e.map((e) => Wl(e, !0))) : (i(Gl(r, /* @__PURE__ */ new Set([...e]), !0)), a(Gl(n)));
 		},
 		addSelectedEdges: (e) => {
 			let { multiSelectionActive: t, edgeLookup: n, nodeLookup: r, triggerNodeChanges: i, triggerEdgeChanges: a } = m();
-			if (t) {
-				a(e.map((e) => Wl(e, !0)));
-				return;
-			}
-			a(Gl(n, /* @__PURE__ */ new Set([...e]))), i(Gl(r, /* @__PURE__ */ new Set(), !0));
+			t ? a(e.map((e) => Wl(e, !0))) : (a(Gl(n, /* @__PURE__ */ new Set([...e]))), i(Gl(r, /* @__PURE__ */ new Set(), !0)));
 		},
 		unselectNodesAndEdges: ({ nodes: e, edges: t } = {}) => {
 			let { edges: n, nodes: r, nodeLookup: i, triggerNodeChanges: a, triggerEdgeChanges: o } = m(), s = e || r, c = t || n, l = [];
@@ -8947,7 +8797,7 @@ var lee = (0, m.memo)(Uf), Wf = (e) => (t) => e ? `${Math.max(1 / t.transform[2]
 function Gf({ nodeId: e, position: t, variant: n = Pc.Handle, className: r, style: i = void 0, children: a, color: o, minWidth: s = 10, minHeight: c = 10, maxWidth: l = Number.MAX_VALUE, maxHeight: u = Number.MAX_VALUE, keepAspectRatio: d = !1, resizeDirection: f, autoScale: p = !0, shouldResize: h, onResizeStart: g, onResize: _, onResizeEnd: v }) {
 	let y = Tu(), b = typeof e == "string" ? e : y, x = ll(), C = (0, m.useRef)(null), ee = n === Pc.Handle, w = cl((0, m.useCallback)(Wf(ee && p), [ee, p]), il), T = (0, m.useRef)(null), te = t ?? uee[n];
 	(0, m.useEffect)(() => {
-		if (!(!C.current || !b)) return T.current ||= Gc({
+		if (C.current && b) return T.current ||= Gc({
 			domNode: C.current,
 			nodeId: b,
 			getStoreItems: () => {
@@ -9074,8 +8924,7 @@ function Gf({ nodeId: e, position: t, variant: n = Pc.Handle, className: r, styl
 	});
 }
 (0, m.memo)(Gf);
-//#endregion
-//#region node_modules/scheduler/cjs/scheduler.production.js
+// node_modules/scheduler/cjs/scheduler.production.js
 var Kf = /* @__PURE__ */ o(((e) => {
 	function t(e, t) {
 		var n = e.length;
@@ -9961,11 +9810,7 @@ var Kf = /* @__PURE__ */ o(((e) => {
 		}
 	}
 	function tn(e, t, n) {
-		if (t != null && (t = "" + Ut(t), t !== e.value && (e.value = t), n == null)) {
-			e.defaultValue !== t && (e.defaultValue = t);
-			return;
-		}
-		e.defaultValue = n == null ? "" : "" + Ut(n);
+		t != null && (t = "" + Ut(t), t !== e.value && (e.value = t), n == null) ? e.defaultValue !== t && (e.defaultValue = t) : e.defaultValue = n == null ? "" : "" + Ut(n);
 	}
 	function nn(e, t, n, r) {
 		if (t == null) {
@@ -10168,7 +10013,7 @@ var Kf = /* @__PURE__ */ o(((e) => {
 		if (n && typeof n != "function") throw Error(i(231, t, typeof n));
 		return n;
 	}
-	var bn = !(typeof window > "u" || window.document === void 0 || window.document.createElement === void 0), xn = !1;
+	var bn = typeof window < "u" && window.document !== void 0 && window.document.createElement !== void 0, xn = !1;
 	if (bn) try {
 		var Sn = {};
 		Object.defineProperty(Sn, "passive", { get: function() {
@@ -11361,9 +11206,7 @@ var Kf = /* @__PURE__ */ o(((e) => {
 				shared: r.shared,
 				callbacks: r.callbacks
 			}, e.updateQueue = n;
-			return;
-		}
-		e = n.lastBaseUpdate, e === null ? n.firstBaseUpdate = t : e.next = t, n.lastBaseUpdate = t;
+		} else e = n.lastBaseUpdate, e === null ? n.firstBaseUpdate = t : e.next = t, n.lastBaseUpdate = t;
 	}
 	var no = !1;
 	function ro() {
@@ -11824,15 +11667,9 @@ var Kf = /* @__PURE__ */ o(((e) => {
 					if (Wi) {
 						if (Ui) {
 							b: {
-								for (var i = Ui, a = Ki; i.nodeType !== 8;) {
-									if (!a) {
-										i = null;
-										break b;
-									}
-									if (i = Ef(i.nextSibling), i === null) {
-										i = null;
-										break b;
-									}
+								for (var i = Ui, a = Ki; i.nodeType !== 8;) if (!a || (i = Ef(i.nextSibling), i === null)) {
+									i = null;
+									break b;
 								}
 								a = i.data, i = a === "F!" || a === "F" ? i : null;
 							}
@@ -14146,7 +13983,7 @@ var Kf = /* @__PURE__ */ o(((e) => {
 		return e = po.current, e !== null && (e.flags |= 32), fu;
 	}
 	function Nu(e, t, n) {
-		(e === $l && (nu === 2 || nu === 9) || e.cancelPendingCommit !== null) && (zu(e, 0), Iu(e, tu, fu, !1)), ct(e, n), (!(Ql & 2) || e !== $l) && (e === $l && (!(Ql & 2) && (uu |= n), cu === 4 && Iu(e, tu, fu, !1)), xd(e));
+		(e === $l && (nu === 2 || nu === 9) || e.cancelPendingCommit !== null) && (zu(e, 0), Iu(e, tu, fu, !1)), ct(e, n), Ql & 2 && e === $l || (e === $l && (!(Ql & 2) && (uu |= n), cu === 4 && Iu(e, tu, fu, !1)), xd(e));
 	}
 	function Pu(e, t, n) {
 		if (Ql & 6) throw Error(i(327));
@@ -14156,58 +13993,57 @@ var Kf = /* @__PURE__ */ o(((e) => {
 				au && !r && Iu(e, t, 0, !1);
 				break;
 			}
-			if (n = e.current.alternate, o && !oee(n)) {
-				a = Gu(e, t, !1), o = !1;
-				continue;
-			}
-			if (a === 2) {
-				if (o = t, e.errorRecoveryDisabledLanes & o) var s = 0;
-				else s = e.pendingLanes & -536870913, s = s === 0 ? s & 536870912 ? 536870912 : 0 : s;
-				if (s !== 0) {
-					t = s;
-					a: {
-						var c = e;
-						a = mu;
-						var l = c.current.memoizedState.isDehydrated;
-						if (l && (zu(c, s).flags |= 256), s = Gu(c, s, !1), s !== 2) {
-							if (ou && !l) {
-								c.errorRecoveryDisabledLanes |= o, uu |= o, a = 4;
-								break a;
+			if (n = e.current.alternate, o && !oee(n)) a = Gu(e, t, !1), o = !1;
+			else {
+				if (a === 2) {
+					if (o = t, e.errorRecoveryDisabledLanes & o) var s = 0;
+					else s = e.pendingLanes & -536870913, s = s === 0 ? s & 536870912 ? 536870912 : 0 : s;
+					if (s !== 0) {
+						t = s;
+						a: {
+							var c = e;
+							a = mu;
+							var l = c.current.memoizedState.isDehydrated;
+							if (l && (zu(c, s).flags |= 256), s = Gu(c, s, !1), s !== 2) {
+								if (ou && !l) {
+									c.errorRecoveryDisabledLanes |= o, uu |= o, a = 4;
+									break a;
+								}
+								o = hu, hu = a, o !== null && (hu === null ? hu = o : hu.push.apply(hu, o));
 							}
-							o = hu, hu = a, o !== null && (hu === null ? hu = o : hu.push.apply(hu, o));
+							a = s;
 						}
-						a = s;
+						if (o = !1, a !== 2) continue;
 					}
-					if (o = !1, a !== 2) continue;
 				}
-			}
-			if (a === 1) {
-				zu(e, 0), Iu(e, t, 0, !0);
+				if (a === 1) {
+					zu(e, 0), Iu(e, t, 0, !0);
+					break;
+				}
+				a: {
+					switch (r = e, o = a, o) {
+						case 0:
+						case 1: throw Error(i(345));
+						case 4: if ((t & 4194048) !== t) break;
+						case 6:
+							Iu(r, t, fu, !iu);
+							break a;
+						case 2:
+							hu = null;
+							break;
+						case 3:
+						case 5: break;
+						default: throw Error(i(329));
+					}
+					if ((t & 62914560) === t && (a = _u + 300 - Le(), 10 < a)) {
+						if (Iu(r, t, fu, !iu), rt(r, 0, !0) !== 0) break a;
+						Tu = t, r.timeoutHandle = df(Fu.bind(null, r, n, hu, bu, gu, t, fu, uu, pu, iu, o, "Throttled", -0, 0), a);
+						break a;
+					}
+					Fu(r, n, hu, bu, gu, t, fu, uu, pu, iu, o, null, -0, 0);
+				}
 				break;
 			}
-			a: {
-				switch (r = e, o = a, o) {
-					case 0:
-					case 1: throw Error(i(345));
-					case 4: if ((t & 4194048) !== t) break;
-					case 6:
-						Iu(r, t, fu, !iu);
-						break a;
-					case 2:
-						hu = null;
-						break;
-					case 3:
-					case 5: break;
-					default: throw Error(i(329));
-				}
-				if ((t & 62914560) === t && (a = _u + 300 - Le(), 10 < a)) {
-					if (Iu(r, t, fu, !iu), rt(r, 0, !0) !== 0) break a;
-					Tu = t, r.timeoutHandle = df(Fu.bind(null, r, n, hu, bu, gu, t, fu, uu, pu, iu, o, "Throttled", -0, 0), a);
-					break a;
-				}
-				Fu(r, n, hu, bu, gu, t, fu, uu, pu, iu, o, null, -0, 0);
-			}
-			break;
 		} while (1);
 		xd(e);
 	}
@@ -15153,11 +14989,7 @@ var Kf = /* @__PURE__ */ o(((e) => {
 			}
 			case "src":
 			case "href":
-				if (r === "" && (t !== "a" || n !== "href")) {
-					e.removeAttribute(n);
-					break;
-				}
-				if (r == null || typeof r == "function" || typeof r == "symbol" || typeof r == "boolean") {
+				if (r === "" && (t !== "a" || n !== "href") || r == null || typeof r == "function" || typeof r == "symbol" || typeof r == "boolean") {
 					e.removeAttribute(n);
 					break;
 				}
@@ -16687,7 +16519,7 @@ var Kf = /* @__PURE__ */ o(((e) => {
 	};
 })), Jf = (/* @__PURE__ */ o(((e, t) => {
 	function n() {
-		if (!(typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ > "u" || typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE != "function")) try {
+		if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ < "u" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE == "function") try {
 			__REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE(n);
 		} catch (e) {
 			console.error(e);
@@ -16728,13 +16560,11 @@ function rp(e, t) {
 function ip(e, t, n) {
 	return n === "none" ? [...e] : n === "single" ? [t] : !e.includes(t) && e.length >= 700 ? [...e] : e.includes(t) ? e.filter((e) => e !== t) : [...e, t];
 }
-//#endregion
-//#region src/codec.ts
+// src/codec.ts
 function ap(e) {
 	if (e !== 3) throw Error(`SGC_CODEC_VERSION: expected 3; received ${String(e)}`);
 }
-//#endregion
-//#region src/events.ts
+// src/events.ts
 function op(e, t, n, r, i, a = crypto.randomUUID()) {
 	if (t.length === 0 || t.length > 512 || n.length === 0 || n.length > 512) throw Error("SGC_ACTION_NODE_LIMIT: node identifiers exceed the contract");
 	return {
@@ -16755,8 +16585,7 @@ function sp(e, t) {
 	if (new TextEncoder().encode(JSON.stringify(n)).byteLength > 262144) throw Error("SGC_ACTION_BYTES_LIMIT: pending action queue is too large");
 	return n;
 }
-//#endregion
-//#region src/atlas-cache.ts
+// src/atlas-cache.ts
 var cp = /^[0-9a-f]{64}$/, fee = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/, lp = [
 	"base64",
 	"contentSha256",
@@ -16915,8 +16744,7 @@ function yp(e) {
 		n !== t || n.leases > 0 || (n.cache.clear(), fp.delete(e));
 	}, dp)));
 }
-//#endregion
-//#region src/javascript-registry.ts
+// src/javascript-registry.ts
 var bp = Symbol.for(Yf);
 function xp() {
 	let e = globalThis;
@@ -16937,8 +16765,7 @@ function Cp(e, t) {
 		t.replaceChildren();
 	}
 }
-//#endregion
-//#region src/child-groups.ts
+// src/child-groups.ts
 var wp = "sgc-group:";
 function Tp(e, t) {
 	return `${wp}${e}\u0000${t}`;
@@ -17024,11 +16851,8 @@ function Op(e, t) {
 		let e = [[t.id, !1]];
 		for (; e.length;) {
 			let [t, r] = e.pop();
-			if (r) {
-				a.push(t);
-				continue;
-			}
-			if (!i.has(t)) {
+			if (r) a.push(t);
+			else if (!i.has(t)) {
 				i.add(t), e.push([t, !0]);
 				for (let r of n.get(t) ?? []) i.has(r) || e.push([r, !1]);
 			}
@@ -23402,8 +23226,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return zE(t, e.a.length), e.a[t];
 						}
 						function uSe(e, t) {
-							var n;
-							for (n = 0; n < t; ++n) e[n] = -1;
+							for (var n = 0; n < t; ++n) e[n] = -1;
 						}
 						function dSe(e, t) {
 							return eT(e), Ej(e, (eT(t), t));
@@ -23519,8 +23342,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return lHe(n, t), n;
 						}
 						function MSe(e, t, n) {
-							var r;
-							for (r = 0; r < t; ++r) e[r] = n;
+							for (var r = 0; r < t; ++r) e[r] = n;
 						}
 						function MC(e, t, n) {
 							wE(t, e.c.length), tv(e.c, t, n);
@@ -23840,12 +23662,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.a.yc(t, e) == null;
 						}
 						function HCe(e, t) {
-							var n;
-							for (n = 0; n < t; ++n) e[n] = !1;
+							for (var n = 0; n < t; ++n) e[n] = !1;
 						}
 						function UCe(e, t, n, r) {
-							var i;
-							for (i = t; i < n; ++i) e[i] = r;
+							for (var i = t; i < n; ++i) e[i] = r;
 						}
 						function WCe(e, t, n) {
 							this.c = e, this.a = t, DT(), this.b = n;
@@ -23948,8 +23768,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (; t < n;) r[i++] = iT(e, t++);
 						}
 						function dwe(e, t, n) {
-							var r;
-							for (r = 0; r < t; ++r) Iw(e, r, n);
+							for (var r = 0; r < t; ++r) Iw(e, r, n);
 						}
 						function Ow(e) {
 							e.s = NaN, e.c = NaN, G3e(e, e.e), G3e(e, e.j);
@@ -24027,20 +23846,16 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return P(KC(e.a).Kd().Xb(t), 45).jd();
 						}
 						function Pw(e) {
-							var t;
-							return t = e.g, t || (e.g = new Hf(e));
+							return e.g ||= new Hf(e);
 						}
 						function Fw(e) {
-							var t;
-							return t = e.k, t || (e.k = new Uf(e));
+							return e.k ||= new Uf(e);
 						}
 						function kwe(e) {
-							var t;
-							return t = e.k, t || (e.k = new Uf(e));
+							return e.k ||= new Uf(e);
 						}
 						function Awe(e) {
-							var t;
-							return t = e.i, t || (e.i = new uee(e));
+							return e.i ||= new uee(e);
 						}
 						function jwe(e) {
 							return e.j ||= new pp(e);
@@ -24384,8 +24199,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							r && r.Nb(t);
 						}
 						function tEe(e) {
-							var t;
-							for (t = e.Jc(); t.Ob();) t.Pb(), t.Qb();
+							for (var t = e.Jc(); t.Ob();) t.Pb(), t.Qb();
 						}
 						function fT(e) {
 							var t = e.b;
@@ -24517,8 +24331,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return VN(kC(e) * OC(e), kC(t) * OC(t));
 						}
 						function ET(e) {
-							var t;
-							return t = e.f, t || (e.f = new Pg(e, e.c));
+							return e.f ||= new Pg(e, e.c);
 						}
 						function DT() {
 							DT = T, GX = new re(), KX = new ae(), qX = new oe();
@@ -25949,8 +25762,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return O(N(K(e.a, i)));
 						}
 						function Kje(e, t) {
-							var n;
-							for (n = e.j.c.length; n < t; n++) Hb(e.j, e.Mg());
+							for (var n = e.j.c.length; n < t; n++) Hb(e.j, e.Mg());
 						}
 						function qje(e, t) {
 							return Bb(new A(t.e.a + t.f.a / 2, t.e.b + t.f.b / 2), e);
@@ -26173,8 +25985,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e;
 						}
 						function kMe(e, t) {
-							var n;
-							for (n = 0; n < t; ++n) Iw(e, n, new zee(P(e[n], 45)));
+							for (var n = 0; n < t; ++n) Iw(e, n, new zee(P(e[n], 45)));
 						}
 						function AMe(e, t) {
 							var n = e.q.getHours();
@@ -26198,12 +26009,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.c && e.d ? sAe(e.c) + "->" + sAe(e.d) : "e_" + ux(e);
 						}
 						function PMe(e, t) {
-							var n;
-							return n = t == null ? Ty(FC(e.f, t)) : tE(e, t), wy(n);
+							return wy(t == null ? Ty(FC(e.f, t)) : tE(e, t));
 						}
 						function FMe(e, t) {
-							var n;
-							return n = t == null ? Ty(FC(e.f, t)) : tE(e, t), wy(n);
+							return wy(t == null ? Ty(FC(e.f, t)) : tE(e, t));
 						}
 						function IMe(e, t) {
 							return Zg(), RO(R(e.a), t);
@@ -26251,8 +26060,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e ? new ySe(e) : (t = new $y(), cj(t, e), t);
 						}
 						function VMe(e, t) {
-							var n;
-							for (n = e.d - 1; n >= 0 && e.a[n] === t[n]; n--);
+							for (var n = e.d - 1; n >= 0 && e.a[n] === t[n]; n--);
 							return n < 0;
 						}
 						function HMe(e, t) {
@@ -26569,8 +26377,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return Jj(t, e), W(t, (vV(), m2), null), t;
 						}
 						function sO(e, t, n) {
-							var r;
-							return r = e.Fh(t), r >= 0 ? e.Ih(r, n, !0) : bR(e, t, n);
+							var r = e.Fh(t);
+							return r >= 0 ? e.Ih(r, n, !0) : bR(e, t, n);
 						}
 						function KNe(e, t, n) {
 							return VN(Bb(TF(e), Nb(t.b)), Bb(TF(e), Nb(n.b)));
@@ -26586,12 +26394,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							Tj(r, e.a.a), nR(r.f, t, n), e.a.a = r;
 						}
 						function XNe(e, t, n, r) {
-							var i;
-							for (i = 0; i < mZ; i++) zC(e.a[i][t.g], n, r[t.g]);
+							for (var i = 0; i < mZ; i++) zC(e.a[i][t.g], n, r[t.g]);
 						}
 						function ZNe(e, t, n, r) {
-							var i;
-							for (i = 0; i < pZ; i++) BC(e.a[t.g][i], n, r[t.g]);
+							for (var i = 0; i < pZ; i++) BC(e.a[t.g][i], n, r[t.g]);
 						}
 						function cO(e, t) {
 							var n = P(e.c.xc(t), 18);
@@ -26751,8 +26557,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							t = e.a, n = e.b, r = e.c, e.d = n, e.a = r, e.b = i, e.c = t;
 						}
 						function CPe(e, t, n) {
-							var r = 0, i;
-							for (i = 0; i < t.length; i++) r += e.sg(t[i], r, n);
+							for (var r = 0, i = 0; i < t.length; i++) r += e.sg(t[i], r, n);
 						}
 						function DO(e, t, n, r) {
 							this.f = e, this.e = t, this.d = n, this.b = r, this.c = r ? r.d : null;
@@ -27167,16 +26972,13 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n && r && aTe(e) && (r = null), r;
 						}
 						function BO(e, t, n) {
-							var r, i;
-							for (i = e.Jc(); i.Ob();) r = P(i.Pb(), 36), Nz(r, t, n);
+							for (var r, i = e.Jc(); i.Ob();) r = P(i.Pb(), 36), Nz(r, t, n);
 						}
 						function OFe(e, t) {
-							var n, r;
-							for (r = t.Jc(); r.Ob();) n = P(r.Pb(), 36), vtt(e, n, 0, 0);
+							for (var n, r = t.Jc(); r.Ob();) n = P(r.Pb(), 36), vtt(e, n, 0, 0);
 						}
 						function kFe(e) {
-							var t, n;
-							for (n = kF(e.a, 0); n.b != n.d.c;) t = P(vD(n), 65), k4e(t);
+							for (var t, n = kF(e.a, 0); n.b != n.d.c;) t = P(vD(n), 65), k4e(t);
 						}
 						function AFe(e, t) {
 							return Jle(e.e, t) || CF(e.e, t, new nJe(t)), P(kk(e.e, t), 113);
@@ -27214,8 +27016,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.d[t.g] = n, i = e.g.c, i[t.g] = r.Math.max(i[t.g], n + 1);
 						}
 						function qO(e, t) {
-							var n;
-							return n = e.Fh(t), n >= 0 ? e.Ih(n, !0, !0) : bR(e, t, !0);
+							var n = e.Fh(t);
+							return n >= 0 ? e.Ih(n, !0, !0) : bR(e, t, !0);
 						}
 						function PFe(e, t) {
 							var n = Lw(e.k, t);
@@ -27496,8 +27298,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.a = V(q9, BH, 30, e.b + 1, 15, 1), e.c = V(q9, BH, 30, e.b, 15, 1), e.d = 0;
 						}
 						function ak(e) {
-							var t;
-							for (t = e.p + 1; t < e.c.a.c.length; ++t) --P(hC(e.c.a, t), 9).p;
+							for (var t = e.p + 1; t < e.c.a.c.length; ++t) --P(hC(e.c.a, t), 9).p;
 						}
 						function ok(e) {
 							var t = e.hj();
@@ -27596,8 +27397,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							if (!e) throw D(new Oh(Az(t, U(k(iX, 1), LV, 1, 5, [n, r]))));
 						}
 						function xk(e, t, n) {
-							var r = 10, i;
-							for (i = 0; i < n - 1; i++) t < r && (e.a += "0"), r *= 10;
+							for (var r = 10, i = 0; i < n - 1; i++) t < r && (e.a += "0"), r *= 10;
 							e.a += t;
 						}
 						function MIe(e, t) {
@@ -27900,8 +27700,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							sS.call(this), ZLe(this), this.a = e, this.c = n, this.b = t.d, this.f = t.e;
 						}
 						function CLe(e, t, n) {
-							var r, i;
-							for (i = new E(n); i.a < i.c.c.length;) r = z(i), t$e(e, t, r);
+							for (var r, i = new E(n); i.a < i.c.c.length;) r = z(i), t$e(e, t, r);
 						}
 						function wLe(e, t, n) {
 							return nE(aC(e.a.e[P(t.a, 9).p] - e.a.e[P(n.a, 9).p]));
@@ -28010,8 +27809,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							yS(P(K(P(e.e, 9), (vV(), z2)), 102)) && (DT(), Tb(P(e.e, 9).j, t));
 						}
 						function qk(e, t) {
-							var n, r;
-							for (r = e.Jc(); r.Ob();) n = P(r.Pb(), 70), W(n, (Y(), G1), t);
+							for (var n, r = e.Jc(); r.Ob();) n = P(r.Pb(), 70), W(n, (Y(), G1), t);
 						}
 						function LLe(e, t, n) {
 							var i = r.Math.max(0, e.b / 2 - .5);
@@ -28061,8 +27859,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n;
 						}
 						function GLe(e) {
-							var t;
-							for (t = 0; t < e.c.length; t++) (zE(t, e.c.length), P(e.c[t], 12)).p = t;
+							for (var t = 0; t < e.c.length; t++) (zE(t, e.c.length), P(e.c[t], 12)).p = t;
 						}
 						function KLe(e) {
 							for (var t = e.a.d.j, n = e.c.d.j; t != n;) XA(e.b, t), t = JN(t);
@@ -28077,8 +27874,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (eT(t), r = e.c, i = 0, a = r.length; i < a; ++i) n = r[i], t.Ad(n);
 						}
 						function $k(e, t) {
-							var n, r, i, a;
-							for (r = e.d, i = 0, a = r.length; i < a; ++i) n = r[i], Rb(e.g, n).a = t;
+							for (var n, r = e.d, i = 0, a = r.length; i < a; ++i) n = r[i], Rb(e.g, n).a = t;
 						}
 						function JLe(e, t, n) {
 							var r, i = t[n], a;
@@ -28376,13 +28172,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							this.d = t, this.j = r, this.e = i, this.o = -1, this.p = 4, this.c = e, this.a = n;
 						}
 						function DRe(e, t) {
-							var n, r, i, a;
-							for (r = t, i = 0, a = r.length; i < a; ++i) n = r[i], QFe(e.a, n);
+							for (var n, r = t, i = 0, a = r.length; i < a; ++i) n = r[i], QFe(e.a, n);
 							return e;
 						}
 						function DA(e) {
-							var t, n, r, i;
-							for (n = e, r = 0, i = n.length; r < i; ++r) t = n[r], Mw(t);
+							for (var t, n = e, r = 0, i = n.length; r < i; ++r) t = n[r], Mw(t);
 							return new _fe(e);
 						}
 						function ORe(e) {
@@ -28401,11 +28195,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							if (e) {
 								t.n = e;
 								var n = xOe(t);
-								if (!n) {
-									rX[e] = [t];
-									return;
-								}
-								n.Pm = t;
+								n ? n.Pm = t : rX[e] = [t];
 							}
 						}
 						function MRe(e, t, n) {
@@ -28446,8 +28236,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return new $_e(e, t);
 						}
 						function FA(e, t) {
-							var n, r, i, a;
-							for (r = t, i = 0, a = r.length; i < a; ++i) n = r[i], UD(e, n, e.c.b, e.c);
+							for (var n, r = t, i = 0, a = r.length; i < a; ++i) n = r[i], UD(e, n, e.c.b, e.c);
 						}
 						function FRe(e, t) {
 							var n;
@@ -28475,26 +28264,22 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							t.Tg("Hierarchical port constraint processing", 1), gJe(e), Mlt(e), t.Ug();
 						}
 						function zA(e) {
-							var t, n;
-							for (n = e.c.Bc().Jc(); n.Ob();) t = P(n.Pb(), 18), t.$b();
+							for (var t, n = e.c.Bc().Jc(); n.Ob();) t = P(n.Pb(), 18), t.$b();
 							e.c.$b(), e.d = 0;
 						}
 						function BRe(e, t) {
-							var n, r;
-							for (n = 0, r = e.gc(); n < r; ++n) if (oT(t, e.Xb(n))) return n;
+							for (var n = 0, r = e.gc(); n < r; ++n) if (oT(t, e.Xb(n))) return n;
 							return -1;
 						}
 						function VRe(e) {
-							var t, n, r, i;
-							for (n = e.a, r = 0, i = n.length; r < i; ++r) t = n[r], dwe(t, t.length, null);
+							for (var t, n = e.a, r = 0, i = n.length; r < i; ++r) t = n[r], dwe(t, t.length, null);
 						}
 						function HRe() {
 							ale();
 							for (var e = Dvt, t = 0; t < arguments.length; t++) e.push(arguments[t]);
 						}
 						function URe(e) {
-							var t, n;
-							for (n = new E($Ye(e)); n.a < n.c.c.length;) t = P(z(n), 685), t.Zf();
+							for (var t, n = new E($Ye(e)); n.a < n.c.c.length;) t = P(z(n), 685), t.Zf();
 						}
 						function WRe(e) {
 							var t, n;
@@ -28677,8 +28462,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.d = t, e.Db & 4 && !(e.Db & 1) && Fj(e, new aw(e, 1, 11, n, e.d));
 						}
 						function bze(e, t) {
-							var n, r;
-							for (r = t.vc().Jc(); r.Ob();) n = P(r.Pb(), 45), qI(e, n.jd(), n.kd());
+							for (var n, r = t.vc().Jc(); r.Ob();) n = P(r.Pb(), 45), qI(e, n.jd(), n.kd());
 						}
 						function qA(e, t) {
 							var n = e.j;
@@ -28812,16 +28596,13 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							r.n = t, RO((!e.s && (e.s = new F(M7, e, 21, 17)), e.s), r);
 						}
 						function Ize(e) {
-							var t, n;
-							for (n = new Yb(e); n.e != n.i.gc();) t = P(MF(n), 26), gA(t, 0), _A(t, 0);
+							for (var t, n = new Yb(e); n.e != n.i.gc();) t = P(MF(n), 26), gA(t, 0), _A(t, 0);
 						}
 						function Lze(e) {
-							var t, n;
-							for (n = e.c.a.ec().Jc(); n.Ob();) t = P(n.Pb(), 218), Ip(t, new ACe(t.f));
+							for (var t, n = e.c.a.ec().Jc(); n.Ob();) t = P(n.Pb(), 218), Ip(t, new ACe(t.f));
 						}
 						function Rze(e) {
-							var t, n;
-							for (n = e.c.a.ec().Jc(); n.Ob();) t = P(n.Pb(), 218), pee(t, new k1e(t.e));
+							for (var t, n = e.c.a.ec().Jc(); n.Ob();) t = P(n.Pb(), 218), pee(t, new k1e(t.e));
 						}
 						function fj(e, t) {
 							var n = e.xb;
@@ -28845,8 +28626,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n;
 						}
 						function Bze(e) {
-							var t = 0, n, r;
-							for (r = e.Jc(); r.Ob();) n = r.Pb(), t += n == null ? 0 : sj(n), t = ~~t;
+							for (var t = 0, n, r = e.Jc(); r.Ob();) n = r.Pb(), t += n == null ? 0 : sj(n), t = ~~t;
 							return t;
 						}
 						function Vze(e) {
@@ -28863,8 +28643,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							typeof window === OV && typeof window.$gwt === OV && (window.$gwt[e] = t);
 						}
 						function Gze(e, t, n) {
-							var r = 0, i, a;
-							for (i = 0; i < n; i++) a = t[i], e[i] = a << 1 | r, r = a >>> 31;
+							for (var r = 0, i = 0, a; i < n; i++) a = t[i], e[i] = a << 1 | r, r = a >>> 31;
 							r != 0 && (e[n] = r);
 						}
 						function gj(e, t, n, r, i, a) {
@@ -28892,18 +28671,15 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n.Tg("DFS Treeifying phase", 1), BKe(e, t), l7e(e, t), e.a = null, e.b = null, n.Ug();
 						}
 						function Qze(e, t, n) {
-							var r, i;
-							for (i = kF(e, 0); i.b != i.d.c;) r = P(vD(i), 8), r.a += t, r.b += n;
+							for (var r, i = kF(e, 0); i.b != i.d.c;) r = P(vD(i), 8), r.a += t, r.b += n;
 							return e;
 						}
 						function _j(e, t, n) {
-							var r;
-							for (r = e.b[n & e.f]; r; r = r.b) if (n == r.a && Jw(t, r.g)) return r;
+							for (var r = e.b[n & e.f]; r; r = r.b) if (n == r.a && Jw(t, r.g)) return r;
 							return null;
 						}
 						function vj(e, t, n) {
-							var r;
-							for (r = e.c[n & e.f]; r; r = r.d) if (n == r.f && Jw(t, r.i)) return r;
+							for (var r = e.c[n & e.f]; r; r = r.d) if (n == r.f && Jw(t, r.i)) return r;
 							return null;
 						}
 						function $ze(e, t, n, r) {
@@ -29007,8 +28783,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (eT(t), r = t.vc().Jc(); r.Ob();) n = P(r.Pb(), 45), e.yc(n.jd(), n.kd());
 						}
 						function pBe(e, t, n) {
-							var r;
-							for (r = n.Jc(); r.Ob();) if (!ED(e, t, r.Pb())) return !1;
+							for (var r = n.Jc(); r.Ob();) if (!ED(e, t, r.Pb())) return !1;
 							return !0;
 						}
 						function mBe(e, t) {
@@ -29061,8 +28836,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (n = new E(e.b); n.a < n.c.c.length;) t = P(z(n), 25), t.p = r, ++r;
 						}
 						function Dj(e, t) {
-							var n, r;
-							for (r = kF(e, 0); r.b != r.d.c;) n = P(vD(r), 8), n.a += t.a, n.b += t.b;
+							for (var n, r = kF(e, 0); r.b != r.d.c;) n = P(vD(r), 8), n.a += t.a, n.b += t.b;
 							return e;
 						}
 						function Oj(e, t) {
@@ -29171,13 +28945,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n ? (BF(t, (xV(), s8), n), !0) : !1;
 						}
 						function Pj(e, t) {
-							var n;
-							for (n = 0; n < t.j.c.length; n++) P(fk(e, n), 22).Fc(P(fk(t, n), 18));
+							for (var n = 0; n < t.j.c.length; n++) P(fk(e, n), 22).Fc(P(fk(t, n), 18));
 							return e;
 						}
 						function IBe(e, t) {
-							var n, r;
-							for (r = new E(t.b); r.a < r.c.c.length;) n = P(z(r), 25), e.a[n.p] = D1e(n);
+							for (var n, r = new E(t.b); r.a < r.c.c.length;) n = P(z(r), 25), e.a[n.p] = D1e(n);
 						}
 						function Fj(e, t) {
 							var n = e.qh(), r, i;
@@ -29207,8 +28979,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.d == null ? (++e.e, e.f = 0, XUe(null)) : (++e.e, t = e.d, e.d = null, e.f = 0, XUe(t));
 						}
 						function VBe(e, t) {
-							var n, r;
-							for (r = new E(t); r.a < r.c.c.length;) n = P(z(r), 70), Hb(e.d, n), O1e(e, n);
+							for (var n, r = new E(t); r.a < r.c.c.length;) n = P(z(r), 70), Hb(e.d, n), O1e(e, n);
 						}
 						function Rj(e, t) {
 							for (var n = e, r = $w(n).e; r;) {
@@ -29235,8 +29006,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							t.Tg("Edge and layer constraint edge reversal", 1), n = met(e), jst(n), t.Ug();
 						}
 						function GBe(e, t) {
-							var n, r;
-							for (r = new Yb(e); r.e != r.i.gc();) n = P(MF(r), 26), cb(n, n.i + t.b, n.j + t.d);
+							for (var n, r = new Yb(e); r.e != r.i.gc();) n = P(MF(r), 26), cb(n, n.i + t.b, n.j + t.d);
 						}
 						function KBe(e, t) {
 							e.c && (att(e, t, !0), n_(new vC(null, new RE(t, 16)), new xne(e))), att(e, t, !1);
@@ -29282,8 +29052,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e < 128 ? (nSe(), t = iyt[e], !t && (t = iyt[e] = new Pee(e)), t) : new Pee(e);
 						}
 						function XBe(e) {
-							var t = 1, n, r;
-							for (r = e.Jc(); r.Ob();) n = r.Pb(), t = 31 * t + (n == null ? 0 : sj(n)), t = ~~t;
+							for (var t = 1, n, r = e.Jc(); r.Ob();) n = r.Pb(), t = 31 * t + (n == null ? 0 : sj(n)), t = ~~t;
 							return t;
 						}
 						function Kj(e) {
@@ -29301,7 +29070,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Jj(e, t) {
 							var n;
-							return t ? (n = t.lf(), n.dc() || (e.q ? Tj(e.q, n) : e.q = new ife(n)), e) : e;
+							return t && (n = t.lf(), n.dc() || (e.q ? Tj(e.q, n) : e.q = new ife(n))), e;
 						}
 						function QBe(e, t) {
 							var n = t.p - e.p, r, i;
@@ -29513,21 +29282,17 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (sit(e), n = new E(e.d); n.a < n.c.c.length;) t = P(z(n), 107), t.i && C0e(t);
 						}
 						function SVe(e, t) {
-							var n, r;
-							for (r = new E(e.b); r.a < r.c.c.length;) n = P(z(r), 70), W(n, (Y(), G1), t);
+							for (var n, r = new E(e.b); r.a < r.c.c.length;) n = P(z(r), 70), W(n, (Y(), G1), t);
 						}
 						function CVe(e, t, n) {
-							var r, i;
-							for (i = new E(e.b); i.a < i.c.c.length;) r = P(z(i), 26), cb(r, r.i + t, r.j + n);
+							for (var r, i = new E(e.b); i.a < i.c.c.length;) r = P(z(i), 26), cb(r, r.i + t, r.j + n);
 						}
 						function hM(e) {
-							var t = new Jg(), n, r;
-							for (r = kF(e.d, 0); r.b != r.d.c;) n = P(vD(r), 65), QS(t, n.c);
+							for (var t = new Jg(), n, r = kF(e.d, 0); r.b != r.d.c;) n = P(vD(r), 65), QS(t, n.c);
 							return t;
 						}
 						function wVe(e) {
-							var t = 1, n, r, i;
-							for (n = 0, i = e.gc(); n < i; ++n) r = e.Ti(n), t = 31 * t + (r == null ? 0 : sj(r));
+							for (var t = 1, n = 0, r, i = e.gc(); n < i; ++n) r = e.Ti(n), t = 31 * t + (r == null ? 0 : sj(r));
 							return t;
 						}
 						function TVe(e) {
@@ -29590,11 +29355,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return -1;
 						}
 						function LVe(e, t) {
-							if (t === 0) {
-								!e.o && (e.o = new HO((pV(), u7), h7, e, 0)), e.o.c.$b();
-								return;
-							}
-							WL(e, t);
+							t === 0 ? (!e.o && (e.o = new HO((pV(), u7), h7, e, 0)), e.o.c.$b()) : WL(e, t);
 						}
 						function RVe(e) {
 							switch (e.g) {
@@ -29722,13 +29483,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n;
 						}
 						function ZVe(e, t) {
-							var n = !1, r = e.a[t].length, i, a;
-							for (a = 0; a < r - 1; a++) i = a + 1, n |= GKe(e, t, a, i);
+							for (var n = !1, r = e.a[t].length, i, a = 0; a < r - 1; a++) i = a + 1, n |= GKe(e, t, a, i);
 							return n;
 						}
 						function QVe(e) {
-							var t, n, r, i;
-							for (n = e.a, r = 0, i = n.length; r < i; ++r) t = n[r], dHe(e, t, (oV(), A5)), dHe(e, t, p5);
+							for (var t, n = e.a, r = 0, i = n.length; r < i; ++r) t = n[r], dHe(e, t, (oV(), A5)), dHe(e, t, p5);
 						}
 						function DM(e) {
 							var t = ~e.l + 1 & XH, n = ~e.m + +(t == 0) & XH;
@@ -29792,13 +29551,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (a = 0, i = o.Jc(); i.Ob();) r = P(i.Pb(), 12), aT(e.c, r, G(a++));
 						}
 						function kM(e) {
-							var t, n;
-							for (n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 82), t.g.c = -t.g.c - t.g.b;
+							for (var t, n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 82), t.g.c = -t.g.c - t.g.b;
 							ez(e);
 						}
 						function AM(e) {
-							var t, n;
-							for (n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 60), t.d.c = -t.d.c - t.d.b;
+							for (var t, n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 60), t.d.c = -t.d.c - t.d.b;
 							B5e(e);
 						}
 						function fHe(e) {
@@ -29810,8 +29567,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.l = t, e.m = n, e.h = r;
 						}
 						function MM(e) {
-							var t = new mg(), n, r, i, a;
-							for (r = e, i = 0, a = r.length; i < a; ++i) n = r[i], t.a += n.a, t.b += n.b;
+							for (var t = new mg(), n, r = e, i = 0, a = r.length; i < a; ++i) n = r[i], t.a += n.a, t.b += n.b;
 							return t;
 						}
 						function NM(e, t, n) {
@@ -29831,8 +29587,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return !i && (i = BN(e, n, r), i && !KB(e, t, i)) ? null : i;
 						}
 						function gHe(e, t) {
-							var n;
-							for (n = 0; n < e.a.a.length; n++) if (!P(lSe(e.a, n), 178).Lb(t)) return !1;
+							for (var n = 0; n < e.a.a.length; n++) if (!P(lSe(e.a, n), 178).Lb(t)) return !1;
 							return !0;
 						}
 						function _He(e, t, n) {
@@ -29854,8 +29609,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return Yw(e), t = new De(), e.a.zd(t) ? (Zb(), new coe(eT(t.a))) : (Zb(), Zb(), Lyt);
 						}
 						function FM(e) {
-							var t, n;
-							for (n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 82), t.f.$b();
+							for (var t, n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 82), t.f.$b();
 							doe(e.b, e), Z5e(e);
 						}
 						function bHe(e, t) {
@@ -29895,11 +29649,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							this.b = new Pm(), this.g = new Pm(), this.d = (yN(), S4), this.c = e, this.e = t, this.d = n, this.a = r;
 						}
 						function DHe(e, t, n) {
-							if (t === 0) {
-								!e.o && (e.o = new HO((pV(), u7), h7, e, 0)), kj(e.o, n);
-								return;
-							}
-							iR(e, t, n);
+							t === 0 ? (!e.o && (e.o = new HO((pV(), u7), h7, e, 0)), kj(e.o, n)) : iR(e, t, n);
 						}
 						function OHe(e) {
 							switch (e.g) {
@@ -29920,13 +29670,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							zM = T, Pjt = new Pv(HW, 0), Njt = new Pv("MIDDLE_TO_MIDDLE", 1), d3 = new Pv("AVOID_OVERLAP", 2);
 						}
 						function AHe(e) {
-							var t = new fh(), n, r;
-							for (r = kF(e, 0); r.b != r.d.c;) n = P(vD(r), 8), wx(t, 0, new Qy(n));
+							for (var t = new fh(), n, r = kF(e, 0); r.b != r.d.c;) n = P(vD(r), 8), wx(t, 0, new Qy(n));
 							return t;
 						}
 						function BM(e) {
-							var t = 0, n;
-							for (n = 0; n < e.length; n++) t = (t << 5) - t + (BE(n, e.length), e.charCodeAt(n)) | 0;
+							for (var t = 0, n = 0; n < e.length; n++) t = (t << 5) - t + (BE(n, e.length), e.charCodeAt(n)) | 0;
 							return t;
 						}
 						function jHe(e) {
@@ -30006,8 +29754,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return r;
 						}
 						function GM(e, t) {
-							var n, r, i, a, o;
-							for (r = t, i = 0, a = r.length; i < a; ++i) n = r[i], o = new nTe(e), n.tf(o), rit(o);
+							for (var n, r = t, i = 0, a = r.length, o; i < a; ++i) n = r[i], o = new nTe(e), n.tf(o), rit(o);
 							vw(e.f);
 						}
 						function GHe(e, t) {
@@ -30015,12 +29762,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							t * 2 + 1 >= e.b.c.length || (GHe(e, 2 * t + 1), n = 2 * t + 2, n < e.b.c.length && GHe(e, n), t4e(e, t));
 						}
 						function KHe(e, t) {
-							var n, r;
-							for (r = kF(e, 0); r.b != r.d.c;) n = P(vD(r), 218), n.e.length > 0 && (t.Ad(n), n.i && rJe(n));
+							for (var n, r = kF(e, 0); r.b != r.d.c;) n = P(vD(r), 218), n.e.length > 0 && (t.Ad(n), n.i && rJe(n));
 						}
 						function qHe(e, t, n) {
-							var r;
-							for (r = n - 1; r >= 0 && e[r] === t[r]; r--);
+							for (var r = n - 1; r >= 0 && e[r] === t[r]; r--);
 							return r < 0 ? 0 : N_(KE(e[r], pU), KE(t[r], pU)) ? -1 : 1;
 						}
 						function JHe(e, t) {
@@ -30044,8 +29789,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function XHe(e, t) {
-							var n, r;
-							for (r = e.Zb().Bc().Jc(); r.Ob();) if (n = P(r.Pb(), 18), n.Gc(t)) return !0;
+							for (var n, r = e.Zb().Bc().Jc(); r.Ob();) if (n = P(r.Pb(), 18), n.Gc(t)) return !0;
 							return !1;
 						}
 						function ZHe(e, t, n) {
@@ -30070,8 +29814,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e === t ? !0 : M(t, 92) ? (n = P(t, 92), x0e(KC(e), n.vc())) : !1;
 						}
 						function tUe(e, t, n) {
-							var r, i;
-							for (i = n.Jc(); i.Ob();) if (r = P(i.Pb(), 45), e.ze(t, r.kd())) return !0;
+							for (var r, i = n.Jc(); i.Ob();) if (r = P(i.Pb(), 45), e.ze(t, r.kd())) return !0;
 							return !1;
 						}
 						function JM(e) {
@@ -30105,8 +29848,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							rN = T, Xkt = new Dv("CONSERVATIVE", 0), Zkt = new Dv("CONSERVATIVE_SOFT", 1), z4 = new Dv("SLOPPY", 2);
 						}
 						function iN(e, t, n) {
-							var r = new Jg(), i, a;
-							for (a = kF(n, 0); a.b != a.d.c;) i = P(vD(a), 8), QS(r, new Qy(i));
+							for (var r = new Jg(), i, a = kF(n, 0); a.b != a.d.c;) i = P(vD(a), 8), QS(r, new Qy(i));
 							ZHe(e, t, r);
 						}
 						function nUe(e) {
@@ -30189,8 +29931,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return null;
 						}
 						function yUe(e, t, n) {
-							var r, i, a, o;
-							for (i = n, a = 0, o = i.length; a < o; ++a) if (r = i[a], e.b.ze(t, r.jd())) return r;
+							for (var r, i = n, a = 0, o = i.length; a < o; ++a) if (r = i[a], e.b.ze(t, r.jd())) return r;
 							return null;
 						}
 						function cN(e) {
@@ -30199,8 +29940,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return a;
 						}
 						function lN(e) {
-							var t = {}, n, r, i, a;
-							for (r = e, i = 0, a = r.length; i < a; ++i) n = r[i], t[":" + (n.f == null ? "" + n.g : n.f)] = n;
+							for (var t = {}, n, r = e, i = 0, a = r.length; i < a; ++i) n = r[i], t[":" + (n.f == null ? "" + n.g : n.f)] = n;
 							return t;
 						}
 						function bUe(e) {
@@ -30219,7 +29959,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 								if (n == t) return i;
 								if (r = n.e, !r) throw D(new Gm());
 								n = $w(r), ++i;
-							} while (!0);
+							} while (1);
 						}
 						function CUe(e, t) {
 							var n, r, i = t - e.f;
@@ -30247,8 +29987,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function TUe(e, t) {
-							var n;
-							for (n = 0; n < t.length; n++) if (e == (BE(n, t.length), t.charCodeAt(n))) return !0;
+							for (var n = 0; n < t.length; n++) if (e == (BE(n, t.length), t.charCodeAt(n))) return !0;
 							return !1;
 						}
 						function EUe(e, t) {
@@ -30276,13 +30015,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n = t.q.d, t.d < e.b && (i = F5e(t.q, e.b), t.q.d > i && (OQe(t.q, i), r = n != t.q.d)), r;
 						}
 						function jUe(e, t) {
-							var n;
-							for (n = 0; n < t.length; n++) if (e == (BE(n, t.length), t.charCodeAt(n))) return !0;
+							for (var n = 0; n < t.length; n++) if (e == (BE(n, t.length), t.charCodeAt(n))) return !0;
 							return !1;
 						}
 						function MUe(e) {
-							var t, n;
-							for (n = new E(e.r); n.a < n.c.c.length;) if (t = P(z(n), 9), e.n[t.p] <= 0) return t;
+							for (var t, n = new E(e.r); n.a < n.c.c.length;) if (t = P(z(n), 9), e.n[t.p] <= 0) return t;
 							return null;
 						}
 						function NUe(e) {
@@ -30372,13 +30109,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return i;
 						}
 						function UUe(e, t, n) {
-							var r, i;
-							for (i = t.a.a.ec().Jc(); i.Ob();) if (r = P(i.Pb(), 60), dDe(e, r, n)) return !0;
+							for (var r, i = t.a.a.ec().Jc(); i.Ob();) if (r = P(i.Pb(), 60), dDe(e, r, n)) return !0;
 							return !1;
 						}
 						function WUe(e, t, n, r) {
-							var i, a;
-							for (a = e.Jc(); a.Ob();) i = P(a.Pb(), 70), i.n.a = t.a + (r.a - i.o.a) / 2, i.n.b = t.b, t.b += i.o.b + n;
+							for (var i, a = e.Jc(); a.Ob();) i = P(a.Pb(), 70), i.n.a = t.a + (r.a - i.o.a) / 2, i.n.b = t.b, t.b += i.o.b + n;
 						}
 						function GUe(e, t, n) {
 							var r, i = e.a;
@@ -30428,20 +30163,17 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return jp(n, (BR(), hQ)), W(n, (Y(), e0), t), W(n, (vV(), z2), (uL(), e5)), n;
 						}
 						function $Ue(e, t, n) {
-							var r, i;
-							for (i = e.Jc(); i.Ob();) {
+							for (var r, i = e.Jc(); i.Ob();) {
 								if (r = P(i.Pb(), 9), r == t) return -1;
 								if (r == n) return 1;
 							}
 							return 0;
 						}
 						function eWe(e, t, n) {
-							var r = n / e.gc(), i = 0, a, o;
-							for (o = e.Jc(); o.Ob();) a = P(o.Pb(), 186), CUe(a, a.f + r * i), FZe(a, t, r), ++i;
+							for (var r = n / e.gc(), i = 0, a, o = e.Jc(); o.Ob();) a = P(o.Pb(), 186), CUe(a, a.f + r * i), FZe(a, t, r), ++i;
 						}
 						function tWe(e) {
-							var t, n, r;
-							for (r = new E(e.b); r.a < r.c.c.length;) n = P(z(r), 218), t = n.c.ig() ? n.f : n.a, t && tat(t, n.j);
+							for (var t, n, r = new E(e.b); r.a < r.c.c.length;) n = P(z(r), 218), t = n.c.ig() ? n.f : n.a, t && tat(t, n.j);
 						}
 						function nWe(e) {
 							var t, n, i = 0;
@@ -30531,13 +30263,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.c = t, e.a = iKe(t), e.a < 54 && (e.f = (n = t.d > 1 ? WAe(t.a[0], t.a[1]) : WAe(t.a[0], 0), cD(t.e > 0 ? n : sk(n))));
 						}
 						function EN(e, t) {
-							var n = 0, r, i;
-							for (i = aP(e, t).Jc(); i.Ob();) r = P(i.Pb(), 12), n += K(r, (Y(), r0)) == null ? 0 : 1;
+							for (var n = 0, r, i = aP(e, t).Jc(); i.Ob();) r = P(i.Pb(), 12), n += K(r, (Y(), r0)) == null ? 0 : 1;
 							return n;
 						}
 						function DN(e, t, n) {
-							var r = 0, i, a;
-							for (a = kF(e, 0); a.b != a.d.c && (i = O(N(vD(a))), !(i > n));) i >= t && ++r;
+							for (var r = 0, i, a = kF(e, 0); a.b != a.d.c && (i = O(N(vD(a))), !(i > n));) i >= t && ++r;
 							return r;
 						}
 						function hWe(e, t, n) {
@@ -30657,14 +30387,12 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.b == -1 && e.a && (n = e.a.nk(), e.b = n ? e.c.Eh(e.a.Jj(), n) : LP(e.c.Ah(), e.a)), e.c.vh(e.b, t);
 						}
 						function jWe(e, t) {
-							var n, r;
-							for (r = new Yb(e); r.e != r.i.gc();) if (n = P(MF(r), 29), j(t) === j(n)) return !0;
+							for (var n, r = new Yb(e); r.e != r.i.gc();) if (n = P(MF(r), 29), j(t) === j(n)) return !0;
 							return !1;
 						}
 						function MWe(e) {
 							wV();
-							var t, n, r, i;
-							for (n = wF(), r = 0, i = n.length; r < i; ++r) if (t = n[r], uk(t.a, e, 0) != -1) return t;
+							for (var t, n = wF(), r = 0, i = n.length; r < i; ++r) if (t = n[r], uk(t.a, e, 0) != -1) return t;
 							return xZ;
 						}
 						function NWe(e) {
@@ -30693,8 +30421,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.Ei(t, n);
 						}
 						function RWe(e, t) {
-							var n, r;
-							for (r = new Yb(e); r.e != r.i.gc();) if (n = P(MF(r), 143), j(t) === j(n)) return !0;
+							for (var n, r = new Yb(e); r.e != r.i.gc();) if (n = P(MF(r), 143), j(t) === j(n)) return !0;
 							return !1;
 						}
 						function zWe(e, t, n) {
@@ -30715,8 +30442,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return t == null ? null : (e.c = e.c - 1 & e.a.length - 1, Iw(e.a, e.c, null), t);
 						}
 						function HWe(e) {
-							var t, n;
-							for (n = e.p.a.ec().Jc(); n.Ob();) if (t = P(n.Pb(), 217), t.f && e.b[t.c] < -1e-10) return t;
+							for (var t, n = e.p.a.ec().Jc(); n.Ob();) if (t = P(n.Pb(), 217), t.f && e.b[t.c] < -1e-10) return t;
 							return null;
 						}
 						function UWe(e, t) {
@@ -30838,22 +30564,18 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return (n.a += "]", n).a;
 						}
 						function QWe(e) {
-							var t = new Nm(), n, r;
-							for (r = new E(e.b); r.a < r.c.c.length;) n = P(z(r), 592), dM(t, P(n.Af(), 18));
+							for (var t = new Nm(), n, r = new E(e.b); r.a < r.c.c.length;) n = P(z(r), 592), dM(t, P(n.Af(), 18));
 							return t;
 						}
 						function tP(e, t) {
-							var n, r;
-							for (r = new E(t); r.a < r.c.c.length;) n = P(z(r), 49), lk(e.b.b, n.b), uDe(P(n.a, 194), P(n.b, 82));
+							for (var n, r = new E(t); r.a < r.c.c.length;) n = P(z(r), 49), lk(e.b.b, n.b), uDe(P(n.a, 194), P(n.b, 82));
 						}
 						function $We(e) {
-							var t, n;
-							for (n = r8e(oA(e)).Jc(); n.Ob();) if (t = Hx(n.Pb()), $z(e, t)) return PMe((Ale(), jBt), t);
+							for (var t, n = r8e(oA(e)).Jc(); n.Ob();) if (t = Hx(n.Pb()), $z(e, t)) return PMe((Ale(), jBt), t);
 							return null;
 						}
 						function eGe(e, t, n) {
-							var r, i;
-							for (i = e.a.ec().Jc(); i.Ob();) if (r = P(i.Pb(), 9), fM(n, P(hC(t, r.p), 18))) return r;
+							for (var r, i = e.a.ec().Jc(); i.Ob();) if (r = P(i.Pb(), 9), fM(n, P(hC(t, r.p), 18))) return r;
 							return null;
 						}
 						function tGe(e, t, n) {
@@ -30967,18 +30689,15 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e -= lU, t[0] = (e >> 10) + uU & EH, t[1] = (e & 1023) + 56320 & EH, aF(t, 0, t.length);
 						}
 						function fP(e) {
-							var t = new Nm(), n, r;
-							for (r = new E(e.j); r.a < r.c.c.length;) n = P(z(r), 12), Hb(t, n.e);
+							for (var t = new Nm(), n, r = new E(e.j); r.a < r.c.c.length;) n = P(z(r), 12), Hb(t, n.e);
 							return Mw(t), new Gy(t);
 						}
 						function pP(e) {
-							var t = new Nm(), n, r;
-							for (r = new E(e.j); r.a < r.c.c.length;) n = P(z(r), 12), Hb(t, n.b);
+							for (var t = new Nm(), n, r = new E(e.j); r.a < r.c.c.length;) n = P(z(r), 12), Hb(t, n.b);
 							return Mw(t), new Gy(t);
 						}
 						function mP(e) {
-							var t = new Nm(), n, r;
-							for (r = new E(e.j); r.a < r.c.c.length;) n = P(z(r), 12), Hb(t, n.g);
+							for (var t = new Nm(), n, r = new E(e.j); r.a < r.c.c.length;) n = P(z(r), 12), Hb(t, n.g);
 							return Mw(t), new Gy(t);
 						}
 						function hGe(e) {
@@ -31009,8 +30728,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n.Tg("Straight Line Edge Routing", 1), n.bh(t, _mt), r = P(J(t, (Zx(), j3)), 26), bit(e, r), n.bh(t, iq);
 						}
 						function bGe(e) {
-							var t, n;
-							for (n = h6e(oA(_E(e))).Jc(); n.Ob();) if (t = Hx(n.Pb()), $z(e, t)) return FMe((jle(), MBt), t);
+							for (var t, n = h6e(oA(_E(e))).Jc(); n.Ob();) if (t = Hx(n.Pb()), $z(e, t)) return FMe((jle(), MBt), t);
 							return null;
 						}
 						function xGe(e) {
@@ -31023,8 +30741,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return XA(n, e), n;
 						}
 						function SGe(e) {
-							var t, n, r;
-							for (n = 0, r = e.length; n < r; n++) if (e[n] == null) throw D(new Ah("at index " + n));
+							for (var t, n = 0, r = e.length; n < r; n++) if (e[n] == null) throw D(new Ah("at index " + n));
 							return t = e, new Fh(t);
 						}
 						function vP() {
@@ -31062,8 +30779,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							if (CF(e.c.d, n, t), t.g != null) for (i = t.g, a = 0, o = i.length; a < o; ++a) r = i[a], CF(e.c.e, r, t);
 						}
 						function EGe(e, t, n, r) {
-							var i, a, o;
-							for (i = t + 1; i < n; ++i) for (a = i; a > t && r.Le(e[a - 1], e[a]) > 0; --a) o = e[a], Iw(e, a, e[a - 1]), Iw(e, a - 1, o);
+							for (var i = t + 1, a, o; i < n; ++i) for (a = i; a > t && r.Le(e[a - 1], e[a]) > 0; --a) o = e[a], Iw(e, a, e[a - 1]), Iw(e, a - 1, o);
 						}
 						function SP(e, t, n, r) {
 							if (t < 0) Y8e(e, n, r);
@@ -31153,8 +30869,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function LGe(e) {
 							Qx();
-							var t = e.o.b, n, r, i;
-							for (r = P(P(cO(e.r, (oV(), A5)), 22), 83).Jc(); r.Ob();) n = P(r.Pb(), 115), i = n.e, i.b += t;
+							for (var t = e.o.b, n, r = P(P(cO(e.r, (oV(), A5)), 22), 83).Jc(), i; r.Ob();) n = P(r.Pb(), 115), i = n.e, i.b += t;
 						}
 						function RGe(e, t) {
 							Xx();
@@ -31167,8 +30882,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return t.c + t.b.gc();
 						}
 						function DP(e, t, n) {
-							var r, i;
-							for (r = 0, i = e.length; r < i; r++) if (wM((BE(r, e.length), e.charCodeAt(r)), t, n)) return !0;
+							for (var r = 0, i = e.length; r < i; r++) if (wM((BE(r, e.length), e.charCodeAt(r)), t, n)) return !0;
 							return !1;
 						}
 						function BGe(e) {
@@ -31214,12 +30928,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (n = new E(e.a.Qf()); n.a < n.c.c.length;) t = P(z(n), 685), Ict(e, t, r);
 						}
 						function KGe(e) {
-							var t, n, r, i;
-							for (t = (e.j ??= (qT(), i = Kvt.ke(e), eQe(i)), e.j), n = 0, r = t.length; n < r; ++n);
+							for (var t = (e.j ??= (qT(), i = Kvt.ke(e), eQe(i)), e.j), n = 0, r = t.length, i; n < r; ++n);
 						}
 						function NP(e, t) {
-							var n, r;
-							for (r = new E(t); r.a < r.c.c.length;) n = P(z(r), 49), Hb(e.b.b, P(n.b, 82)), eD(P(n.a, 194), P(n.b, 82));
+							for (var n, r = new E(t); r.a < r.c.c.length;) n = P(z(r), 49), Hb(e.b.b, P(n.b, 82)), eD(P(n.a, 194), P(n.b, 82));
 						}
 						function qGe(e, t, n) {
 							var r, i = e.a.b;
@@ -31316,8 +31028,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n ? (t = e.Bh(), M(t, 174) && (r = oKe(P(t, 174)), r != null) ? r + "." + n : n) : null;
 						}
 						function IP(e, t, n) {
-							var r, i;
-							for (i = e.Jc(); i.Ob();) if (r = i.Pb(), j(t) === j(r) || t != null && MN(t, r)) return n && i.Qb(), !0;
+							for (var r, i = e.Jc(); i.Ob();) if (r = i.Pb(), j(t) === j(r) || t != null && MN(t, r)) return n && i.Qb(), !0;
 							return !1;
 						}
 						function sKe(e, t) {
@@ -31326,8 +31037,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return i;
 						}
 						function cKe(e) {
-							var t = new Cp(), n, r, i;
-							for (i = new lm(e.b.Jc()); i.b.Ob();) r = P(i.b.Pb(), 690), n = E0e(r), twe(t, t.a.length, n);
+							for (var t = new Cp(), n, r, i = new lm(e.b.Jc()); i.b.Ob();) r = P(i.b.Pb(), 690), n = E0e(r), twe(t, t.a.length, n);
 							return t.a;
 						}
 						function lKe(e, t, n) {
@@ -31352,8 +31062,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return -1;
 						}
 						function dKe(e) {
-							var t, n = P(e.g, 679), r, i, a;
-							for (r = e.i - 1; r >= 0; --r) for (t = n[r], i = 0; i < r; ++i) if (a = n[i], Ynt(e, t, a)) {
+							for (var t, n = P(e.g, 679), r = e.i - 1, i, a; r >= 0; --r) for (t = n[r], i = 0; i < r; ++i) if (a = n[i], Ynt(e, t, a)) {
 								MI(e, r);
 								break;
 							}
@@ -31442,8 +31151,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return r.i = e, !0;
 						}
 						function SKe(e, t, n) {
-							var r = KE(n, pU), i;
-							for (i = 0; gN(r, 0) != 0 && i < t; i++) r = lP(r, KE(e[i], pU)), e[i] = AC(r), r = XC(r, 32);
+							for (var r = KE(n, pU), i = 0; gN(r, 0) != 0 && i < t; i++) r = lP(r, KE(e[i], pU)), e[i] = AC(r), r = XC(r, 32);
 							return AC(r);
 						}
 						function UP(e, t) {
@@ -31617,8 +31325,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return Not(e.f, n, r) && (Bqe(e.f, e.a[t][n], e.a[t][r]), a = e.a[t], o = a[r], a[r] = a[n], a[n] = o, i = !0), i;
 						}
 						function KKe(e, t) {
-							var n, r, i;
-							for (r = new JC(Qb(mP(e).a.Jc(), new f())); AR(r);) if (n = P(iO(r), 17), i = n.d.i, i.c == t) return !1;
+							for (var n, r = new JC(Qb(mP(e).a.Jc(), new f())), i; AR(r);) if (n = P(iO(r), 17), i = n.d.i, i.c == t) return !1;
 							return !0;
 						}
 						function qKe(e) {
@@ -31636,7 +31343,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function iF(e, t) {
 							for (var n = 0; !t[n] || t[n] == "";) n++;
-							for (var r = t[n++]; n < t.length; n++) !t[n] || t[n] == "" || (r += e + t[n]);
+							for (var r = t[n++]; n < t.length; n++) t[n] && t[n] != "" && (r += e + t[n]);
 							return r;
 						}
 						function YKe(e) {
@@ -31799,8 +31506,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return gN(e, -129) > 0 && gN(e, 128) < 0 ? (rSe(), t = AC(e) + 128, n = syt[t], !n && (n = syt[t] = new jee(e)), n) : new jee(e);
 						}
 						function yqe(e) {
-							var t, n;
-							for (n = new E(e.a.b); n.a < n.c.c.length;) if (t = P(z(n), 70), jh(Vx(K(t, (vV(), n2))))) return !0;
+							for (var t, n = new E(e.a.b); n.a < n.c.c.length;) if (t = P(z(n), 70), jh(Vx(K(t, (vV(), n2))))) return !0;
 							return !1;
 						}
 						function bqe(e) {
@@ -31823,8 +31529,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return (a.Sh() ? CN(e.b, P(a, 52)) : a) == n ? nB(r) : aA(r, n), a;
 						}
 						function Sqe(e, t, n) {
-							var r, i, a;
-							for (a = new E(n.a); a.a < a.c.c.length;) i = P(z(a), 225), r = new kb(P(Lw(e.a, i.b), 68)), Hb(t.a, r), Sqe(e, r, i);
+							for (var r, i, a = new E(n.a); a.a < a.c.c.length;) i = P(z(a), 225), r = new kb(P(Lw(e.a, i.b), 68)), Hb(t.a, r), Sqe(e, r, i);
 						}
 						function Cqe(e, t, n) {
 							var r = t.c.p, i, a = t.p;
@@ -31866,8 +31571,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function jqe(e, t) {
 							DE();
-							var n, r;
-							for (r = new JC(Qb(pP(e).a.Jc(), new f())); AR(r);) if (n = P(iO(r), 17), n.d.i == t || n.c.i == t) return n;
+							for (var n, r = new JC(Qb(pP(e).a.Jc(), new f())); AR(r);) if (n = P(iO(r), 17), n.d.i == t || n.c.i == t) return n;
 							return null;
 						}
 						function Mqe(e, t) {
@@ -31887,8 +31591,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return a == o ? (r = e.f[t.p], i = e.f[n.p], r == 0 && i == 0 ? 0 : r == 0 ? -1 : i == 0 ? 1 : VN(r, i)) : a.g - o.g;
 						}
 						function Iqe(e, t) {
-							var n, r, i, a;
-							for (r = 0, i = t.gc(); r < i; ++r) n = t.Rl(r), M(n, 103) && (P(n, 19).Bb & rJ) != 0 && (a = t.Sl(r), a != null && Jz(e, P(a, 57)));
+							for (var n, r = 0, i = t.gc(), a; r < i; ++r) n = t.Rl(r), M(n, 103) && (P(n, 19).Bb & rJ) != 0 && (a = t.Sl(r), a != null && Jz(e, P(a, 57)));
 						}
 						function Lqe() {
 							var e;
@@ -31896,7 +31599,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Rqe(e, t, n) {
 							var r;
-							(Jyt ? (rKe(e), !0) : Yyt || Zyt ? ($g(), !0) : Xyt && ($g(), !1)) && (r = new mve(t), r.b = n, U1e(e, r));
+							(Jyt ? (rKe(e), 1) : Yyt || Zyt ? ($g(), 1) : Xyt && ($g(), 0)) && (r = new mve(t), r.b = n, U1e(e, r));
 						}
 						function yF(e, t) {
 							var n = !e.A.Gc(($P(), R5)) || e.q == (uL(), e5);
@@ -31988,8 +31691,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							if (!n[t.d]) for (n[t.d] = !0, i = new E(sN(t)); i.a < i.c.c.length;) r = P(z(i), 217), a = TP(r, t), Zqe(e, a, n);
 						}
 						function Qqe(e, t) {
-							var n = 0, i, a, o;
-							for (a = new E(t.a); a.a < a.c.c.length;) i = P(z(a), 9), o = i.o.a + i.d.c + i.d.b + e.j, n = r.Math.max(n, o);
+							for (var n = 0, i, a = new E(t.a), o; a.a < a.c.c.length;) i = P(z(a), 9), o = i.o.a + i.d.c + i.d.b + e.j, n = r.Math.max(n, o);
 							return n;
 						}
 						function CF(e, t, n) {
@@ -32159,8 +31861,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return i;
 						}
 						function pJe(e, t) {
-							var n = e.o, r, i;
-							for (i = P(P(cO(e.r, t), 22), 83).Jc(); i.Ob();) r = P(i.Pb(), 115), r.e.a = sXe(r, n.a), r.e.b = n.b * O(N(r.b.mf(SZ)));
+							for (var n = e.o, r, i = P(P(cO(e.r, t), 22), 83).Jc(); i.Ob();) r = P(i.Pb(), 115), r.e.a = sXe(r, n.a), r.e.b = n.b * O(N(r.b.mf(SZ)));
 						}
 						function mJe(e, t) {
 							var n, r, i = e.k, a;
@@ -32172,11 +31873,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function IF(e, t) {
 							var n, r;
-							if (++e.j, t != null && (n = (r = e.a.Cb, M(r, 100) ? P(r, 100).qh() : null), i3e(t, n))) {
-								fF(e.a, 4, n);
-								return;
-							}
-							fF(e.a, 4, P(t, 129));
+							++e.j, t != null && (n = (r = e.a.Cb, M(r, 100) ? P(r, 100).qh() : null), i3e(t, n)) ? fF(e.a, 4, n) : fF(e.a, 4, P(t, 129));
 						}
 						function LF(e) {
 							switch (ble(), this.c = new Nm(), this.d = e, e.g) {
@@ -32313,7 +32010,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function PJe(e, t, n, r) {
 							var i = MWe(t.nf((xV(), q6)) ? P(t.mf(q6), 22) : e.j);
-							i != (wV(), xZ) && (n && !nqe(i) || S0e(m8e(e, i, r), t));
+							i != (wV(), xZ) && (!n || nqe(i)) && S0e(m8e(e, i, r), t);
 						}
 						function WF(e, t) {
 							return Cy(e) ? !!jvt[t] : e.Qm ? !!e.Qm[t] : Sy(e) ? !!Avt[t] : xy(e) ? !!kvt[t] : !1;
@@ -32356,8 +32053,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n.Tg("Compound graph preprocessor", 1), e.a = new ZT(), Est(e, t, null), eat(e, t), y5e(e), W(t, (Y(), Fwt), e.a), e.a = null, vw(e.b), n.Ug();
 						}
 						function BJe(e, t, n) {
-							var r, i, a;
-							for (i = new JC(Qb((t ? fP(e) : mP(e)).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), a = t ? r.c.i : r.d.i, a.k == (BR(), mQ) && yE(a, n);
+							for (var r, i = new JC(Qb((t ? fP(e) : mP(e)).a.Jc(), new f())), a; AR(i);) r = P(iO(i), 17), a = t ? r.c.i : r.d.i, a.k == (BR(), mQ) && yE(a, n);
 						}
 						function VJe(e, t, n) {
 							var r = t.i.j.c.length, i, a;
@@ -32393,8 +32089,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function WJe(e, t, n, r) {
 							bz();
-							var i = 0, a;
-							for (a = 0; a < n; a++) i = lP(uP(KE(t[a], pU), KE(r, pU)), KE(AC(i), pU)), e[a] = AC(i), i = ZC(i, 32);
+							for (var i = 0, a = 0; a < n; a++) i = lP(uP(KE(t[a], pU), KE(r, pU)), KE(AC(i), pU)), e[a] = AC(i), i = ZC(i, 32);
 							return AC(i);
 						}
 						function GJe(e, t, n) {
@@ -32411,8 +32106,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return nE(r);
 						}
 						function KJe(e, t) {
-							var n = sx(new ah(), e), r, i;
-							for (i = new E(t); i.a < i.c.c.length;) r = P(z(i), 124), cz(s_(o_(c_(a_(new ih(), 0), 0), n), r));
+							for (var n = sx(new ah(), e), r, i = new E(t); i.a < i.c.c.length;) r = P(z(i), 124), cz(s_(o_(c_(a_(new ih(), 0), 0), n), r));
 							return n;
 						}
 						function ZF(e, t, n) {
@@ -32435,18 +32129,15 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function QF(e, t, n, r) {
-							var i, a;
-							for (i = t; i < e.c.length; i++) if (a = (zE(i, e.c.length), P(e.c[i], 12)), n.Mb(a)) Vm(r.c, a);
+							for (var i = t, a; i < e.c.length; i++) if (a = (zE(i, e.c.length), P(e.c[i], 12)), n.Mb(a)) Vm(r.c, a);
 							else return i;
 							return e.c.length;
 						}
 						function JJe(e) {
-							var t, n, r;
-							for (r = P(cO(e.a, (cL(), s$)), 16).Jc(); r.Ob();) n = P(r.Pb(), 107), t = DXe(n), Dw(e, n, t[0], (aj(), l$), 0), Dw(e, n, t[1], d$, 1);
+							for (var t, n, r = P(cO(e.a, (cL(), s$)), 16).Jc(); r.Ob();) n = P(r.Pb(), 107), t = DXe(n), Dw(e, n, t[0], (aj(), l$), 0), Dw(e, n, t[1], d$, 1);
 						}
 						function YJe(e) {
-							var t, n, r;
-							for (r = P(cO(e.a, (cL(), c$)), 16).Jc(); r.Ob();) n = P(r.Pb(), 107), t = DXe(n), Dw(e, n, t[0], (aj(), l$), 0), Dw(e, n, t[1], d$, 1);
+							for (var t, n, r = P(cO(e.a, (cL(), c$)), 16).Jc(); r.Ob();) n = P(r.Pb(), 107), t = DXe(n), Dw(e, n, t[0], (aj(), l$), 0), Dw(e, n, t[1], d$, 1);
 						}
 						function $F(e) {
 							switch (e.g) {
@@ -32488,28 +32179,23 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							c_e.call(this), this.k = (BR(), _Q), this.j = (BA(6, pH), new IO(6)), this.b = (BA(2, pH), new IO(2)), this.d = new lh(), this.f = new hae(), this.a = e;
 						}
 						function QJe(e) {
-							var t, n = 0, r, i, a;
-							for (i = new E(e.a); i.a < i.c.c.length;) r = P(z(i), 124), r.d = n++;
+							for (var t, n = 0, r, i = new E(e.a), a; i.a < i.c.c.length;) r = P(z(i), 124), r.d = n++;
 							return t = l1e(e), a = null, t.c.length > 1 && (a = KJe(e, t)), a;
 						}
 						function $Je(e) {
-							var t = 0, n, r;
-							for (r = new E(e.c.a); r.a < r.c.c.length;) n = P(z(r), 9), t += SD(new JC(Qb(mP(n).a.Jc(), new f())));
+							for (var t = 0, n, r = new E(e.c.a); r.a < r.c.c.length;) n = P(z(r), 9), t += SD(new JC(Qb(mP(n).a.Jc(), new f())));
 							return t / e.c.a.c.length;
 						}
 						function oI(e) {
-							var t, n;
-							for (n = new Yb(e); n.e != n.i.gc();) if (t = P(MF(n), 87), t.e || (!t.d && (t.d = new Gb(R7, t, 1)), t.d).i != 0) return !0;
+							for (var t, n = new Yb(e); n.e != n.i.gc();) if (t = P(MF(n), 87), t.e || (!t.d && (t.d = new Gb(R7, t, 1)), t.d).i != 0) return !0;
 							return !1;
 						}
 						function sI(e) {
-							var t, n;
-							for (n = new Yb(e); n.e != n.i.gc();) if (t = P(MF(n), 87), t.e || (!t.d && (t.d = new Gb(R7, t, 1)), t.d).i != 0) return !0;
+							for (var t, n = new Yb(e); n.e != n.i.gc();) if (t = P(MF(n), 87), t.e || (!t.d && (t.d = new Gb(R7, t, 1)), t.d).i != 0) return !0;
 							return !1;
 						}
 						function eYe(e, t, n, r) {
-							var i = P(cO(r ? e.a : e.b, t), 22), a, o;
-							for (o = i.Jc(); o.Ob();) if (a = P(o.Pb(), 26), xz(e, n, a)) return !0;
+							for (var i = P(cO(r ? e.a : e.b, t), 22), a, o = i.Jc(); o.Ob();) if (a = P(o.Pb(), 26), xz(e, n, a)) return !0;
 							return !1;
 						}
 						function tYe(e, t) {
@@ -32591,8 +32277,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (e.b.a.$b(), e.a = V(XZ, LV, 82, e.c.a.a.b.c.length, 0, 1), t = 0, r = new E(e.c.a.a.b); r.a < r.c.c.length;) n = P(z(r), 82), n.i = t++;
 						}
 						function mYe(e) {
-							var t, n, r, i, a;
-							for (r = new E(e.b); r.a < r.c.c.length;) for (n = P(z(r), 25), t = 0, a = new E(n.a); a.a < a.c.c.length;) i = P(z(a), 9), i.p = t++;
+							for (var t, n, r = new E(e.b), i, a; r.a < r.c.c.length;) for (n = P(z(r), 25), t = 0, a = new E(n.a); a.a < a.c.c.length;) i = P(z(a), 9), i.p = t++;
 						}
 						function hYe(e, t, n) {
 							var r, i, a, o = 0;
@@ -32620,8 +32305,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							t.k == (BR(), _Q) && n.k == hQ && (e.d = EN(t, (oV(), A5)), e.b = EN(t, p5)), n.k == _Q && t.k == hQ && (e.d = EN(n, (oV(), p5)), e.b = EN(n, A5));
 						}
 						function fI(e, t) {
-							var n, r;
-							for (r = aP(e, t).Jc(); r.Ob();) if (n = P(r.Pb(), 12), K(n, (Y(), r0)) != null || dx(new gO(n.b))) return !0;
+							for (var n, r = aP(e, t).Jc(); r.Ob();) if (n = P(r.Pb(), 12), K(n, (Y(), r0)) != null || dx(new gO(n.b))) return !0;
 							return !1;
 						}
 						function bYe(e, t, n) {
@@ -32749,12 +32433,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n.Tg("Self-Loop ordering", 1), n_(_T(gT(gT(jk(new vC(null, new RE(t.b, 16)), new wr()), new Tr()), new Er()), new Dr()), new Gte(e)), n.Ug();
 						}
 						function _I(e, t, n, r, i, a) {
-							var o = kZe(t, n, a), s = n == (oV(), p5) || n == M5 ? -1 : 1, c, l = e[n.g], u;
-							for (u = 0; u < l.length; u++) c = l[u], c > 0 && (c += i), l[u] = o, o += s * (c + r);
+							for (var o = kZe(t, n, a), s = n == (oV(), p5) || n == M5 ? -1 : 1, c, l = e[n.g], u = 0; u < l.length; u++) c = l[u], c > 0 && (c += i), l[u] = o, o += s * (c + r);
 						}
 						function RYe(e) {
-							var t;
-							for (t = 0; t < e.a.c.length; t++) if (Px(P(hC(e.a, t), 9), (vV(), b2)) && jh(Vx(K(P(hC(e.a, t), 9), b2)))) return !0;
+							for (var t = 0; t < e.a.c.length; t++) if (Px(P(hC(e.a, t), 9), (vV(), b2)) && jh(Vx(K(P(hC(e.a, t), 9), b2)))) return !0;
 							return !1;
 						}
 						function zYe(e) {
@@ -32802,13 +32484,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n;
 						}
 						function yI(e) {
-							var t, n, r;
-							for (n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 60), t.c.$b();
+							for (var t, n = new E(e.a.b), r; n.a < n.c.c.length;) t = P(z(n), 60), t.c.$b();
 							r = ib(e.d) ? e.a.c : e.a.d, Qk(r, new lte(e)), e.c.bf(e), K7e(e);
 						}
 						function WYe(e) {
-							var t, n, r, i;
-							for (n = new E(e.e.c); n.a < n.c.c.length;) {
+							for (var t, n = new E(e.e.c), r, i; n.a < n.c.c.length;) {
 								for (t = P(z(n), 291), i = new E(t.b); i.a < i.c.c.length;) r = P(z(i), 445), oit(r);
 								x3e(t);
 							}
@@ -32844,8 +32524,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.a ?? Q1e(e, t), o = t.b.j.c.length, a = n.d.p, s = r.d.p, i = s - 1, i < 0 && (i = o - 1), a <= i ? e.a[i] - e.a[a] : e.a[o - 1] - e.a[a] + e.a[i];
 						}
 						function YYe(e) {
-							var t;
-							for (t = 0; t < e.a.c.length; t++) if (Px(P(hC(e.a, t), 9), (vV(), x2)) && !jh(Vx(K(P(hC(e.a, t), 9), x2)))) return !1;
+							for (var t = 0; t < e.a.c.length; t++) if (Px(P(hC(e.a, t), 9), (vV(), x2)) && !jh(Vx(K(P(hC(e.a, t), 9), x2)))) return !1;
 							return !0;
 						}
 						function XYe(e, t, n) {
@@ -33069,8 +32748,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							SXe = T, jxt = new Vy(Fdt, (ax(), !1)), Dxt = new Vy(Idt, 100), kxt = (_k(), UZ), Oxt = new Vy(Ldt, kxt), Axt = new Vy(Rdt, oW), Mxt = new Vy(zdt, G(MV));
 						}
 						function CXe(e, t) {
-							var n, r, i;
-							for (r = new JC(Qb(pP(e).a.Jc(), new f())); AR(r);) return n = P(iO(r), 17), i = P(t.Kb(n), 9), new Rf(Mw(i.n.b + i.o.b / 2));
+							for (var n, r = new JC(Qb(pP(e).a.Jc(), new f())), i; AR(r);) return n = P(iO(r), 17), i = P(t.Kb(n), 9), new Rf(Mw(i.n.b + i.o.b / 2));
 							return yh(), yh(), aX;
 						}
 						function wXe(e, t, n) {
@@ -33335,8 +33013,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							M(e.g, 156) ? (i = bD(e), i.f.d ? i.f.a || (e.d.a += r + KU) : (e.d.d -= r + KU, e.d.a += r + KU)) : M(e.g, 9) && (e.d.d -= r, e.d.a += 2 * r);
 						}
 						function sZe(e) {
-							var t, n, r, i;
-							for (i = P(cO(e.a, (cL(), i$)), 16).Jc(); i.Ob();) for (r = P(i.Pb(), 107), n = WC(r.k).Jc(); n.Ob();) t = P(n.Pb(), 64), Dw(e, r, t, (aj(), u$), 1);
+							for (var t, n, r, i = P(cO(e.a, (cL(), i$)), 16).Jc(); i.Ob();) for (r = P(i.Pb(), 107), n = WC(r.k).Jc(); n.Ob();) t = P(n.Pb(), 64), Dw(e, r, t, (aj(), u$), 1);
 						}
 						function cZe(e) {
 							var t, n;
@@ -33379,8 +33056,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return c == l ? (i = e.h, s = t.h, i == s ? (r = e.m, o = t.m, r == o ? (n = e.l, a = t.l, n - a) : r - o) : i - s) : l - c;
 						}
 						function gZe(e, t, n) {
-							var i, a = e[n.g], o, s, c;
-							for (c = new E(t.d); c.a < c.c.c.length;) s = P(z(c), 107), o = s.i, o && o.i == n && (i = s.d[n.g], a[i] = r.Math.max(a[i], o.j.b));
+							for (var i, a = e[n.g], o, s, c = new E(t.d); c.a < c.c.c.length;) s = P(z(c), 107), o = s.i, o && o.i == n && (i = s.d[n.g], a[i] = r.Math.max(a[i], o.j.b));
 						}
 						function _Ze(e, t) {
 							var n, i = 0, a = 0, o, s;
@@ -33489,8 +33165,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function AZe(e, t) {
-							var n, r;
-							for (r = new E(t); r.a < r.c.c.length;) n = P(z(r), 9), e.c[n.c.p][n.p].a = IC(e.i), e.c[n.c.p][n.p].d = O(e.c[n.c.p][n.p].a), e.c[n.c.p][n.p].b = 1;
+							for (var n, r = new E(t); r.a < r.c.c.length;) n = P(z(r), 9), e.c[n.c.p][n.p].a = IC(e.i), e.c[n.c.p][n.p].d = O(e.c[n.c.p][n.p].a), e.c[n.c.p][n.p].b = 1;
 						}
 						function jZe(e, t) {
 							var n, i, a, o = 0;
@@ -33513,8 +33188,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.g = a;
 						}
 						function FZe(e, t, n) {
-							var r, i = (t - e.e) / e.d.c.length, a = 0, o, s;
-							for (s = new E(e.d); s.a < s.c.c.length;) o = P(z(s), 320), r = e.b - o.b + n, VKe(o, o.e + a * i, o.f), hYe(o, i, r), ++a;
+							for (var r, i = (t - e.e) / e.d.c.length, a = 0, o, s = new E(e.d); s.a < s.c.c.length;) o = P(z(s), 320), r = e.b - o.b + n, VKe(o, o.e + a * i, o.f), hYe(o, i, r), ++a;
 						}
 						function IZe(e) {
 							var t;
@@ -33586,17 +33260,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n = P(sT(e.b, t), 127), n.n.b = 0, n.a.a = o;
 						}
 						function qZe(e, t) {
-							var n = 0, i, a, o;
-							for (o = P(P(cO(e.r, t), 22), 83).Jc(); o.Ob();) a = P(o.Pb(), 115), n = r.Math.max(n, a.e.b + a.b.Kf().b);
+							for (var n = 0, i, a, o = P(P(cO(e.r, t), 22), 83).Jc(); o.Ob();) a = P(o.Pb(), 115), n = r.Math.max(n, a.e.b + a.b.Kf().b);
 							i = P(sT(e.b, t), 127), i.n.d = 0, i.a.b = n;
 						}
 						function JZe(e) {
-							var t, n, i;
-							for (n = new E(e.p); n.a < n.c.c.length;) t = P(z(n), 9), t.k == (BR(), _Q) && (i = t.o.b, e.i = r.Math.min(e.i, i), e.g = r.Math.max(e.g, i));
+							for (var t, n = new E(e.p), i; n.a < n.c.c.length;) t = P(z(n), 9), t.k == (BR(), _Q) && (i = t.o.b, e.i = r.Math.min(e.i, i), e.g = r.Math.max(e.g, i));
 						}
 						function YZe(e, t, n) {
-							var r, i, a;
-							for (a = new E(t); a.a < a.c.c.length;) r = P(z(a), 9), e.c[r.c.p][r.p].e = !1;
+							for (var r, i, a = new E(t); a.a < a.c.c.length;) r = P(z(a), 9), e.c[r.c.p][r.p].e = !1;
 							for (i = new E(t); i.a < i.c.c.length;) r = P(z(i), 9), Dst(e, r, n);
 						}
 						function XZe(e) {
@@ -33625,8 +33296,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return t === e ? !0 : M(t, 668) ? (i = P(t, 2011), vqe((r = e.g, r || (e.g = new Wf(e))), (n = i.g, n || (i.g = new Wf(i))))) : !1;
 						}
 						function eQe(e) {
-							var t = "$z", n = "nz", i;
-							for (i = r.Math.min(e.length, 5) - 1; i >= 0; i--) if (hS(e[i].d, t) || hS(e[i].d, n)) {
+							for (var t = "$z", n = "nz", i = r.Math.min(e.length, 5) - 1; i >= 0; i--) if (hS(e[i].d, t) || hS(e[i].d, n)) {
 								e.length >= i + 1 && e.splice(0, i + 1);
 								break;
 							}
@@ -33739,8 +33409,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return Mw(t), Mw(n), a = P(vS(e.d, t), 15), jIe(!!a, "Row %s not in %s", t, e.e), i = P(vS(e.b, n), 15), jIe(!!i, "Column %s not in %s", n, e.c), DVe(e, a.a, i.a, r);
 						}
 						function pQe(e) {
-							var t, n = null, r, i, a, o;
-							for (i = e, a = 0, o = i.length; a < o; ++a) {
+							for (var t, n = null, r, i = e, a = 0, o = i.length; a < o; ++a) {
 								r = i[a];
 								try {
 									Xw(r);
@@ -33757,12 +33426,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return d;
 						}
 						function hQe(e) {
-							var t, n, r, i, a;
-							for (r = new Mj(new am(e.b).a); r.b;) n = JA(r), t = P(n.jd(), 9), a = P(P(n.kd(), 49).a, 9), i = P(P(n.kd(), 49).b, 8), lS(Ky(t.n), lS(Nb(a.n), i));
+							for (var t, n, r = new Mj(new am(e.b).a), i, a; r.b;) n = JA(r), t = P(n.jd(), 9), a = P(P(n.kd(), 49).a, 9), i = P(P(n.kd(), 49).b, 8), lS(Ky(t.n), lS(Nb(a.n), i));
 						}
 						function gQe(e, t) {
-							var n, r, i, a;
-							for (a = new E(t.a); a.a < a.c.c.length;) for (i = P(z(a), 9), Ih(e.d), r = new JC(Qb(mP(i).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), z3e(e, i, n.d.i);
+							for (var n, r, i, a = new E(t.a); a.a < a.c.c.length;) for (i = P(z(a), 9), Ih(e.d), r = new JC(Qb(mP(i).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), z3e(e, i, n.d.i);
 						}
 						function eL(e) {
 							if (e.g == -1) throw D(new Km());
@@ -33790,13 +33457,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.d = a - e.b, e.a = t - e.b;
 						}
 						function tL(e) {
-							var t, n, r;
-							for (n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 60), r = t.d.c, t.d.c = t.d.d, t.d.d = r, r = t.d.b, t.d.b = t.d.a, t.d.a = r, r = t.b.a, t.b.a = t.b.b, t.b.b = r;
+							for (var t, n = new E(e.a.b), r; n.a < n.c.c.length;) t = P(z(n), 60), r = t.d.c, t.d.c = t.d.d, t.d.d = r, r = t.d.b, t.d.b = t.d.a, t.d.a = r, r = t.b.a, t.b.a = t.b.b, t.b.b = r;
 							B5e(e);
 						}
 						function nL(e) {
-							var t, n, r;
-							for (n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 82), r = t.g.c, t.g.c = t.g.d, t.g.d = r, r = t.g.b, t.g.b = t.g.a, t.g.a = r, r = t.e.a, t.e.a = t.e.b, t.e.b = r;
+							for (var t, n = new E(e.a.b), r; n.a < n.c.c.length;) t = P(z(n), 82), r = t.g.c, t.g.c = t.g.d, t.g.d = r, r = t.g.b, t.g.b = t.g.a, t.g.a = r, r = t.e.a, t.e.a = t.e.b, t.e.b = r;
 							ez(e);
 						}
 						function yQe(e) {
@@ -33841,13 +33506,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							else dHt(a)();
 						}
 						function CQe(e, t) {
-							var n, r, i, a;
-							for (i = (a = new im(e.b).a.vc().Jc(), new rm(a)); i.a.Ob();) if (r = (n = P(i.a.Pb(), 45), P(n.jd(), 35)), xfe(t, P(r, 15)) < 0) return !1;
+							for (var n, r, i = (a = new im(e.b).a.vc().Jc(), new rm(a)), a; i.a.Ob();) if (r = (n = P(i.a.Pb(), 45), P(n.jd(), 35)), xfe(t, P(r, 15)) < 0) return !1;
 							return !0;
 						}
 						function wQe(e, t) {
-							var n, r, i, a;
-							for (i = (a = new im(e.b).a.vc().Jc(), new rm(a)); i.a.Ob();) if (r = (n = P(i.a.Pb(), 45), P(n.jd(), 35)), xfe(t, P(r, 15)) > 0) return !1;
+							for (var n, r, i = (a = new im(e.b).a.vc().Jc(), new rm(a)), a; i.a.Ob();) if (r = (n = P(i.a.Pb(), 45), P(n.jd(), 35)), xfe(t, P(r, 15)) > 0) return !1;
 							return !0;
 						}
 						function TQe(e) {
@@ -33948,8 +33611,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return qy(r, r.a.length - 1);
 						}
 						function RQe(e, t) {
-							var n, r, i, a, o;
-							for (a = new E(t.a); a.a < a.c.c.length;) for (i = P(z(a), 9), r = new JC(Qb(fP(i).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), o = n.c.i.p, e.n[o] = e.n[o] - 1;
+							for (var n, r, i, a = new E(t.a), o; a.a < a.c.c.length;) for (i = P(z(a), 9), r = new JC(Qb(fP(i).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), o = n.c.i.p, e.n[o] = e.n[o] - 1;
 						}
 						function zQe(e, t, n) {
 							var r = e.c[t.c.p][t.p], i = e.c[n.c.p][n.p];
@@ -34002,8 +33664,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return a;
 						}
 						function qQe(e) {
-							var t, n;
-							for (n = new E(e.e.b); n.a < n.c.c.length;) t = P(z(n), 25), cst(e, t);
+							for (var t, n = new E(e.e.b); n.a < n.c.c.length;) t = P(z(n), 25), cst(e, t);
 							n_(gT(jk(jk(new vC(null, new RE(e.e.b, 16)), new Ka()), new Qa()), new $a()), new Wne(e));
 						}
 						function JQe(e, t) {
@@ -34019,8 +33680,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							throw D(new joe("Invalid boolean value: '" + e + "'"));
 						}
 						function ZQe(e, t, n) {
-							var r, i, a;
-							for (i = e.vc().Jc(); i.Ob();) if (r = P(i.Pb(), 45), a = r.jd(), j(t) === j(a) || t != null && MN(t, a)) return n && (r = new R_(r.jd(), r.kd()), i.Qb()), r;
+							for (var r, i = e.vc().Jc(), a; i.Ob();) if (r = P(i.Pb(), 45), a = r.jd(), j(t) === j(a) || t != null && MN(t, a)) return n && (r = new R_(r.jd(), r.kd()), i.Qb()), r;
 							return null;
 						}
 						function QQe(e) {
@@ -34043,16 +33703,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							r != null && (a = P(kk(e.b, r), 66), IP(a, n, !0)), i = P(kk(e.b, t), 66), i || (i = new Jg(), CF(e.b, t, i)), UD(i, n, i.c.b, i.c), CF(e.a, n, t);
 						}
 						function lL(e, t, n, r, i) {
-							var a, o = dse(use(Rve(FJe(n)), r), VXe(e, n, i)), s, c;
-							for (c = zL(e, n).Jc(); c.Ob();) s = P(c.Pb(), 12), t[s.p] && (a = t[s.p].i, Hb(o.d, new HC(a, UWe(o, a))));
+							for (var a, o = dse(use(Rve(FJe(n)), r), VXe(e, n, i)), s, c = zL(e, n).Jc(); c.Ob();) s = P(c.Pb(), 12), t[s.p] && (a = t[s.p].i, Hb(o.d, new HC(a, UWe(o, a))));
 							hKe(o);
 						}
 						function n$e(e, t) {
 							this.f = new Pm(), this.b = new Pm(), this.j = new Pm(), this.a = e, this.c = t, this.c > 0 && wXe(this, this.c - 1, (oV(), f5)), this.c < this.a.length - 1 && wXe(this, this.c + 1, (oV(), M5));
 						}
 						function r$e(e, t) {
-							var n, r, i, a, o;
-							for (a = new E(t.d); a.a < a.c.c.length;) for (i = P(z(a), 107), o = P(Lw(e.c, i), 116).o, r = new qg(i.b); r.a < r.c.a.length;) n = P(AD(r), 64), NFe(i, n, o);
+							for (var n, r, i, a = new E(t.d), o; a.a < a.c.c.length;) for (i = P(z(a), 107), o = P(Lw(e.c, i), 116).o, r = new qg(i.b); r.a < r.c.a.length;) n = P(AD(r), 64), NFe(i, n, o);
 						}
 						function i$e(e) {
 							e.length > 0 && e[0].length > 0 && (this.c = jh(Vx(K($w(e[0][0]), (Y(), Lwt))))), this.a = V(CAt, X, 2082, e.length, 0, 2), this.b = V(wAt, X, 2083, e.length, 0, 2), this.d = new uUe();
@@ -34096,14 +33754,12 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (var t, n, r, i; !Nh(e.o);) n = P(Cw(e.o), 49), r = P(n.a, 124), t = P(n.b, 217), i = TP(t, r), t.e == r ? (mx(i.g, t), r.e = i.e + t.a) : (mx(i.b, t), r.e = i.e - t.a), Hb(e.e.a, r);
 						}
 						function f$e(e, t) {
-							var n = null, r, i;
-							for (i = P(t.Kb(e), 20).Jc(); i.Ob();) if (r = P(i.Pb(), 17), !n) n = r.c.i == e ? r.d.i : r.c.i;
+							for (var n = null, r, i = P(t.Kb(e), 20).Jc(); i.Ob();) if (r = P(i.Pb(), 17), !n) n = r.c.i == e ? r.d.i : r.c.i;
 							else if ((r.c.i == e ? r.d.i : r.c.i) != n) return !1;
 							return !0;
 						}
 						function p$e(e, t) {
-							var n = W8e(e, !1, t), r, i, a, o;
-							for (i = new E(n); i.a < i.c.c.length;) r = P(z(i), 133), r.d == 0 ? (jE(r, null), ME(r, null)) : (a = r.a, o = r.b, jE(r, o), ME(r, a));
+							for (var n = W8e(e, !1, t), r, i = new E(n), a, o; i.a < i.c.c.length;) r = P(z(i), 133), r.d == 0 ? (jE(r, null), ME(r, null)) : (a = r.a, o = r.b, jE(r, o), ME(r, a));
 						}
 						function m$e(e) {
 							var t = new Qw(), n;
@@ -34124,8 +33780,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return a;
 						}
 						function v$e(e) {
-							var t, n, r;
-							for (n = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)); n.e != n.i.gc();) if (t = P(MF(n), 26), r = HR(t), !AR(new JC(Qb(r.a.Jc(), new f())))) return t;
+							for (var t, n = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)), r; n.e != n.i.gc();) if (t = P(MF(n), 26), r = HR(t), !AR(new JC(Qb(r.a.Jc(), new f())))) return t;
 							return null;
 						}
 						function dL() {
@@ -34142,8 +33797,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return i;
 						}
 						function b$e(e, t) {
-							var n, r, i, a, o, s, c, l;
-							for (s = e.a, c = 0, l = s.length; c < l; ++c) for (o = s[c], r = o, i = 0, a = r.length; i < a; ++i) if (n = r[i], j(t) === j(n) || t != null && MN(t, n)) return !0;
+							for (var n, r, i, a, o, s = e.a, c = 0, l = s.length; c < l; ++c) for (o = s[c], r = o, i = 0, a = r.length; i < a; ++i) if (n = r[i], j(t) === j(n) || t != null && MN(t, n)) return !0;
 							return !1;
 						}
 						function x$e(e) {
@@ -34151,8 +33805,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return gN(e, 0) >= 0 ? (n = YI(e, tU), r = XP(e, tU)) : (t = ZC(e, 1), n = YI(t, 5e8), r = XP(t, 5e8), r = lP(YC(r, 1), KE(e, 1))), qE(YC(r, 32), KE(n, pU));
 						}
 						function S$e(e, t, n, r) {
-							var i = null, a = 0, o, s, c;
-							for (s = new E(t); s.a < s.c.c.length;) o = P(z(s), 26), c = o.i + o.g, e < o.j + o.f + r && (i ? n.i - c < n.i - a && (i = o) : i = o, a = i.i + i.g);
+							for (var i = null, a = 0, o, s = new E(t), c; s.a < s.c.c.length;) o = P(z(s), 26), c = o.i + o.g, e < o.j + o.f + r && (i ? n.i - c < n.i - a && (i = o) : i = o, a = i.i + i.g);
 							return i ? a + r : 0;
 						}
 						function C$e(e, t, n, r) {
@@ -34165,8 +33818,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (n = 0; n < r; n++) NHe(P(hC(e.b, n), 434)) ? !t && n + 1 < r && NHe(P(hC(e.b, n + 1), 434)) && (t = !0, P(hC(e.b, n), 434).a = !0) : t = !1;
 						}
 						function T$e(e, t, n, r, i) {
-							var a = 0, o;
-							for (o = 0; o < i; o++) a = lP(a, dP(KE(t[o], pU), KE(r[o], pU))), e[o] = AC(a), a = XC(a, 32);
+							for (var a = 0, o = 0; o < i; o++) a = lP(a, dP(KE(t[o], pU), KE(r[o], pU))), e[o] = AC(a), a = XC(a, 32);
 							for (; o < n; o++) a = lP(a, KE(t[o], pU)), e[o] = AC(a), a = XC(a, 32);
 						}
 						function E$e(e, t) {
@@ -34189,8 +33841,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return !1;
 						}
 						function k$e(e) {
-							var t = new Jg(), n = new Jg(), r, i;
-							for (i = kF(e, 0); i.b != i.d.c;) r = P(vD(i), 12), r.e.c.length == 0 ? UD(n, r, n.c.b, n.c) : UD(t, r, t.c.b, t.c);
+							for (var t = new Jg(), n = new Jg(), r, i = kF(e, 0); i.b != i.d.c;) r = P(vD(i), 12), r.e.c.length == 0 ? UD(n, r, n.c.b, n.c) : UD(t, r, t.c.b, t.c);
 							return FP(t).Fc(n), t;
 						}
 						function A$e(e, t) {
@@ -34246,8 +33897,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (i = 0; i < n; i++) e[i] = 0;
 						}
 						function B$e(e) {
-							var t = 0, n = 0, i, a, o;
-							for (o = e.Jc(); o.Ob();) i = P(o.Pb(), 115), t = r.Math.max(t, i.d.b), n = r.Math.max(n, i.d.c);
+							for (var t = 0, n = 0, i, a, o = e.Jc(); o.Ob();) i = P(o.Pb(), 115), t = r.Math.max(t, i.d.b), n = r.Math.max(n, i.d.c);
 							for (a = e.Jc(); a.Ob();) i = P(a.Pb(), 115), i.d.b = t, i.d.c = n;
 						}
 						function V$e(e) {
@@ -34267,8 +33917,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							this.d = new Pm(), this.c = e.c, this.e = e.d, this.b = e.b, this.f = new OSe(e.e), this.a = e.a, this.g = e.f ? e.f : (t = P(yg(x7), 10), new wS(t, P(iS(t, t.length), 10), 0));
 						}
 						function U$e(e) {
-							var t = null, n, r, i;
-							for (i = new E(e.Pf()); i.a < i.c.c.length;) r = P(z(i), 187), n = new ST(r.Jf().a, r.Jf().b, r.Kf().a, r.Kf().b), t ? qL(t, n) : t = n;
+							for (var t = null, n, r, i = new E(e.Pf()); i.a < i.c.c.length;) r = P(z(i), 187), n = new ST(r.Jf().a, r.Jf().b, r.Kf().a, r.Kf().b), t ? qL(t, n) : t = n;
 							return !t && (t = new eb()), t;
 						}
 						function _L(e, t, n, r) {
@@ -34423,8 +34072,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (s = NN(n, r), a = s.Jc(); a.Ob();) i = P(a.Pb(), 12), e.d[i.p] = e.d[i.p] - e.c[t.p];
 						}
 						function s1e(e, t, n) {
-							var r, i;
-							for (i = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)); i.e != i.i.gc();) r = P(MF(i), 26), cb(r, r.i + t, r.j + n);
+							for (var r, i = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)); i.e != i.i.gc();) r = P(MF(i), 26), cb(r, r.i + t, r.j + n);
 							qD((!e.b && (e.b = new F(r7, e, 12, 3)), e.b), new _de(t, n));
 						}
 						function c1e(e, t, n, r) {
@@ -34688,8 +34336,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							else throw D(new Bh("All edge sections need a start point."));
 						}
 						function U1e(e, t) {
-							var n, r, i, a, o, s, c;
-							for (r = MHe(e), a = 0, s = r.length; a < s; ++a) Y1e(t);
+							for (var n, r = MHe(e), i, a = 0, o, s = r.length, c; a < s; ++a) Y1e(t);
 							for (c = !rZ && e.e ? rZ ? null : e.d : null; c;) {
 								for (n = MHe(c), i = 0, o = n.length; i < o; ++i) Y1e(t);
 								c = !rZ && c.e ? rZ ? null : c.d : null;
@@ -34762,8 +34409,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.Db & 64 ? sP(e) : (t = new tx(sP(e)), t.a += " (height: ", bg(t, e.f), t.a += ", width: ", bg(t, e.g), t.a += ", x: ", bg(t, e.i), t.a += ", y: ", bg(t, e.j), t.a += ")", t.a);
 						}
 						function t0e(e) {
-							var t = new zD(), n, r, i, a, o, s;
-							for (r = e, i = 0, a = r.length; i < a; ++i) if (n = r[i], o = Mw(n.jd()), s = CF(t, o, Mw(n.kd())), s != null) throw D(new Oh("duplicate key: " + o));
+							for (var t = new zD(), n, r = e, i = 0, a = r.length, o, s; i < a; ++i) if (n = r[i], o = Mw(n.jd()), s = CF(t, o, Mw(n.kd())), s != null) throw D(new Oh("duplicate key: " + o));
 							this.b = (DT(), new fm(t));
 						}
 						function n0e(e) {
@@ -34926,8 +34572,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function w0e(e, t, n) {
-							var r, i, a;
-							for (i = new JC(Qb(pP(n).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), !$D(r) && !(!$D(r) && r.c.i.c == r.d.i.c) && (a = H8e(e, r, n, new dae()), a.c.length > 1 && Vm(t.c, a));
+							for (var r, i = new JC(Qb(pP(n).a.Jc(), new f())), a; AR(i);) r = P(iO(i), 17), !($D(r) || !$D(r) && r.c.i.c == r.d.i.c) && (a = H8e(e, r, n, new dae()), a.c.length > 1 && Vm(t.c, a));
 						}
 						function T0e(e, t, n, r, i) {
 							if (r < t || i < n) throw D(new Oh("The highx must be bigger then lowx and the highy must be bigger then lowy"));
@@ -34940,8 +34585,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							throw D(new Oh(DJ + AL(new Fh(U(k(iX, 1), LV, 1, 5, [e])))));
 						}
 						function D0e(e, t, n, r, i) {
-							var a = !0, o, s;
-							for (o = 0; o < r; o++) a &= n[o] == 0;
+							for (var a = !0, o = 0, s; o < r; o++) a &= n[o] == 0;
 							if (i == 0) oB(n, r, e, 0, t), o = t;
 							else {
 								for (s = 32 - i, a &= n[o] << s == 0, o = 0; o < t - 1; o++) e[o] = n[o + r] >>> i | n[o + r + 1] << s;
@@ -34985,8 +34629,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return i == MV && (i = -1), a == MV && (a = -1), new gy(G(i), G(a));
 						}
 						function P0e(e, t) {
-							var n = t.a.o.a, r, i;
-							for (i = new um(new LE($w(t.a).b, t.c, t.f + 1)); i.b < i.d.gc();) if (r = (jx(i.b < i.d.gc()), P(i.d.Xb(i.c = i.b++), 25)), r.c.a >= n) return UL(e, t, r.p), !0;
+							for (var n = t.a.o.a, r, i = new um(new LE($w(t.a).b, t.c, t.f + 1)); i.b < i.d.gc();) if (r = (jx(i.b < i.d.gc()), P(i.d.Xb(i.c = i.b++), 25)), r.c.a >= n) return UL(e, t, r.p), !0;
 							return !1;
 						}
 						function HL(e, t, n, r) {
@@ -35020,8 +34663,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e < 0 || e > n ? j2e(e, n, "start index") : t < 0 || t > n ? j2e(t, n, "end index") : Az("end index (%s) must not be less than start index (%s)", U(k(iX, 1), LV, 1, 5, [G(t), G(e)]));
 						}
 						function B0e(e, t) {
-							var n, r, i, a;
-							for (r = 0, i = e.length; r < i; r++) {
+							for (var n, r = 0, i = e.length, a; r < i; r++) {
 								a = e[r];
 								try {
 									a[1] ? a[0].Sm() && (t = jSe(t, a)) : a[0].Sm();
@@ -35051,8 +34693,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							t.p = 0;
 						}
 						function W0e(e) {
-							var t = Uw(Iy(new nx("Predicates."), "and"), 40), n = !0, r, i;
-							for (i = new um(e); i.b < i.d.gc();) r = (jx(i.b < i.d.gc()), i.d.Xb(i.c = i.b++)), n || (t.a += ","), t.a += "" + r, n = !1;
+							for (var t = Uw(Iy(new nx("Predicates."), "and"), 40), n = !0, r, i = new um(e); i.b < i.d.gc();) r = (jx(i.b < i.d.gc()), i.d.Xb(i.c = i.b++)), n || (t.a += ","), t.a += "" + r, n = !1;
 							return (t.a += ")", t).a;
 						}
 						function G0e(e, t, n) {
@@ -35235,19 +34876,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function c2e(e, t) {
 							var n = P(sT(e.b, t), 127), r;
-							if (P(P(cO(e.r, t), 22), 83).dc()) {
-								n.n.b = 0, n.n.c = 0;
-								return;
-							}
-							n.n.b = e.C.b, n.n.c = e.C.c, e.A.Gc(($P(), R5)) && vet(e, t), r = kJe(e, t), Sz(e, t) == (OF(), X8) && (r += 2 * e.w), n.a.a = r;
+							P(P(cO(e.r, t), 22), 83).dc() ? (n.n.b = 0, n.n.c = 0) : (n.n.b = e.C.b, n.n.c = e.C.c, e.A.Gc(($P(), R5)) && vet(e, t), r = kJe(e, t), Sz(e, t) == (OF(), X8) && (r += 2 * e.w), n.a.a = r);
 						}
 						function l2e(e, t) {
 							var n = P(sT(e.b, t), 127), r;
-							if (P(P(cO(e.r, t), 22), 83).dc()) {
-								n.n.d = 0, n.n.a = 0;
-								return;
-							}
-							n.n.d = e.C.d, n.n.a = e.C.a, e.A.Gc(($P(), R5)) && yet(e, t), r = OJe(e, t), Sz(e, t) == (OF(), X8) && (r += 2 * e.w), n.a.b = r;
+							P(P(cO(e.r, t), 22), 83).dc() ? (n.n.d = 0, n.n.a = 0) : (n.n.d = e.C.d, n.n.a = e.C.a, e.A.Gc(($P(), R5)) && yet(e, t), r = OJe(e, t), Sz(e, t) == (OF(), X8) && (r += 2 * e.w), n.a.b = r);
 						}
 						function u2e(e, t) {
 							var n, r, i, a = new Nm();
@@ -35397,8 +35030,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							fYe(e.e), qAe(i, e.d, new Fh(U(k(ibt, 1), LV, 683, 0, [e.e])));
 						}
 						function T2e(e) {
-							var t, n = new Pm(), r, i;
-							for (i = new E(e.d); i.a < i.c.c.length;) r = P(z(i), 187), t = P(r.mf((Y(), M1)), 17), FC(n.f, t) || aT(n, t, new YEe(t)), Hb(P(Ty(FC(n.f, t)), 455).b, r);
+							for (var t, n = new Pm(), r, i = new E(e.d); i.a < i.c.c.length;) r = P(z(i), 187), t = P(r.mf((Y(), M1)), 17), FC(n.f, t) || aT(n, t, new YEe(t)), Hb(P(Ty(FC(n.f, t)), 455).b, r);
 							return new CS(new om(n));
 						}
 						function E2e(e, t) {
@@ -35410,8 +35042,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (var n, r = new iD(e.b, 0), i; r.b < r.d.gc();) n = (jx(r.b < r.d.gc()), P(r.d.Xb(r.c = r.b++), 70)), i = P(K(n, (vV(), r2)), 279), i == (nA(), E8) && (Zw(r), Hb(t.b, n), Px(n, (Y(), M1)) || W(n, M1, e));
 						}
 						function O2e(e) {
-							var t = SD(new JC(Qb(mP(e).a.Jc(), new f()))), n, i, a, o;
-							for (a = new JC(Qb(fP(e).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), n = i.c.i, o = SD(new JC(Qb(mP(n).a.Jc(), new f()))), t = r.Math.max(t, o);
+							for (var t = SD(new JC(Qb(mP(e).a.Jc(), new f()))), n, i, a = new JC(Qb(fP(e).a.Jc(), new f())), o; AR(a);) i = P(iO(a), 17), n = i.c.i, o = SD(new JC(Qb(mP(n).a.Jc(), new f()))), t = r.Math.max(t, o);
 							return G(t);
 						}
 						function k2e(e, t, n) {
@@ -35432,15 +35063,9 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function M2e(e, t, n, r, i, a) {
 							var o = r - n, s, c, l;
-							if (o < 7) {
-								EGe(t, n, r, a);
-								return;
-							}
-							if (c = n + i, s = r + i, l = c + (s - c >> 1), M2e(t, e, c, l, -i, a), M2e(t, e, l, s, -i, a), a.Le(e[l - 1], e[l]) <= 0) {
-								for (; n < r;) Iw(t, n++, e[c++]);
-								return;
-							}
-							bWe(e, c, l, s, t, n, r, a);
+							if (o < 7) EGe(t, n, r, a);
+							else if (c = n + i, s = r + i, l = c + (s - c >> 1), M2e(t, e, c, l, -i, a), M2e(t, e, l, s, -i, a), a.Le(e[l - 1], e[l]) <= 0) for (; n < r;) Iw(t, n++, e[c++]);
+							else bWe(e, c, l, s, t, n, r, a);
 						}
 						function N2e(e, t) {
 							var n, r, i, a, o, s, c = t.d;
@@ -35539,11 +35164,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function K2e(e, t) {
 							var n, r, i, a, o;
 							if (!t.dc()) {
-								if (i = P(t.Xb(0), 132), t.gc() == 1) {
-									k7e(e, i, i, 1, 0, t);
-									return;
-								}
-								for (n = 1; n < t.gc();) (i.j || !i.o) && (a = cXe(t, n), a && (r = P(a.a, 15).a, o = P(a.b, 132), k7e(e, i, o, n, r, t), n = r + 1, i = o));
+								if (i = P(t.Xb(0), 132), t.gc() == 1) k7e(e, i, i, 1, 0, t);
+								else for (n = 1; n < t.gc();) (i.j || !i.o) && (a = cXe(t, n), a && (r = P(a.a, 15).a, o = P(a.b, 132), k7e(e, i, o, n, r, t), n = r + 1, i = o));
 							}
 						}
 						function q2e(e) {
@@ -35654,12 +35276,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function o4e(e, t) {
 							PS();
-							var n = null, r, i, a, o, s;
-							for (o = t.Jc(); o.Ob();) a = P(o.Pb(), 132), !a.o && (r = Upe(a.a), i = Sxe(a.a), s = new vB(r, i, null, P(a.d.a.ec().Jc().Pb(), 17)), Hb(s.c, a.a), Vm(e.c, s), n && Hb(n.d, s), n = s);
+							for (var n = null, r, i, a, o = t.Jc(), s; o.Ob();) a = P(o.Pb(), 132), !a.o && (r = Upe(a.a), i = Sxe(a.a), s = new vB(r, i, null, P(a.d.a.ec().Jc().Pb(), 17)), Hb(s.c, a.a), Vm(e.c, s), n && Hb(n.d, s), n = s);
 						}
 						function s4e(e) {
-							var t, n, r, i, a;
-							for (a = NN(e.d, e.e).Jc(); a.Ob();) for (i = P(a.Pb(), 12), r = e.e == (oV(), M5) ? i.e : i.g, n = new E(r); n.a < n.c.c.length;) t = P(z(n), 17), !$D(t) && t.c.i.c != t.d.i.c && (h0e(e, t), ++e.f, ++e.c);
+							for (var t, n, r, i, a = NN(e.d, e.e).Jc(); a.Ob();) for (i = P(a.Pb(), 12), r = e.e == (oV(), M5) ? i.e : i.g, n = new E(r); n.a < n.c.c.length;) t = P(z(n), 17), !$D(t) && t.c.i.c != t.d.i.c && (h0e(e, t), ++e.f, ++e.c);
 						}
 						function c4e(e, t) {
 							var n, r;
@@ -35711,7 +35331,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function g4e(e) {
 							var t, n;
-							return e > -0x800000000000 && e < 0x800000000000 ? e == 0 ? 0 : (t = e < 0, t && (e = -e), n = nE(r.Math.floor(r.Math.log(e) / .6931471805599453)), (!t || e != r.Math.pow(2, n)) && ++n, n) : CWe(Bj(e));
+							return e > -0x800000000000 && e < 0x800000000000 ? e == 0 ? 0 : (t = e < 0, t && (e = -e), n = nE(r.Math.floor(r.Math.log(e) / .6931471805599453)), t && e == r.Math.pow(2, n) || ++n, n) : CWe(Bj(e));
 						}
 						function _4e(e) {
 							var t, n, r, i, a = new $y(), o, s;
@@ -35783,8 +35403,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.i[t.d] = e.j, e.g[t.d] = r.Math.min(a, e.j++), e.g[t.d];
 						}
 						function O4e(e, t) {
-							var n, r, i;
-							for (i = P(P(cO(e.r, t), 22), 83).Jc(); i.Ob();) r = P(i.Pb(), 115), r.e.b = (n = r.b, n.nf((xV(), t8)) ? n.$f() == (oV(), p5) ? -n.Kf().b - O(N(n.mf(t8))) : O(N(n.mf(t8))) : n.$f() == (oV(), p5) ? -n.Kf().b : 0);
+							for (var n, r, i = P(P(cO(e.r, t), 22), 83).Jc(); i.Ob();) r = P(i.Pb(), 115), r.e.b = (n = r.b, n.nf((xV(), t8)) ? n.$f() == (oV(), p5) ? -n.Kf().b - O(N(n.mf(t8))) : O(N(n.mf(t8))) : n.$f() == (oV(), p5) ? -n.Kf().b : 0);
 						}
 						function k4e(e) {
 							var t = e.a, n = e.b, r, i = e.c, a;
@@ -35986,8 +35605,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							])).b) / 2, r = null, r = o.j == (oV(), f5) ? new A(t + o.i.c.c.a + n, i) : new A(t - n, i), wx(e.a, 0, r);
 						}
 						function gR(e) {
-							var t = null, n, r, i;
-							for (r = lw(DA(U(k(oX, 1), LV, 20, 0, [(!e.b && (e.b = new pS(n7, e, 4, 7)), e.b), (!e.c && (e.c = new pS(n7, e, 5, 8)), e.c)]))); AR(r);) if (n = P(iO(r), 84), i = mL(n), !t) t = i;
+							for (var t = null, n, r = lw(DA(U(k(oX, 1), LV, 20, 0, [(!e.b && (e.b = new pS(n7, e, 4, 7)), e.b), (!e.c && (e.c = new pS(n7, e, 5, 8)), e.c)]))), i; AR(r);) if (n = P(iO(r), 84), i = mL(n), !t) t = i;
 							else if (t != i) return !1;
 							return !0;
 						}
@@ -36159,8 +35777,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							this.d = new ch(), this.b = t, this.e = new Qy(t.Jf()), n = e.u.Gc((lR(), c5)), this.a = e.u.Gc(s5) ? !e.F || n && !t._f() : e.u.Gc(l5) && n ? !(t.Sf().Jc().Ob() || t.Uf().Jc().Ob()) : !1;
 						}
 						function b3e(e, t) {
-							var n = e.o.a, r, i, a;
-							for (a = P(P(cO(e.r, t), 22), 83).Jc(); a.Ob();) i = P(a.Pb(), 115), i.e.a = (r = i.b, r.nf((xV(), t8)) ? r.$f() == (oV(), M5) ? -r.Kf().a - O(N(r.mf(t8))) : n + O(N(r.mf(t8))) : r.$f() == (oV(), M5) ? -r.Kf().a : n);
+							for (var n = e.o.a, r, i, a = P(P(cO(e.r, t), 22), 83).Jc(); a.Ob();) i = P(a.Pb(), 115), i.e.a = (r = i.b, r.nf((xV(), t8)) ? r.$f() == (oV(), M5) ? -r.Kf().a - O(N(r.mf(t8))) : n + O(N(r.mf(t8))) : r.$f() == (oV(), M5) ? -r.Kf().a : n);
 						}
 						function x3e(e) {
 							var t, n, r = e.a.c.length, i, a, o, s;
@@ -36205,8 +35822,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function E3e(e) {
 							DE();
-							var t, n = new zD(), r, i, a, o, s;
-							for (i = new E(e.e.b); i.a < i.c.c.length;) for (r = P(z(i), 25), o = new E(r.a); o.a < o.c.c.length;) a = P(z(o), 9), s = e.g[a.p], t = P(kk(n, s), 16), t || (t = new Nm(), CF(n, s, t)), t.Ec(a);
+							for (var t, n = new zD(), r, i = new E(e.e.b), a, o, s; i.a < i.c.c.length;) for (r = P(z(i), 25), o = new E(r.a); o.a < o.c.c.length;) a = P(z(o), 9), s = e.g[a.p], t = P(kk(n, s), 16), t || (t = new Nm(), CF(n, s, t)), t.Ec(a);
 							return n;
 						}
 						function D3e(e, t) {
@@ -36266,8 +35882,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return s == n ? n : (o = e.g[t], c = s, Ub(e, t, e.Xi(t, c)), a = o, e.Pi(t, c, a), e.$k() && (r = n, i = e.Mj(r, null), !P(s, 52).Mh() && (i = e.Lj(c, i)), i && i.mj()), nb(e.e) && $m(e, e.Gj(9, n, s, t, !1)), s);
 						}
 						function R3e(e, t) {
-							var n, r, i, a;
-							for (r = new E(e.a.a); r.a < r.c.c.length;) n = P(z(r), 194), n.g = !0;
+							for (var n, r = new E(e.a.a), i, a; r.a < r.c.c.length;) n = P(z(r), 194), n.g = !0;
 							for (a = new E(e.a.b); a.a < a.c.c.length;) i = P(z(a), 82), i.k = jh(Vx(e.e.Kb(new gy(i, t)))), i.d.g = i.d.g & jh(Vx(e.e.Kb(new gy(i, t))));
 							return e;
 						}
@@ -36327,11 +35942,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function H3e(e, t, n, r, i) {
 							var a, o, s, c;
-							if (j(e) === j(t) && r == i) {
-								mnt(e, r, n);
-								return;
-							}
-							for (s = 0; s < r; s++) {
+							if (j(e) === j(t) && r == i) mnt(e, r, n);
+							else for (s = 0; s < r; s++) {
 								for (o = 0, a = e[s], c = 0; c < i; c++) o = lP(lP(uP(KE(a, pU), KE(t[c], pU)), KE(n[s + c], pU)), KE(AC(o), pU)), n[s + c] = AC(o), o = ZC(o, 32);
 								n[s + i] = AC(o);
 							}
@@ -36342,8 +35954,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n;
 						}
 						function W3e(e, t) {
-							var n, r, i;
-							for (r = new E(e.i.d); r.a < r.c.c.length;) n = P(z(r), 70), W(n, (vV(), n2), null);
+							for (var n, r = new E(e.i.d), i; r.a < r.c.c.length;) n = P(z(r), 70), W(n, (vV(), n2), null);
 							switch (t.g) {
 								case 2:
 								case 4:
@@ -36357,8 +35968,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							t.b != 0 && (e.s = isNaN(e.s) ? O((jx(t.b != 0), N(t.a.a.c))) : r.Math.min(e.s, O((jx(t.b != 0), N(t.a.a.c)))), e.c = isNaN(e.c) ? O((jx(t.b != 0), N(t.c.b.c))) : r.Math.max(e.c, O((jx(t.b != 0), N(t.c.b.c)))));
 						}
 						function ER(e) {
-							var t = null, n, r, i;
-							for (r = lw(DA(U(k(oX, 1), LV, 20, 0, [(!e.b && (e.b = new pS(n7, e, 4, 7)), e.b), (!e.c && (e.c = new pS(n7, e, 5, 8)), e.c)]))); AR(r);) if (n = P(iO(r), 84), i = mL(n), !t) t = gE(i);
+							for (var t = null, n, r = lw(DA(U(k(oX, 1), LV, 20, 0, [(!e.b && (e.b = new pS(n7, e, 4, 7)), e.b), (!e.c && (e.c = new pS(n7, e, 5, 8)), e.c)]))), i; AR(r);) if (n = P(iO(r), 84), i = mL(n), !t) t = gE(i);
 							else if (t != gE(i)) return !0;
 							return !1;
 						}
@@ -36467,16 +36077,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return i;
 						}
 						function o6e(e) {
-							var t, n, i;
-							for (n = new E(e.a.a.b); n.a < n.c.c.length;) t = P(z(n), 82), i = (eT(0), 0), i > 0 && (!(ib(e.a.c) && t.n.d) && !(ab(e.a.c) && t.n.b) && (t.g.d += r.Math.max(0, i / 2 - .5)), !(ib(e.a.c) && t.n.a) && !(ab(e.a.c) && t.n.c) && (t.g.a -= i - 1));
+							for (var t, n = new E(e.a.a.b), i; n.a < n.c.c.length;) t = P(z(n), 82), i = (eT(0), 0), i > 0 && (!(ib(e.a.c) && t.n.d) && !(ab(e.a.c) && t.n.b) && (t.g.d += r.Math.max(0, i / 2 - .5)), !(ib(e.a.c) && t.n.a) && !(ab(e.a.c) && t.n.c) && (t.g.a -= i - 1));
 						}
 						function s6e(e, t, n) {
 							var r, i, a = P(hC(t.e, 0), 17).c, o, s, c;
 							r = a.i, i = r.k, c = P(hC(n.g, 0), 17).d, o = c.i, s = o.k, i == (BR(), hQ) ? W(e, (Y(), J1), P(K(r, J1), 12)) : W(e, (Y(), J1), a), s == hQ ? W(e, (Y(), Y1), P(K(o, Y1), 12)) : W(e, (Y(), Y1), c);
 						}
 						function c6e(e, t) {
-							var n, r, i, a, o, s;
-							for (a = new E(e.b); a.a < a.c.c.length;) for (i = P(z(a), 25), s = new E(i.a); s.a < s.c.c.length;) for (o = P(z(s), 9), o.k == (BR(), mQ) && yB(o, t), r = new JC(Qb(mP(o).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), SVe(n, t);
+							for (var n, r, i, a = new E(e.b), o, s; a.a < a.c.c.length;) for (i = P(z(a), 25), s = new E(i.a); s.a < s.c.c.length;) for (o = P(z(s), 9), o.k == (BR(), mQ) && yB(o, t), r = new JC(Qb(mP(o).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), SVe(n, t);
 						}
 						function l6e(e, t) {
 							var n, r, i;
@@ -36518,8 +36126,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return DT(), DT(), GX;
 						}
 						function g6e(e) {
-							var t, n, r, i;
-							for (i = P(cO(e.a, (cL(), o$)), 16).Jc(); i.Ob();) r = P(i.Pb(), 107), n = (t = WC(r.k), t.Gc((oV(), p5)) ? t.Gc(f5) ? t.Gc(A5) ? t.Gc(M5) ? null : PCt : ICt : FCt : NCt), Dw(e, r, n[0], (aj(), l$), 0), Dw(e, r, n[1], u$, 1), Dw(e, r, n[2], d$, 1);
+							for (var t, n, r, i = P(cO(e.a, (cL(), o$)), 16).Jc(); i.Ob();) r = P(i.Pb(), 107), n = (t = WC(r.k), t.Gc((oV(), p5)) ? t.Gc(f5) ? t.Gc(A5) ? t.Gc(M5) ? null : PCt : ICt : FCt : NCt), Dw(e, r, n[0], (aj(), l$), 0), Dw(e, r, n[1], u$, 1), Dw(e, r, n[2], d$, 1);
 						}
 						function _6e(e, t) {
 							var n = ptt(t), r;
@@ -36711,8 +36318,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return !1;
 						}
 						function G6e(e, t) {
-							var n, r, i, a;
-							for (a = new E(t.a); a.a < a.c.c.length;) for (i = P(z(a), 9), W(i, (Y(), y0), (ax(), !1)), W(i, v0, G(-1)), W(i, _0, G(-1)), e.d.a.c.length = 0, r = new JC(Qb(pP(i).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), W(n, Rwt, !1);
+							for (var n, r, i, a = new E(t.a); a.a < a.c.c.length;) for (i = P(z(a), 9), W(i, (Y(), y0), (ax(), !1)), W(i, v0, G(-1)), W(i, _0, G(-1)), e.d.a.c.length = 0, r = new JC(Qb(pP(i).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), W(n, Rwt, !1);
 						}
 						function K6e(e, t) {
 							return e.c < t.c ? -1 : e.c > t.c ? 1 : e.b < t.b ? -1 : e.b > t.b ? 1 : e.a == t.a ? e.d == (TD(), J4) && t.d == q4 ? -1 : +(e.d == q4 && t.d == J4) : sj(e.a) - sj(t.a);
@@ -36740,10 +36346,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							if (e.xe()) {
 								var t = e.c;
 								e.o = t.ye() ? "[" + t.n : t.xe() ? "[" + t.ve() : "[L" + t.ve() + ";", e.b = t.ue() + "[]", e.k = t.we() + "[]";
-								return;
+							} else {
+								var n = e.j, r = e.d;
+								r = r.split("/"), e.o = iF(".", [n, iF("$", r)]), e.b = iF(".", [n, iF(".", r)]), e.k = r[r.length - 1];
 							}
-							var n = e.j, r = e.d;
-							r = r.split("/"), e.o = iF(".", [n, iF("$", r)]), e.b = iF(".", [n, iF(".", r)]), e.k = r[r.length - 1];
 						}
 						function Z6e(e, t) {
 							var n, r, i, a, o = null;
@@ -36809,8 +36415,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function a8e(e, t) {
-							var n = new OP(O$), r, i, a, o;
-							for (i = (XL(), U(k(O$, 1), Z, 231, 0, [
+							for (var n = new OP(O$), r, i = (XL(), U(k(O$, 1), Z, 231, 0, [
 								w$,
 								E$,
 								C$,
@@ -36821,24 +36426,21 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n_(_T(gT(jk(new vC(null, new RE(e.b, 16)), new Kn()), new qn()), new Rte(t)), new zte(n)), n;
 						}
 						function o8e(e, t) {
-							var n, r, i;
-							for (n = 1; n < e.c.length; n++) {
+							for (var n = 1, r, i; n < e.c.length; n++) {
 								for (i = (zE(n, e.c.length), P(e.c[n], 9)), r = n; r > 0 && yV(t, (zE(r - 1, e.c.length), P(e.c[r - 1], 9)), i) > 0;) KD(e, r, (zE(r - 1, e.c.length), P(e.c[r - 1], 9))), --r;
 								zE(r, e.c.length), e.c[r] = i;
 							}
 							t.b = new Pm(), t.g = new Pm();
 						}
 						function s8e(e, t, n) {
-							var r, i, a;
-							for (r = 1; r < e.c.length; r++) {
+							for (var r = 1, i, a; r < e.c.length; r++) {
 								for (a = (zE(r, e.c.length), P(e.c[r], 9)), i = r; i > 0 && t.Le((zE(i - 1, e.c.length), P(e.c[i - 1], 9)), a) > 0;) KD(e, i, (zE(i - 1, e.c.length), P(e.c[i - 1], 9))), --i;
 								zE(i, e.c.length), e.c[i] = a;
 							}
 							n.a = new Pm(), n.b = new Pm();
 						}
 						function NR(e, t, n) {
-							var i, a, o, s, c, l, u, d, f, p;
-							for (o = t.Jc(); o.Ob();) a = P(o.Pb(), 26), d = a.i + a.g / 2, p = a.j + a.f / 2, l = e.f, s = l.i + l.g / 2, c = l.j + l.f / 2, u = d - s, f = p - c, i = r.Math.sqrt(u * u + f * f), u *= e.e / i, f *= e.e / i, n ? (d -= u, p -= f) : (d += u, p += f), gA(a, d - a.g / 2), _A(a, p - a.f / 2);
+							for (var i, a, o = t.Jc(), s, c, l, u, d, f, p; o.Ob();) a = P(o.Pb(), 26), d = a.i + a.g / 2, p = a.j + a.f / 2, l = e.f, s = l.i + l.g / 2, c = l.j + l.f / 2, u = d - s, f = p - c, i = r.Math.sqrt(u * u + f * f), u *= e.e / i, f *= e.e / i, n ? (d -= u, p -= f) : (d += u, p += f), gA(a, d - a.g / 2), _A(a, p - a.f / 2);
 						}
 						function PR(e) {
 							var t, n, r;
@@ -36948,8 +36550,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return t ? t.a : e;
 						}
 						function y8e(e) {
-							var t, n, i;
-							for (n = new E(e.a.a.b); n.a < n.c.c.length;) t = P(z(n), 82), i = (eT(0), 0), i > 0 && (!(ib(e.a.c) && t.n.d) && !(ab(e.a.c) && t.n.b) && (t.g.d -= r.Math.max(0, i / 2 - .5)), !(ib(e.a.c) && t.n.a) && !(ab(e.a.c) && t.n.c) && (t.g.a += r.Math.max(0, i - 1)));
+							for (var t, n = new E(e.a.a.b), i; n.a < n.c.c.length;) t = P(z(n), 82), i = (eT(0), 0), i > 0 && (!(ib(e.a.c) && t.n.d) && !(ab(e.a.c) && t.n.b) && (t.g.d -= r.Math.max(0, i / 2 - .5)), !(ib(e.a.c) && t.n.a) && !(ab(e.a.c) && t.n.c) && (t.g.a += r.Math.max(0, i - 1)));
 						}
 						function b8e(e, t, n) {
 							var r, i;
@@ -36981,11 +36582,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function T8e(e) {
 							var t = !0, n, r, i = null, a = null, o, s, c;
 							j: for (c = new E(e.a); c.a < c.c.c.length;) for (s = P(z(c), 9), r = new JC(Qb(fP(s).a.Jc(), new f())); AR(r);) {
-								if (n = P(iO(r), 17), i && i != s) {
-									t = !1;
-									break j;
-								}
-								if (i = s, o = n.c.i, a && a != o) {
+								if (n = P(iO(r), 17), i && i != s || (i = s, o = n.c.i, a && a != o)) {
 									t = !1;
 									break j;
 								}
@@ -37002,8 +36599,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return u;
 						}
 						function D8e(e, t) {
-							var n = e.o.a, r, i, a;
-							for (a = P(P(cO(e.r, t), 22), 83).Jc(); a.Ob();) i = P(a.Pb(), 115), i.e.a = n * O(N(i.b.mf(SZ))), i.e.b = (r = i.b, r.nf((xV(), t8)) ? r.$f() == (oV(), p5) ? -r.Kf().b - O(N(r.mf(t8))) : O(N(r.mf(t8))) : r.$f() == (oV(), p5) ? -r.Kf().b : 0);
+							for (var n = e.o.a, r, i, a = P(P(cO(e.r, t), 22), 83).Jc(); a.Ob();) i = P(a.Pb(), 115), i.e.a = n * O(N(i.b.mf(SZ))), i.e.b = (r = i.b, r.nf((xV(), t8)) ? r.$f() == (oV(), p5) ? -r.Kf().b - O(N(r.mf(t8))) : O(N(r.mf(t8))) : r.$f() == (oV(), p5) ? -r.Kf().b : 0);
 						}
 						function O8e(e, t, n) {
 							var r, i, a = -1, o, s = -1, c;
@@ -37025,14 +36621,12 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return null;
 						}
 						function A8e(e) {
-							var t = 0, n, r, i, a, o, s;
-							for (i = new E(e.e); i.a < i.c.c.length;) r = P(z(i), 17), n = QD(new vC(null, new RE(r.b, 16)), new fn()), n && ++t;
+							for (var t = 0, n, r, i = new E(e.e), a, o, s; i.a < i.c.c.length;) r = P(z(i), 17), n = QD(new vC(null, new RE(r.b, 16)), new fn()), n && ++t;
 							for (o = new E(e.g); o.a < o.c.c.length;) a = P(z(o), 17), s = QD(new vC(null, new RE(a.b, 16)), new pn()), s && ++t;
 							return t >= 2;
 						}
 						function j8e(e, t, n, r, i) {
-							var a = e.c.d.j, o = P(VF(n, 0), 8), s, c, l, u;
-							for (u = 1; u < n.b; u++) l = P(VF(n, u), 8), UD(r, o, r.c.b, r.c), s = Vb(lS(new Qy(o), l), .5), c = Vb(new AE(FHe(a)), i), lS(s, c), UD(r, s, r.c.b, r.c), o = l, a = t == 0 ? JN(a) : YWe(a);
+							for (var a = e.c.d.j, o = P(VF(n, 0), 8), s, c, l, u = 1; u < n.b; u++) l = P(VF(n, u), 8), UD(r, o, r.c.b, r.c), s = Vb(lS(new Qy(o), l), .5), c = Vb(new AE(FHe(a)), i), lS(s, c), UD(r, s, r.c.b, r.c), o = l, a = t == 0 ? JN(a) : YWe(a);
 							QS(r, (jx(n.b != 0), P(n.c.b.c, 8)));
 						}
 						function M8e(e) {
@@ -37041,13 +36635,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return !(Kj(iE(n, e)) > 1 || (t = jC(B8, U(k(J8, 1), Z, 96, 0, [z8, H8])), Kj(iE(t, e)) > 1) || (r = jC(q8, U(k(J8, 1), Z, 96, 0, [K8, G8])), Kj(iE(r, e)) > 1));
 						}
 						function N8e(e) {
-							var t = 0, n, i, a, o, s, c;
-							for (i = new E(e.a); i.a < i.c.c.length;) for (n = P(z(i), 9), o = new JC(Qb(mP(n).a.Jc(), new f())); AR(o);) a = P(iO(o), 17), e == a.d.i.c && a.c.j == (oV(), M5) && (s = VE(a.c).b, c = VE(a.d).b, t = r.Math.max(t, r.Math.abs(c - s)));
+							for (var t = 0, n, i = new E(e.a), a, o, s, c; i.a < i.c.c.length;) for (n = P(z(i), 9), o = new JC(Qb(mP(n).a.Jc(), new f())); AR(o);) a = P(iO(o), 17), e == a.d.i.c && a.c.j == (oV(), M5) && (s = VE(a.c).b, c = VE(a.d).b, t = r.Math.max(t, r.Math.abs(c - s)));
 							return t;
 						}
 						function P8e(e, t, n) {
-							var r, i, a;
-							for (a = new E(e.t); a.a < a.c.c.length;) r = P(z(a), 273), r.b.s < 0 && r.c > 0 && (r.b.n -= r.c, r.b.n <= 0 && r.b.u > 0 && QS(t, r.b));
+							for (var r, i, a = new E(e.t); a.a < a.c.c.length;) r = P(z(a), 273), r.b.s < 0 && r.c > 0 && (r.b.n -= r.c, r.b.n <= 0 && r.b.u > 0 && QS(t, r.b));
 							for (i = new E(e.i); i.a < i.c.c.length;) r = P(z(i), 273), r.a.s < 0 && r.c > 0 && (r.a.u -= r.c, r.a.u <= 0 && r.a.n > 0 && QS(n, r.a));
 						}
 						function zR(e) {
@@ -37126,12 +36718,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function H8e(e, t, n, r) {
 							var i, a, o = tQe(t, n);
 							if (Vm(r.c, t), e.j[o.p] == -1 || e.j[o.p] == 2 || e.a[t.p]) return r;
-							for (e.j[o.p] = -1, a = new JC(Qb(pP(o).a.Jc(), new f())); AR(a);) if (i = P(iO(a), 17), !(!(!$D(i) && !(!$D(i) && i.c.i.c == i.d.i.c)) || i == t)) return H8e(e, i, o, r);
+							for (e.j[o.p] = -1, a = new JC(Qb(pP(o).a.Jc(), new f())); AR(a);) if (i = P(iO(a), 17), !($D(i) || !$D(i) && i.c.i.c == i.d.i.c || i == t)) return H8e(e, i, o, r);
 							return r;
 						}
 						function U8e(e) {
-							var t = 0, n = 0, r, i;
-							for (i = new E(e.j); i.a < i.c.c.length;) if (r = P(z(i), 12), t = AC(lP(t, vPe(gT(new vC(null, new RE(r.e, 16)), new Xa())))), n = AC(lP(n, vPe(gT(new vC(null, new RE(r.g, 16)), new Za())))), t > 1 || n > 1) return 2;
+							for (var t = 0, n = 0, r, i = new E(e.j); i.a < i.c.c.length;) if (r = P(z(i), 12), t = AC(lP(t, vPe(gT(new vC(null, new RE(r.e, 16)), new Xa())))), n = AC(lP(n, vPe(gT(new vC(null, new RE(r.g, 16)), new Za())))), t > 1 || n > 1) return 2;
 							return t + n == 1 ? 2 : 0;
 						}
 						function WR(e, t) {
@@ -37268,8 +36859,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (n = (jx(a.b < a.d.gc()), P(a.d.Xb(a.c = a.b++), 146)); a.b < a.d.gc();) r = (jx(a.b < a.d.gc()), P(a.d.Xb(a.c = a.b++), 146)), i = new hxe(r.c, n.d, t), jx(a.b > 0), a.a.Xb(a.c = --a.b), nS(a, i), jx(a.b < a.d.gc()), a.d.Xb(a.c = a.b++), i.a = !1, n = r;
 						}
 						function r5e(e) {
-							var t, n, r, i = P(K(e, (Y(), D1)), 12), a, o;
-							for (o = new E(e.j); o.a < o.c.c.length;) {
+							for (var t, n, r, i = P(K(e, (Y(), D1)), 12), a, o = new E(e.j); o.a < o.c.c.length;) {
 								for (a = P(z(o), 12), r = new E(a.g); r.a < r.c.c.length;) return t = P(z(r), 17), bE(t, i), a;
 								for (n = new E(a.e); n.a < n.c.c.length;) return t = P(z(n), 17), vE(t, i), a;
 							}
@@ -37289,8 +36879,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return j(K(e, (vV(), u2))) === j((ZM(), M8)) ? !e.e && j(K(e, J0)) !== j(($j(), p1)) : (r = P(K(e, Y0), 302), i = jh(Vx(K(e, Z0))) || j(K(e, Q0)) === j((AP(), A$)), t = P(K(e, nOt), 15).a, n = e.a.c.length, !i && r != ($j(), p1) && (t == 0 || t > n));
 						}
 						function s5e(e, t) {
-							var n, r, i, a, o, s, c;
-							for (i = e.Jc(); i.Ob();) for (r = P(i.Pb(), 9), s = new LL(), xE(s, r), sR(s, (oV(), f5)), W(s, (Y(), n0), (ax(), !0)), o = t.Jc(); o.Ob();) a = P(o.Pb(), 9), c = new LL(), xE(c, a), sR(c, M5), W(c, n0, !0), n = new RT(), W(n, n0, !0), vE(n, s), bE(n, c);
+							for (var n, r, i = e.Jc(), a, o, s, c; i.Ob();) for (r = P(i.Pb(), 9), s = new LL(), xE(s, r), sR(s, (oV(), f5)), W(s, (Y(), n0), (ax(), !0)), o = t.Jc(); o.Ob();) a = P(o.Pb(), 9), c = new LL(), xE(c, a), sR(c, M5), W(c, n0, !0), n = new RT(), W(n, n0, !0), vE(n, s), bE(n, c);
 						}
 						function c5e(e) {
 							for (var t, n = 0; n < e.c.length && !(Rxe((zE(n, e.c.length), P(e.c[n], 113))) > 0); n++);
@@ -37299,8 +36888,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return t > 0 && n < e.c.length - 1 ? t : e.c.length / 2 | 0;
 						}
 						function l5e(e, t) {
-							var n, r, i = 0, a, o, s, c;
-							for (o = new E(t.a); o.a < o.c.c.length;) for (a = P(z(o), 9), i += a.o.b + a.d.a + a.d.d + e.e, r = new JC(Qb(fP(a).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), n.c.i.k == (BR(), vQ) && (c = n.c.i, s = P(K(c, (Y(), e0)), 9), i += s.o.b + s.d.a + s.d.d);
+							for (var n, r, i = 0, a, o = new E(t.a), s, c; o.a < o.c.c.length;) for (a = P(z(o), 9), i += a.o.b + a.d.a + a.d.d + e.e, r = new JC(Qb(fP(a).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), n.c.i.k == (BR(), vQ) && (c = n.c.i, s = P(K(c, (Y(), e0)), 9), i += s.o.b + s.d.a + s.d.d);
 							return i;
 						}
 						function u5e(e, t) {
@@ -37371,7 +36959,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function _5e(e, t, n, r) {
 							var i = WKe(e, t, n), a = WKe(e, n, t), o = P(Lw(e.c, t), 116), s = P(Lw(e.c, n), 116);
-							i < a ? new OE((xO(), r3), o, s, a - i) : a < i ? new OE((xO(), r3), s, o, i - a) : (i != 0 || !(!t.i || !n.i) && r[t.i.c][n.i.c]) && (new OE((xO(), r3), o, s, 0), new OE(r3, s, o, 0));
+							i < a ? new OE((xO(), r3), o, s, a - i) : a < i ? new OE((xO(), r3), s, o, i - a) : (i != 0 || t.i && n.i && r[t.i.c][n.i.c]) && (new OE((xO(), r3), o, s, 0), new OE(r3, s, o, 0));
 						}
 						function v5e(e, t, n) {
 							var r, i, a, o, s;
@@ -37382,8 +36970,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							ZR = T, $3 = new Gv("CANDIDATE_POSITION_LAST_PLACED_RIGHT", 0), Q3 = new Gv("CANDIDATE_POSITION_LAST_PLACED_BELOW", 1), t6 = new Gv("CANDIDATE_POSITION_WHOLE_DRAWING_RIGHT", 2), e6 = new Gv("CANDIDATE_POSITION_WHOLE_DRAWING_BELOW", 3), n6 = new Gv("WHOLE_DRAWING", 4);
 						}
 						function y5e(e) {
-							var t, n, r, i;
-							for (r = new Mj(new am(e.b).a); r.b;) n = JA(r), i = P(n.jd(), 12), t = P(n.kd(), 9), W(t, (Y(), e0), i), W(i, r0, t), W(i, V1, (ax(), !0)), sR(i, P(K(t, I1), 64)), K(t, I1), W(i.i, (vV(), z2), (uL(), n5)), P(K($w(i.i), R1), 22).Ec((vz(), c1));
+							for (var t, n, r = new Mj(new am(e.b).a), i; r.b;) n = JA(r), i = P(n.jd(), 12), t = P(n.kd(), 9), W(t, (Y(), e0), i), W(i, r0, t), W(i, V1, (ax(), !0)), sR(i, P(K(t, I1), 64)), K(t, I1), W(i.i, (vV(), z2), (uL(), n5)), P(K($w(i.i), R1), 22).Ec((vz(), c1));
 						}
 						function b5e(e) {
 							var t, n, r, i, a = new Jg(), o, s;
@@ -37439,8 +37026,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							l.f.c + l.i.c != 0 && (W(e, (Y(), j1), l), d0e(e, c));
 						}
 						function D5e(e, t, n) {
-							var r, i, a;
-							for (i = new E(e.a.b); i.a < i.c.c.length;) if (r = P(z(i), 60), a = HE(r), a && a.k == (BR(), pQ)) switch (P(K(a, (Y(), I1)), 64).g) {
+							for (var r, i = new E(e.a.b), a; i.a < i.c.c.length;) if (r = P(z(i), 60), a = HE(r), a && a.k == (BR(), pQ)) switch (P(K(a, (Y(), I1)), 64).g) {
 								case 4:
 									a.n.a = t.a;
 									break;
@@ -37533,16 +37119,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function B5e(e) {
-							var t, n, r, i, a;
-							for (n = new E(e.a.a); n.a < n.c.c.length;) {
+							for (var t, n = new E(e.a.a), r, i, a; n.a < n.c.c.length;) {
 								for (t = P(z(n), 321), t.j = null, a = t.a.a.ec().Jc(); a.Ob();) r = P(a.Pb(), 60), Ky(r.b), (!t.j || r.d.c < t.j.d.c) && (t.j = r);
 								for (i = t.a.a.ec().Jc(); i.Ob();) r = P(i.Pb(), 60), r.b.a = r.d.c - t.j.d.c, r.b.b = r.d.d - t.j.d.d;
 							}
 							return e;
 						}
 						function ez(e) {
-							var t, n, r, i, a;
-							for (n = new E(e.a.a); n.a < n.c.c.length;) {
+							for (var t, n = new E(e.a.a), r, i, a; n.a < n.c.c.length;) {
 								for (t = P(z(n), 194), t.f = null, a = t.a.a.ec().Jc(); a.Ob();) r = P(a.Pb(), 82), Ky(r.e), (!t.f || r.g.c < t.f.g.c) && (t.f = r);
 								for (i = t.a.a.ec().Jc(); i.Ob();) r = P(i.Pb(), 82), r.e.a = r.g.c - t.f.g.c, r.e.b = r.g.d - t.f.g.d;
 							}
@@ -37611,8 +37195,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return gw(e.c, t), o;
 						}
 						function az(e, t, n) {
-							var r, i, a, o, s, c, l, u, d, f;
-							for (u = _je(e.j), d = 0, f = u.length; d < f; ++d) {
+							for (var r, i, a, o, s, c, l, u = _je(e.j), d = 0, f = u.length; d < f; ++d) {
 								if (l = u[d], n == (NA(), F4) || n == L4) for (c = oD(l.g), i = c, a = 0, o = i.length; a < o; ++a) r = i[a], u0e(t, r) && pB(r, !0);
 								if (n == I4 || n == L4) for (s = oD(l.e), i = s, a = 0, o = i.length; a < o; ++a) r = i[a], l0e(t, r) && pB(r, !0);
 							}
@@ -37647,12 +37230,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function X5e(e, t) {
-							var n, r, i;
-							for (r = new E(t.a); r.a < r.c.c.length;) n = P(z(r), 225), LC(P(n.b, 68), uS(Nb(P(t.b, 68).c), P(t.b, 68).a)), i = Mnt(P(t.b, 68).b, P(n.b, 68).b), i > 1 && (e.a = !0), ISe(P(n.b, 68), lS(Nb(P(t.b, 68).c), Vb(uS(Nb(P(n.b, 68).a), P(t.b, 68).a), i))), eke(e, t), X5e(e, n);
+							for (var n, r = new E(t.a), i; r.a < r.c.c.length;) n = P(z(r), 225), LC(P(n.b, 68), uS(Nb(P(t.b, 68).c), P(t.b, 68).a)), i = Mnt(P(t.b, 68).b, P(n.b, 68).b), i > 1 && (e.a = !0), ISe(P(n.b, 68), lS(Nb(P(t.b, 68).c), Vb(uS(Nb(P(n.b, 68).a), P(t.b, 68).a), i))), eke(e, t), X5e(e, n);
 						}
 						function Z5e(e) {
-							var t, n, r, i, a, o, s;
-							for (a = new E(e.a.a); a.a < a.c.c.length;) r = P(z(a), 194), r.e = 0, r.d.a.$b();
+							for (var t, n, r, i, a = new E(e.a.a), o, s; a.a < a.c.c.length;) r = P(z(a), 194), r.e = 0, r.d.a.$b();
 							for (i = new E(e.a.a); i.a < i.c.c.length;) for (r = P(z(i), 194), n = r.a.a.ec().Jc(); n.Ob();) for (t = P(n.Pb(), 82), s = t.f.Jc(); s.Ob();) o = P(s.Pb(), 82), o.d != r && (gw(r.d, o), ++o.d.e);
 						}
 						function Q5e(e, t) {
@@ -37794,16 +37375,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							]);
 						}
 						function s7e(e, t, n, i) {
-							var a, o, s, c, l = 0, u, d, p, m;
-							for (d = new E(e.a); d.a < d.c.c.length;) {
+							for (var a, o, s, c, l = 0, u, d = new E(e.a), p, m; d.a < d.c.c.length;) {
 								for (u = P(z(d), 9), c = 0, o = new JC(Qb(fP(u).a.Jc(), new f())); AR(o);) a = P(iO(o), 17), p = VE(a.c).b, m = VE(a.d).b, c = r.Math.max(c, r.Math.abs(m - p));
 								l = r.Math.max(l, c);
 							}
 							return s = i * r.Math.min(1, t / n) * l, s;
 						}
 						function c7e(e) {
-							var t, n;
-							for (n = new JC(Qb(mP(e).a.Jc(), new f())); AR(n);) if (t = P(iO(n), 17), t.d.i.k != (BR(), mQ)) throw D(new Rh(nG + EI(e) + "' has its layer constraint set to LAST, but has at least one outgoing edge that  does not go to a LAST_SEPARATE node. That must not happen."));
+							for (var t, n = new JC(Qb(mP(e).a.Jc(), new f())); AR(n);) if (t = P(iO(n), 17), t.d.i.k != (BR(), mQ)) throw D(new Rh(nG + EI(e) + "' has its layer constraint set to LAST, but has at least one outgoing edge that  does not go to a LAST_SEPARATE node. That must not happen."));
 						}
 						function l7e(e, t) {
 							var n, r, i, a, o = P(K(t, (cB(), CMt)), 425);
@@ -37890,8 +37469,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.c = new th(), a;
 						}
 						function x7e(e, t) {
-							var n, r, i, a, o, s;
-							for (o = P(P(cO(e.r, t), 22), 83).Jc(); o.Ob();) a = P(o.Pb(), 115), n = a.c ? Pxe(a.c) : 0, n > 0 ? a.a ? (s = a.b.Kf().a, n > s && (i = (n - s) / 2, a.d.b = i, a.d.c = i)) : a.d.c = e.s + n : yw(e.u) && (r = U$e(a.b), r.c < 0 && (a.d.b = -r.c), r.c + r.b > a.b.Kf().a && (a.d.c = r.c + r.b - a.b.Kf().a));
+							for (var n, r, i, a, o = P(P(cO(e.r, t), 22), 83).Jc(), s; o.Ob();) a = P(o.Pb(), 115), n = a.c ? Pxe(a.c) : 0, n > 0 ? a.a ? (s = a.b.Kf().a, n > s && (i = (n - s) / 2, a.d.b = i, a.d.c = i)) : a.d.c = e.s + n : yw(e.u) && (r = U$e(a.b), r.c < 0 && (a.d.b = -r.c), r.c + r.b > a.b.Kf().a && (a.d.c = r.c + r.b - a.b.Kf().a));
 						}
 						function S7e(e, t) {
 							var n, r, i, a, o = new Nm();
@@ -37913,11 +37491,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function w7e(e, t, n, r, i) {
 							var a, o;
-							(!$D(t) && t.c.i.c == t.d.i.c || !xze(MM(U(k(w6, 1), X, 8, 0, [
+							($D(t) || t.c.i.c != t.d.i.c) && xze(MM(U(k(w6, 1), X, 8, 0, [
 								i.i.n,
 								i.n,
 								i.a
-							])), n)) && !$D(t) && (t.c == i ? wx(t.a, 0, new Qy(n)) : QS(t.a, new Qy(n)), r && !Gg(e.a, n) && (o = P(K(t, (vV(), m2)), 79), o || (o = new fh(), W(t, m2, o)), a = new Qy(n), UD(o, a, o.c.b, o.c), gw(e.a, a)));
+							])), n) || $D(t) || (t.c == i ? wx(t.a, 0, new Qy(n)) : QS(t.a, new Qy(n)), r && !Gg(e.a, n) && (o = P(K(t, (vV(), m2)), 79), o || (o = new fh(), W(t, m2, o)), a = new Qy(n), UD(o, a, o.c.b, o.c), gw(e.a, a)));
 						}
 						function T7e(e, t) {
 							var n, r, i, a = AC(uP(lH, dT(AC(uP(t == null ? 0 : sj(t), uH)), 15)));
@@ -37925,8 +37503,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return !1;
 						}
 						function E7e(e) {
-							var t, n;
-							for (n = new JC(Qb(fP(e).a.Jc(), new f())); AR(n);) if (t = P(iO(n), 17), t.c.i.k != (BR(), mQ)) throw D(new Rh(nG + EI(e) + "' has its layer constraint set to FIRST, but has at least one incoming edge that  does not come from a FIRST_SEPARATE node. That must not happen."));
+							for (var t, n = new JC(Qb(fP(e).a.Jc(), new f())); AR(n);) if (t = P(iO(n), 17), t.c.i.k != (BR(), mQ)) throw D(new Rh(nG + EI(e) + "' has its layer constraint set to FIRST, but has at least one incoming edge that  does not come from a FIRST_SEPARATE node. That must not happen."));
 						}
 						function D7e(e, t) {
 							var n, r, i = t ? new pa() : new ma(), a = !1, o, s, c, l, u, d, f;
@@ -38128,8 +37705,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							zN(e, J0e(e, t, n), s ? P(r, 75) : DD(t, r));
 						}
 						function K7e(e) {
-							var t, n, r, i, a, o, s;
-							for (a = new E(e.a.a); a.a < a.c.c.length;) r = P(z(a), 321), r.g = 0, r.i = 0, r.e.a.$b();
+							for (var t, n, r, i, a = new E(e.a.a), o, s; a.a < a.c.c.length;) r = P(z(a), 321), r.g = 0, r.i = 0, r.e.a.$b();
 							for (i = new E(e.a.a); i.a < i.c.c.length;) for (r = P(z(i), 321), n = r.a.a.ec().Jc(); n.Ob();) for (t = P(n.Pb(), 60), s = t.c.Jc(); s.Ob();) o = P(s.Pb(), 60), o.a != r && (gw(r.e, o), ++o.a.g, ++o.a.i);
 						}
 						function q7e(e) {
@@ -38262,16 +37838,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return null;
 						}
 						function s9e(e, t, n, r) {
-							var i = P(zL(t, (oV(), M5)).Jc().Pb(), 12), a = P(zL(t, f5).Jc().Pb(), 12), o, s;
-							for (s = new E(e.j); s.a < s.c.c.length;) {
+							for (var i = P(zL(t, (oV(), M5)).Jc().Pb(), 12), a = P(zL(t, f5).Jc().Pb(), 12), o, s = new E(e.j); s.a < s.c.c.length;) {
 								for (o = P(z(s), 12); o.e.c.length != 0;) bE(P(hC(o.e, 0), 17), i);
 								for (; o.g.c.length != 0;) vE(P(hC(o.g, 0), 17), a);
 							}
 							n || W(t, (Y(), J1), null), r || W(t, (Y(), Y1), null);
 						}
 						function c9e(e, t) {
-							var n = new Ib(), r, i, a, o, s, c;
-							for (a = new E(e.b); a.a < a.c.c.length;) {
+							for (var n = new Ib(), r, i, a = new E(e.b), o, s, c; a.a < a.c.c.length;) {
 								for (i = P(z(a), 25), c = !0, r = 0, s = new E(i.a); s.a < s.c.c.length;) switch (o = P(z(s), 9), o.k.g) {
 									case 4: ++r;
 									case 1:
@@ -38292,8 +37866,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (a = e.r == (Rz(), O4), o = a ? vCt : _Ct, n = new E(e.i.b); n.a < n.c.c.length;) t = P(z(n), 25), Tb(t.a, o), CLe(e.a, G(t.p), t.a);
 						}
 						function u9e(e, t) {
-							var n = 0, r, i, a, o, s;
-							for (s = new E(t); s.a < s.c.c.length;) {
+							for (var n = 0, r, i, a, o, s = new E(t); s.a < s.c.c.length;) {
 								for (o = P(z(s), 12), iUe(e.b, e.d[o.p]), i = new gO(o.b); Eb(i.a) || Eb(i.b);) r = P(Eb(i.a) ? z(i.a) : z(i.b), 17), a = nce(e, o == r.c ? r.d : r.c), a > e.d[o.p] && (n += hNe(e.b, a), yD(e.a, G(a)));
 								for (; !Nh(e.a);) XIe(e.b, P(Cw(e.a), 15).a);
 							}
@@ -38318,8 +37891,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return l;
 						}
 						function p9e(e, t, n) {
-							var r, i, a, o, s, c;
-							for (o = P(K(e, (Y(), z1)), 16).Jc(); o.Ob();) {
+							for (var r, i, a, o = P(K(e, (Y(), z1)), 16).Jc(), s, c; o.Ob();) {
 								switch (a = P(o.Pb(), 9), P(K(a, (vV(), h2)), 165).g) {
 									case 2:
 										yE(a, t);
@@ -38530,8 +38102,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return !n && (n = P(e.e.mf((xV(), BLt)), 257)), n;
 						}
 						function E9e(e, t, n) {
-							var i, a = n, o = 0, s, c, l;
-							for (c = new E(t); c.a < c.c.c.length;) s = P(z(c), 26), BF(s, (BL(), F3), G(a++)), l = gz(s), i = r.Math.atan2(s.j + s.f / 2, s.i + s.g / 2), i += i < 0 ? rq : 0, i < .7853981633974483 || i > Pmt ? Tb(l, e.b) : i <= Pmt && i > Fmt ? Tb(l, e.d) : i <= Fmt && i > Imt ? Tb(l, e.c) : i <= Imt && Tb(l, e.a), o = E9e(e, l, o);
+							for (var i, a = n, o = 0, s, c = new E(t), l; c.a < c.c.c.length;) s = P(z(c), 26), BF(s, (BL(), F3), G(a++)), l = gz(s), i = r.Math.atan2(s.j + s.f / 2, s.i + s.g / 2), i += i < 0 ? rq : 0, i < .7853981633974483 || i > Pmt ? Tb(l, e.b) : i <= Pmt && i > Fmt ? Tb(l, e.d) : i <= Fmt && i > Imt ? Tb(l, e.c) : i <= Imt && Tb(l, e.a), o = E9e(e, l, o);
 							return a;
 						}
 						function D9e(e, t, n, r) {
@@ -38583,8 +38154,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (t < e.d.b.c.length ? (e.b = P(hC(e.d.b, t), 25), e.a = P(hC(e.d.b, t - 1), 25), e.c = t) : (e.a = new Rw(e.d), e.a.p = t - 1, Hb(e.d.b, e.a), e.b = new Rw(e.d), e.b.p = t, Hb(e.d.b, e.b), e.c = t), yE(n, e.b), i = new JC(Qb(fP(n).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), !r.c.i.c && r.c.i.k == (BR(), mQ) && yE(r.c.i, e.a);
 						}
 						function N9e(e, t) {
-							var n, r, i, a;
-							for (a = aP(t, (oV(), A5)).Jc(); a.Ob();) r = P(a.Pb(), 12), n = P(K(r, (Y(), r0)), 9), n && cz(s_(o_(c_(a_(new ih(), 0), .1), e.i[t.p].d), e.i[n.p].a));
+							for (var n, r, i, a = aP(t, (oV(), A5)).Jc(); a.Ob();) r = P(a.Pb(), 12), n = P(K(r, (Y(), r0)), 9), n && cz(s_(o_(c_(a_(new ih(), 0), .1), e.i[t.p].d), e.i[n.p].a));
 							for (i = aP(t, p5).Jc(); i.Ob();) r = P(i.Pb(), 12), n = P(K(r, (Y(), r0)), 9), n && cz(s_(o_(c_(a_(new ih(), 0), .1), e.i[n.p].d), e.i[t.p].a));
 						}
 						function P9e(e) {
@@ -38608,8 +38178,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n = new A(e.f.a + e.d.b + e.d.c, e.f.b + e.d.d + e.d.a), t = new Qy(n), a.Gc(($P(), F5)) && (i = P(K(e, N2), 8), o.Gc((qz(), H5)) && (i.a <= 0 && (i.a = 20), i.b <= 0 && (i.b = 20)), t.a = r.Math.max(n.a, i.a), t.b = r.Math.max(n.b, i.b)), jh(Vx(K(e, M2))) || uit(e, n, t);
 						}
 						function R9e(e) {
-							var t = !1, n = 0, r, i, a, o, s;
-							for (i = new E(e.d.b); i.a < i.c.c.length;) for (r = P(z(i), 25), r.p = n++, o = new E(r.a); o.a < o.c.c.length;) a = P(z(o), 9), !t && !_D(pP(a)) && (t = !0);
+							for (var t = !1, n = 0, r, i = new E(e.d.b), a, o, s; i.a < i.c.c.length;) for (r = P(z(i), 25), r.p = n++, o = new E(r.a); o.a < o.c.c.length;) a = P(z(o), 9), !t && !_D(pP(a)) && (t = !0);
 							s = jC((HN(), b8), U(k(S8, 1), Z, 86, 0, [v8, y8])), t || (XA(s, x8), XA(s, _8)), e.a = new bLe(s), vw(e.f), vw(e.b), vw(e.e), vw(e.g);
 						}
 						function Cz(e) {
@@ -38777,8 +38346,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function Q9e(e, t, n, r) {
-							var i = !1, a = !1, o, s, c;
-							for (s = new E(r.j); s.a < s.c.c.length;) o = P(z(s), 12), j(K(o, (Y(), e0))) === j(n) && (o.g.c.length == 0 ? o.e.c.length == 0 || (i = !0) : a = !0);
+							for (var i = !1, a = !1, o, s = new E(r.j), c; s.a < s.c.c.length;) o = P(z(s), 12), j(K(o, (Y(), e0))) === j(n) && (o.g.c.length == 0 ? o.e.c.length == 0 || (i = !0) : a = !0);
 							return c = 0, i && i ^ a ? c = n.j == (oV(), p5) ? -e.e[r.c.p][r.p] : t - e.e[r.c.p][r.p] : a && i ^ a ? c = e.e[r.c.p][r.p] + 1 : i && a && (c = n.j == (oV(), p5) ? 0 : t / 2), c;
 						}
 						function Ez(e, t, n, r, i, a, o, s) {
@@ -38938,8 +38506,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							if (e.b != i && e.c) for (r = new Yb(e.c); r.e != r.i.gc();) a = P(MF(r), 471), n = eO(a), aR(n, t);
 						}
 						function fet(e, t, n, r) {
-							var i = !1, a, o, s, c, l, u, d, f, p, m;
-							for (o = t, s = 0, c = o.length; s < c; ++s) a = o[s], jh((ax(), !!a.e)) && !P(hC(e.b, a.e.p), 218).s && (i |= (l = a.e, u = P(hC(e.b, l.p), 218), d = u.e, f = Sse(n, d.length), p = d[f][0], p.k == (BR(), pQ) ? d[f] = V5e(a, d[f], n ? (oV(), M5) : (oV(), f5)) : u.c.kg(d, n), m = iz(e, u, n, r), V7e(u.e, u.o, n), m));
+							for (var i = !1, a, o = t, s = 0, c = o.length, l, u, d, f, p, m; s < c; ++s) a = o[s], jh((ax(), !!a.e)) && !P(hC(e.b, a.e.p), 218).s && (i |= (l = a.e, u = P(hC(e.b, l.p), 218), d = u.e, f = Sse(n, d.length), p = d[f][0], p.k == (BR(), pQ) ? d[f] = V5e(a, d[f], n ? (oV(), M5) : (oV(), f5)) : u.c.kg(d, n), m = iz(e, u, n, r), V7e(u.e, u.o, n), m));
 							return i;
 						}
 						function pet(e, t) {
@@ -39092,8 +38659,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n.a;
 						}
 						function Aet(e, t) {
-							var n = 0, r, i, a, o, s, c;
-							for (c = new E(t); c.a < c.c.c.length;) {
+							for (var n = 0, r, i, a, o, s, c = new E(t); c.a < c.c.c.length;) {
 								for (s = P(z(c), 12), iUe(e.b, e.d[s.p]), o = 0, i = new gO(s.b); Eb(i.a) || Eb(i.b);) r = P(Eb(i.a) ? z(i.a) : z(i.b), 17), hTe(r) ? (a = nce(e, s == r.c ? r.d : r.c), a > e.d[s.p] && (n += hNe(e.b, a), yD(e.a, G(a)))) : ++o;
 								for (n += e.b.d * o; !Nh(e.a);) XIe(e.b, P(Cw(e.a), 15).a);
 							}
@@ -39204,12 +38770,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return i;
 						}
 						function Nz(e, t, n) {
-							var r, i, a = new A(t, n), o, s, c, l, u, d, f;
-							for (u = new E(e.a); u.a < u.c.c.length;) for (l = P(z(u), 9), lS(l.n, a), f = new E(l.j); f.a < f.c.c.length;) for (d = P(z(f), 12), i = new E(d.g); i.a < i.c.c.length;) for (r = P(z(i), 17), Dj(r.a, a), o = P(K(r, (vV(), m2)), 79), o && Dj(o, a), c = new E(r.b); c.a < c.c.c.length;) s = P(z(c), 70), lS(s.n, a);
+							for (var r, i, a = new A(t, n), o, s, c, l, u = new E(e.a), d, f; u.a < u.c.c.length;) for (l = P(z(u), 9), lS(l.n, a), f = new E(l.j); f.a < f.c.c.length;) for (d = P(z(f), 12), i = new E(d.g); i.a < i.c.c.length;) for (r = P(z(i), 17), Dj(r.a, a), o = P(K(r, (vV(), m2)), 79), o && Dj(o, a), c = new E(r.b); c.a < c.c.c.length;) s = P(z(c), 70), lS(s.n, a);
 						}
 						function Get(e, t, n) {
-							var r, i, a = new A(t, n), o, s, c, l, u, d, f;
-							for (u = new E(e.a); u.a < u.c.c.length;) for (l = P(z(u), 9), lS(l.n, a), f = new E(l.j); f.a < f.c.c.length;) for (d = P(z(f), 12), i = new E(d.g); i.a < i.c.c.length;) for (r = P(z(i), 17), Dj(r.a, a), o = P(K(r, (vV(), m2)), 79), o && Dj(o, a), c = new E(r.b); c.a < c.c.c.length;) s = P(z(c), 70), lS(s.n, a);
+							for (var r, i, a = new A(t, n), o, s, c, l, u = new E(e.a), d, f; u.a < u.c.c.length;) for (l = P(z(u), 9), lS(l.n, a), f = new E(l.j); f.a < f.c.c.length;) for (d = P(z(f), 12), i = new E(d.g); i.a < i.c.c.length;) for (r = P(z(i), 17), Dj(r.a, a), o = P(K(r, (vV(), m2)), 79), o && Dj(o, a), c = new E(r.b); c.a < c.c.c.length;) s = P(z(c), 70), lS(s.n, a);
 						}
 						function Ket(e) {
 							if ((!e.b && (e.b = new pS(n7, e, 4, 7)), e.b).i == 0) throw D(new zh("Edges must have a source."));
@@ -39290,13 +38854,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return pL(f, d), $ct(e, f, d), u = NM(e, f, d), u;
 						}
 						function ett(e, t) {
-							var n, i, a = V(q9, BH, 30, e.e.a.c.length, 15, 1), o, s, c, l;
-							for (s = new E(e.e.a); s.a < s.c.c.length;) o = P(z(s), 124), a[o.d] += o.b.a.c.length;
+							for (var n, i, a = V(q9, BH, 30, e.e.a.c.length, 15, 1), o, s = new E(e.e.a), c, l; s.a < s.c.c.length;) o = P(z(s), 124), a[o.d] += o.b.a.c.length;
 							for (c = HS(t); c.b != 0;) for (o = P(c.b == 0 ? null : (jx(c.b != 0), Xk(c, c.a.a)), 124), i = JO(new E(o.g.a)); i.Ob();) n = P(i.Pb(), 217), l = n.e, l.e = r.Math.max(l.e, o.e + n.a), --a[l.d], a[l.d] == 0 && UD(c, l, c.c.b, c.c);
 						}
 						function ttt(e) {
-							var t, n = yH, i, a = MV, o, s, c, l, u, d, f;
-							for (c = new E(e.e.a); c.a < c.c.c.length;) o = P(z(c), 124), a = r.Math.min(a, o.e), n = r.Math.max(n, o.e);
+							for (var t, n = yH, i, a = MV, o, s, c = new E(e.e.a), l, u, d, f; c.a < c.c.c.length;) o = P(z(c), 124), a = r.Math.min(a, o.e), n = r.Math.max(n, o.e);
 							for (t = V(q9, BH, 30, n - a + 1, 15, 1), s = new E(e.e.a); s.a < s.c.c.length;) o = P(z(s), 124), o.e -= a, ++t[o.e];
 							if (i = 0, e.k != null) for (u = e.k, d = 0, f = u.length; d < f && (l = u[d], t[i++] += l, t.length != i); ++d);
 							return t;
@@ -39342,8 +38904,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							px(i, (oV(), p5)) ? px(i, A5) ? px(i, M5) ? px(i, f5) || nw(e, t ? M5 : p5, t ? (tM(), e$) : (tM(), n$), t ? null : e.c) : nw(e, t ? f5 : p5, t ? (tM(), e$) : (tM(), t$), t ? null : e.a) : nw(e, p5, (tM(), e$), null) : nw(e, A5, (tM(), e$), null);
 						}
 						function att(e, t, n) {
-							var r, i, a = new IO(t.c.length), o, s, c, l, u, d;
-							for (l = new E(t); l.a < l.c.c.length;) o = P(z(l), 9), Hb(a, e.b[o.c.p][o.p]);
+							for (var r, i, a = new IO(t.c.length), o, s, c, l = new E(t), u, d; l.a < l.c.c.length;) o = P(z(l), 9), Hb(a, e.b[o.c.p][o.p]);
 							for (Dat(e, a, n), d = null; d = qot(a);) Art(e, P(d.a, 239), P(d.b, 239), a);
 							for (t.c.length = 0, i = new E(a); i.a < i.c.c.length;) for (r = P(z(i), 239), s = r.d, c = 0, u = s.length; c < u; ++c) o = s[c], Vm(t.c, o), e.a[o.c.p][o.p].a = Rb(r.g, r.d[0]).a;
 						}
@@ -39364,11 +38925,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 									break;
 								case 1: n = KQe(r, n);
 							}
-							if (n.dc()) {
-								t.Ug();
-								return;
-							}
-							olt(e, n), t.Ug();
+							n.dc() || olt(e, n), t.Ug();
 						}
 						function stt(e) {
 							y_(e, new gL(ng(Qh(tg(eg(new mc(), qq), "ELK Fixed"), "Keeps the current layout as it is, without any automatic modification. Optional coordinates can be given for nodes and edge bend points."), new Bc()))), B(e, qq, vW, GRt), B(e, qq, OK, jF(j8)), B(e, qq, yht, jF(BRt)), B(e, qq, TW, jF(VRt)), B(e, qq, PW, jF(URt)), B(e, qq, CW, jF(HRt));
@@ -39393,11 +38950,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function ltt(e) {
 							var t, n, r = e.length, i, a;
 							for (t = new Kh(), a = 0; a < r;) if (n = iT(e, a++), n != 9 && n != 10 && n != 12 && n != 13 && n != 32) {
-								if (n == 35) {
-									for (; a < r && (n = iT(e, a++), n != 13 && n != 10););
-									continue;
-								}
-								n == 92 && a < r ? (i = (BE(a, e.length), e.charCodeAt(a))) == 35 || i == 9 || i == 10 || i == 12 || i == 13 || i == 32 ? (Hw(t, i & EH), ++a) : (t.a += "\\", Hw(t, i & EH), ++a) : Hw(t, n & EH);
+								if (n == 35) for (; a < r && (n = iT(e, a++), n != 13 && n != 10););
+								else n == 92 && a < r ? (i = (BE(a, e.length), e.charCodeAt(a))) == 35 || i == 9 || i == 10 || i == 12 || i == 13 || i == 32 ? (Hw(t, i & EH), ++a) : (t.a += "\\", Hw(t, i & EH), ++a) : Hw(t, n & EH);
 							}
 							return t.a;
 						}
@@ -39405,8 +38959,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							utt = T, lNt = new Vy(Cmt, (ax(), !1)), hNt = new Vy(wmt, G(0)), gNt = new Vy(Tmt, 0), _Nt = new Vy(cq, !1), fNt = (QM(), P3), dNt = new Vy(lq, fNt), G(0), uNt = new Vy(uq, G(1)), SNt = (eM(), YNt), xNt = new Vy(Emt, SNt), wNt = (XO(), nNt), CNt = new Vy(Dmt, wNt), mNt = (hI(), GNt), pNt = new Vy(Omt, mNt), bNt = new Vy(dq, 0), vNt = new Vy(fq, !1), yNt = new Vy(kmt, !1);
 						}
 						function dtt(e, t) {
-							var n, r, i;
-							for (r = new E(t); r.a < r.c.c.length;) if (n = P(z(r), 26), vR(e.a, n, n), vR(e.b, n, n), i = gz(n), i.c.length != 0) for (e.d && e.d.Fg(i), vR(e.a, n, (zE(0, i.c.length), P(i.c[0], 26))), vR(e.b, n, P(hC(i, i.c.length - 1), 26)); gM(i).c.length != 0;) i = gM(i), e.d && e.d.Fg(i), vR(e.a, n, (zE(0, i.c.length), P(i.c[0], 26))), vR(e.b, n, P(hC(i, i.c.length - 1), 26));
+							for (var n, r = new E(t), i; r.a < r.c.c.length;) if (n = P(z(r), 26), vR(e.a, n, n), vR(e.b, n, n), i = gz(n), i.c.length != 0) for (e.d && e.d.Fg(i), vR(e.a, n, (zE(0, i.c.length), P(i.c[0], 26))), vR(e.b, n, P(hC(i, i.c.length - 1), 26)); gM(i).c.length != 0;) i = gM(i), e.d && e.d.Fg(i), vR(e.a, n, (zE(0, i.c.length), P(i.c[0], 26))), vR(e.b, n, P(hC(i, i.c.length - 1), 26));
 						}
 						function Bz(e, t, n) {
 							var r, i, a, o, s, c;
@@ -39424,8 +38977,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n = (d_(), new xT(e, !0, !0, new nr())), Qk(grt(n), new ute(n)), r = new gm(n), MP(r), c.If(e, t), t.Ug();
 						}
 						function ptt(e) {
-							var t, n = 0, r, i, a, o, s, c, l, u;
-							for (s = new E(e.d); s.a < s.c.c.length;) o = P(z(s), 107), o.i && (o.i.c = n++);
+							for (var t, n = 0, r, i, a, o, s = new E(e.d), c, l, u; s.a < s.c.c.length;) o = P(z(s), 107), o.i && (o.i.c = n++);
 							for (t = bC(J9, [X, zU], [171, 30], 16, [n, n], 2), u = e.d, i = 0; i < u.c.length; i++) if (c = (zE(i, u.c.length), P(u.c[i], 107)), c.i) for (a = i + 1; a < u.c.length; a++) l = (zE(a, u.c.length), P(u.c[a], 107)), l.i && (r = $$e(c, l), t[c.i.c][l.i.c] = r, t[l.i.c][c.i.c] = r);
 							return t;
 						}
@@ -39471,8 +39023,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return !1;
 						}
 						function vtt(e, t, n, r) {
-							var i, a, o = Ix(t.c, n, r), s, c, l, u, d, f, p;
-							for (d = new E(t.a); d.a < d.c.c.length;) {
+							for (var i, a, o = Ix(t.c, n, r), s, c, l, u, d = new E(t.a), f, p; d.a < d.c.c.length;) {
 								for (u = P(z(d), 9), lS(u.n, o), p = new E(u.j); p.a < p.c.c.length;) for (f = P(z(p), 12), a = new E(f.g); a.a < a.c.c.length;) for (i = P(z(a), 17), Dj(i.a, o), s = P(K(i, (vV(), m2)), 79), s && Dj(s, o), l = new E(i.b); l.a < l.c.c.length;) c = P(z(l), 70), lS(c.n, o);
 								Hb(e.a, u), u.a = e;
 							}
@@ -39535,8 +39086,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return RO(e, o ? P(n, 75) : DD(t, n));
 						}
 						function Ett(e, t, n, r, i) {
-							var a, o, s, c, l, u, d, f;
-							for (o = new E(e.b); o.a < o.c.c.length;) for (a = P(z(o), 25), f = ZE(a.a), l = f, u = 0, d = l.length; u < d; ++u) switch (c = l[u], P(K(c, (vV(), h2)), 165).g) {
+							for (var a, o = new E(e.b), s, c, l, u, d, f; o.a < o.c.c.length;) for (a = P(z(o), 25), f = ZE(a.a), l = f, u = 0, d = l.length; u < d; ++u) switch (c = l[u], P(K(c, (vV(), h2)), 165).g) {
 								case 1:
 									E7e(c), yE(c, t), BJe(c, !0, r);
 									break;
@@ -39585,28 +39135,17 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Kz(e, t) {
 							var n, r, i, a, o;
-							if (t.Tg("Network simplex", 1), e.e.a.c.length < 1) {
-								t.Ug();
-								return;
+							if (t.Tg("Network simplex", 1), e.e.a.c.length < 1) t.Ug();
+							else {
+								for (a = new E(e.e.a); a.a < a.c.c.length;) i = P(z(a), 124), i.e = 0;
+								for (o = e.e.a.c.length >= 40, o && $nt(e), Yit(e), M7e(e), n = HWe(e), r = 0; n && r < e.f;) ztt(e, n, R6e(e, n)), n = HWe(e), ++r;
+								o && d$e(e), e.a ? Z6e(e, ttt(e)) : ttt(e), e.b = null, e.d = null, e.p = null, e.c = null, e.g = null, e.i = null, e.n = null, e.o = null, t.Ug();
 							}
-							for (a = new E(e.e.a); a.a < a.c.c.length;) i = P(z(a), 124), i.e = 0;
-							for (o = e.e.a.c.length >= 40, o && $nt(e), Yit(e), M7e(e), n = HWe(e), r = 0; n && r < e.f;) ztt(e, n, R6e(e, n)), n = HWe(e), ++r;
-							o && d$e(e), e.a ? Z6e(e, ttt(e)) : ttt(e), e.b = null, e.d = null, e.p = null, e.c = null, e.g = null, e.i = null, e.n = null, e.o = null, t.Ug();
 						}
 						function jtt(e, t) {
 							var n, r, i, a, o, s, c;
 							if (!t.e) {
-								for (t.e = !0, r = t.d.a.ec().Jc(); r.Ob();) {
-									if (n = P(r.Pb(), 17), t.o && t.d.a.gc() <= 1) {
-										o = t.a.c, s = t.a.c + t.a.b, c = new A(o + (s - o) / 2, t.b), QS(P(t.d.a.ec().Jc().Pb(), 17).a, c);
-										continue;
-									}
-									if (i = P(Lw(t.c, n), 457), i.b || i.c) {
-										ctt(e, n, t);
-										continue;
-									}
-									a = e.d == (rN(), z4) && (i.d || i.e) && A3e(e, t) && t.d.a.gc() <= 1, a ? pst(n, t) : j9e(e, n, t);
-								}
+								for (t.e = !0, r = t.d.a.ec().Jc(); r.Ob();) n = P(r.Pb(), 17), t.o && t.d.a.gc() <= 1 ? (o = t.a.c, s = t.a.c + t.a.b, c = new A(o + (s - o) / 2, t.b), QS(P(t.d.a.ec().Jc().Pb(), 17).a, c)) : (i = P(Lw(t.c, n), 457), i.b || i.c ? ctt(e, n, t) : (a = e.d == (rN(), z4) && (i.d || i.e) && A3e(e, t) && t.d.a.gc() <= 1, a ? pst(n, t) : j9e(e, n, t)));
 								t.k && qD(t.d, new yn());
 							}
 						}
@@ -39678,8 +39217,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (u = new E(t.d); u.a < u.c.c.length;) l = P(z(u), 445), lS(l.d, c), Hb(e.d, l);
 						}
 						function Ftt(e, t) {
-							var n, r, i, a, o, s, c, l;
-							for (c = new E(t.j); c.a < c.c.c.length;) for (s = P(z(c), 12), i = new gO(s.b); Eb(i.a) || Eb(i.b);) r = P(Eb(i.a) ? z(i.a) : z(i.b), 17), n = r.c == s ? r.d : r.c, a = n.i, t != a && (l = P(K(r, (vV(), W2)), 15).a, l < 0 && (l = 0), o = a.p, e.c[o] == 0 && (r.d == n ? (e.a[o] -= l + 1, e.a[o] <= 0 && e.d[o] > 0 && QS(e.g, a)) : (e.d[o] -= l + 1, e.d[o] <= 0 && e.a[o] > 0 && QS(e.f, a))));
+							for (var n, r, i, a, o, s, c = new E(t.j), l; c.a < c.c.c.length;) for (s = P(z(c), 12), i = new gO(s.b); Eb(i.a) || Eb(i.b);) r = P(Eb(i.a) ? z(i.a) : z(i.b), 17), n = r.c == s ? r.d : r.c, a = n.i, t != a && (l = P(K(r, (vV(), W2)), 15).a, l < 0 && (l = 0), o = a.p, e.c[o] == 0 && (r.d == n ? (e.a[o] -= l + 1, e.a[o] <= 0 && e.d[o] > 0 && QS(e.g, a)) : (e.d[o] -= l + 1, e.d[o] <= 0 && e.a[o] > 0 && QS(e.f, a))));
 						}
 						function Itt(e, t, n, r) {
 							var i, a, o, s, c = new A(n, r), l, u;
@@ -39803,8 +39341,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (; s.b != 0;) for (a = P(s.b == 0 ? null : (jx(s.b != 0), Xk(s, s.a.a)), 116), i = a.o + 1, n = new E(a.f); n.a < n.c.c.length;) t = P(z(n), 133), c = t.a, Vp(c, r.Math.max(c.o, i)), Bp(c, c.i - 1), c.i == 0 && UD(s, c, s.c.b, s.c);
 						}
 						function Qtt(e) {
-							var t, n, r, i, a, o, s, c;
-							for (o = new E(e); o.a < o.c.c.length;) {
+							for (var t, n, r, i, a, o = new E(e), s, c; o.a < o.c.c.length;) {
 								for (a = P(z(o), 85), r = mL(P(H((!a.b && (a.b = new pS(n7, a, 4, 7)), a.b), 0), 84)), s = r.i, c = r.j, i = P(H((!a.a && (a.a = new F(i7, a, 6, 6)), a.a), 0), 170), ub(i, i.j + s, i.k + c), lb(i, i.b + s, i.c + c), n = new Yb((!i.a && (i.a = new Gb($5, i, 5)), i.a)); n.e != n.i.gc();) t = P(MF(n), 372), ob(t, t.a + s, t.b + c);
 								Qze(P(J(a, (xV(), G6)), 79), s, c);
 							}
@@ -39876,15 +39413,13 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (c = (i = new om(e.e).a.vc().Jc(), new sm(i)); c.a.Ob();) s = (t = P(c.a.Pb(), 45), P(t.kd(), 113)), s.d.p == 0 && Hb(e.d, Stt(e, s));
 						}
 						function rnt(e, t) {
-							var n, r, i, a, o, s, c, l, u;
-							for (o = new E(t.b); o.a < o.c.c.length;) for (a = P(z(o), 25), l = new E(a.a); l.a < l.c.c.length;) {
+							for (var n, r, i, a, o = new E(t.b), s, c, l, u; o.a < o.c.c.length;) for (a = P(z(o), 25), l = new E(a.a); l.a < l.c.c.length;) {
 								for (c = P(z(l), 9), u = new Nm(), s = 0, r = new JC(Qb(fP(c).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), !($D(n) || !$D(n) && n.c.i.c == n.d.i.c) && (i = P(K(n, (vV(), G2)), 15).a, i > s && (s = i, u.c.length = 0), i == s && Hb(u, new gy(n.c.i, n)));
 								DT(), Tb(u, e.c), MC(e.b, c.p, u);
 							}
 						}
 						function int(e, t) {
-							var n, r, i, a, o, s, c, l, u;
-							for (o = new E(t.b); o.a < o.c.c.length;) for (a = P(z(o), 25), l = new E(a.a); l.a < l.c.c.length;) {
+							for (var n, r, i, a, o = new E(t.b), s, c, l, u; o.a < o.c.c.length;) for (a = P(z(o), 25), l = new E(a.a); l.a < l.c.c.length;) {
 								for (c = P(z(l), 9), u = new Nm(), s = 0, r = new JC(Qb(mP(c).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), !($D(n) || !$D(n) && n.c.i.c == n.d.i.c) && (i = P(K(n, (vV(), G2)), 15).a, i > s && (s = i, u.c.length = 0), i == s && Hb(u, new gy(n.d.i, n)));
 								DT(), Tb(u, e.c), MC(e.f, c.p, u);
 							}
@@ -39909,8 +39444,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return lO(U(k(yjt, 1), Sdt, 120, 0, [t]));
 						}
 						function cnt(e, t) {
-							var n, r, i, a, o, s;
-							for (i = new E(t.a); i.a < i.c.c.length;) r = P(z(i), 9), a = K(r, (Y(), e0)), M(a, 12) && (o = P(a, 12), s = Znt(t, r, o.o.a, o.o.b), o.n.a = s.a, o.n.b = s.b, sR(o, P(K(r, I1), 64)));
+							for (var n, r, i = new E(t.a), a, o, s; i.a < i.c.c.length;) r = P(z(i), 9), a = K(r, (Y(), e0)), M(a, 12) && (o = P(a, 12), s = Znt(t, r, o.o.a, o.o.b), o.n.a = s.a, o.n.b = s.b, sR(o, P(K(r, I1), 64)));
 							n = new A(t.f.a + t.d.b + t.d.c, t.f.b + t.d.d + t.d.a), P(K(t, (Y(), R1)), 22).Gc((vz(), a1)) ? (W(e, (vV(), z2), (uL(), e5)), P(K($w(e), R1), 22).Ec(c1), pot(e, n, !1)) : pot(e, n, !0);
 						}
 						function lnt(e) {
@@ -39920,11 +39454,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function unt(e, t, n) {
 							var r, i, a, o, s, c;
-							if (n.Tg("Minimize Crossings " + e.a, 1), r = t.b.c.length == 0 || !Ag(gT(new vC(null, new RE(t.b, 16)), new mm(new ree()))).zd((t_(), oZ)), c = t.b.c.length == 1 && P(hC(t.b, 0), 25).a.c.length == 1, a = j(K(t, (vV(), u2))) === j((ZM(), M8)), r || c && !a) {
-								n.Ug();
-								return;
-							}
-							i = b7e(e, t), o = (s = P(VF(i, 0), 218), s.c.ig() ? s.c.cg() ? new Ene(e) : new Dne(e) : new Tne(e)), KHe(i, o), tWe(e), n.Ug();
+							n.Tg("Minimize Crossings " + e.a, 1), r = t.b.c.length == 0 || !Ag(gT(new vC(null, new RE(t.b, 16)), new mm(new ree()))).zd((t_(), oZ)), c = t.b.c.length == 1 && P(hC(t.b, 0), 25).a.c.length == 1, a = j(K(t, (vV(), u2))) === j((ZM(), M8)), r || c && !a || (i = b7e(e, t), o = (s = P(VF(i, 0), 218), s.c.ig() ? s.c.cg() ? new Ene(e) : new Dne(e) : new Tne(e)), KHe(i, o), tWe(e)), n.Ug();
 						}
 						function Qz(e, t, n, r) {
 							var i, a, o = e.Mh(), s, c = e.Gh();
@@ -39952,8 +39482,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return s && qR(e, s), o && qR(e, o), a = new rT(n, i, t, c), cR(e, a, o), o && (o.e = null, o.c = null), s && (s.e = null, s.c = null), vZe(e), s ? s.g : null;
 						}
 						function mnt(e, t, n) {
-							var r, i, a, o, s;
-							for (a = 0; a < t; a++) {
+							for (var r, i, a = 0, o, s; a < t; a++) {
 								for (r = 0, s = a + 1; s < t; s++) r = lP(lP(uP(KE(e[a], pU), KE(e[s], pU)), KE(n[a + s], pU)), KE(AC(r), pU)), n[a + s] = AC(r), r = ZC(r, 32);
 								n[a + t] = AC(r);
 							}
@@ -40076,12 +39605,10 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (c = n.Jc(); c.Ob();) for (s = P(c.Pb(), 838), d = new E(s.Pf()); d.a < d.c.c.length;) u = P(z(d), 187), j(u.mf((xV(), fLt))) === j((nA(), E8)) && (Xet(f, u, !0, r, i, a, o), qL(e, f));
 						}
 						function Ont(e, t, n) {
-							var r, i, a, o, s, c, l;
-							for (o = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)); o.e != o.i.gc();) for (a = P(MF(o), 26), i = new JC(Qb(UR(a).a.Jc(), new f())); AR(i);) r = P(iO(i), 85), !ER(r) && !ER(r) && !gR(r) && (c = P(Ty(FC(n.f, a)), 40), l = P(Lw(n, mL(P(H((!r.c && (r.c = new pS(n7, r, 5, 8)), r.c), 0), 84))), 40), c && l && (s = new JEe(c, l), W(s, (aV(), b3), r), Jj(s, r), QS(c.d, s), QS(l.b, s), QS(t.a, s)));
+							for (var r, i, a, o = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)), s, c, l; o.e != o.i.gc();) for (a = P(MF(o), 26), i = new JC(Qb(UR(a).a.Jc(), new f())); AR(i);) r = P(iO(i), 85), ER(r) || ER(r) || gR(r) || (c = P(Ty(FC(n.f, a)), 40), l = P(Lw(n, mL(P(H((!r.c && (r.c = new pS(n7, r, 5, 8)), r.c), 0), 84))), 40), c && l && (s = new JEe(c, l), W(s, (aV(), b3), r), Jj(s, r), QS(c.d, s), QS(l.b, s), QS(t.a, s)));
 						}
 						function knt(e, t) {
-							var n, i, a, o, s, c, l, u;
-							for (l = P(P(cO(e.r, t), 22), 83).Jc(); l.Ob();) c = P(l.Pb(), 115), a = c.c ? Nxe(c.c) : 0, a > 0 ? c.a ? (u = c.b.Kf().b, a > u && (e.v || c.c.d.c.length == 1 ? (s = (a - u) / 2, c.d.d = s, c.d.a = s) : (n = P(hC(c.c.d, 0), 187).Kf().b, i = (n - u) / 2, c.d.d = r.Math.max(0, i), c.d.a = a - i - u))) : c.d.a = e.t + a : yw(e.u) && (o = U$e(c.b), o.d < 0 && (c.d.d = -o.d), o.d + o.a > c.b.Kf().b && (c.d.a = o.d + o.a - c.b.Kf().b));
+							for (var n, i, a, o, s, c, l = P(P(cO(e.r, t), 22), 83).Jc(), u; l.Ob();) c = P(l.Pb(), 115), a = c.c ? Nxe(c.c) : 0, a > 0 ? c.a ? (u = c.b.Kf().b, a > u && (e.v || c.c.d.c.length == 1 ? (s = (a - u) / 2, c.d.d = s, c.d.a = s) : (n = P(hC(c.c.d, 0), 187).Kf().b, i = (n - u) / 2, c.d.d = r.Math.max(0, i), c.d.a = a - i - u))) : c.d.a = e.t + a : yw(e.u) && (o = U$e(c.b), o.d < 0 && (c.d.d = -o.d), o.d + o.a > c.b.Kf().b && (c.d.a = o.d + o.a - c.b.Kf().b));
 						}
 						function tB() {
 							tB = T, NZ = new _b((xV(), o8), G(1)), FZ = new _b(u8, 80), xxt = new _b(oRt, 5), axt = new _b(F6, uW), vxt = new _b($Lt, G(1)), bxt = new _b(tRt, (ax(), !0)), hxt = new mb(50), mxt = new _b(e8, hxt), sxt = W6, gxt = n8, oxt = new _b(V6, !1), pxt = $6, dxt = Y6, fxt = Z6, uxt = J6, lxt = q6, _xt = r8, cxt = (r0e(), Xbt), IZ = txt, MZ = Ybt, PZ = Qbt, yxt = ext, wxt = p8, Ext = h8, Cxt = f8, Sxt = d8, Txt = (UN(), J5), new _b(m8, Txt);
@@ -40232,7 +39759,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Bnt(e, t) {
 							var n, r, i = t.d ? e.a.c == ($T(), Q4) ? fP(t.b) : mP(t.b) : e.a.c == ($T(), Z4) ? fP(t.b) : mP(t.b), a = !1, o;
-							for (r = new JC(Qb(i.a.Jc(), new f())); AR(r);) if (n = P(iO(r), 17), o = jh(e.a.f[e.a.g[t.b.p].p]), !(!o && !$D(n) && n.c.i.c == n.d.i.c) && !(jh(e.a.n[e.a.g[t.b.p].p]) || jh(e.a.n[e.a.g[t.b.p].p])) && (a = !0, Gg(e.b, e.a.g[IYe(n, t.b).p]))) return t.c = !0, t.a = n, t;
+							for (r = new JC(Qb(i.a.Jc(), new f())); AR(r);) if (n = P(iO(r), 17), o = jh(e.a.f[e.a.g[t.b.p].p]), (o || $D(n) || n.c.i.c != n.d.i.c) && !(jh(e.a.n[e.a.g[t.b.p].p]) || jh(e.a.n[e.a.g[t.b.p].p])) && (a = !0, Gg(e.b, e.a.g[IYe(n, t.b).p]))) return t.c = !0, t.a = n, t;
 							return t.c = a, t.a = null, t;
 						}
 						function Vnt(e, t, n) {
@@ -40251,7 +39778,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Hnt(e, t, n) {
 							var r, i, a, o, s;
-							return e.Nj() ? (i = null, a = e.Oj(), r = e.Gj(1, s = (o = e.Bj(t, e.Xi(t, n)), o), n, t, a), e.Kj() && !(e.Wi() && s ? MN(s, n) : j(s) === j(n)) ? (s && (i = e.Mj(s, i)), i = e.Lj(n, i), i ? (i.lj(r), i.mj()) : e.Hj(r)) : i ? (i.lj(r), i.mj()) : e.Hj(r), s) : (s = (o = e.Bj(t, e.Xi(t, n)), o), e.Kj() && !(e.Wi() && s ? MN(s, n) : j(s) === j(n)) && (i = null, s && (i = e.Mj(s, null)), i = e.Lj(n, i), i && i.mj()), s);
+							return e.Nj() ? (i = null, a = e.Oj(), r = e.Gj(1, s = (o = e.Bj(t, e.Xi(t, n)), o), n, t, a), e.Kj() && !(e.Wi() && s ? MN(s, n) : j(s) === j(n)) && (s && (i = e.Mj(s, i)), i = e.Lj(n, i)), i ? (i.lj(r), i.mj()) : e.Hj(r), s) : (s = (o = e.Bj(t, e.Xi(t, n)), o), e.Kj() && !(e.Wi() && s ? MN(s, n) : j(s) === j(n)) && (i = null, s && (i = e.Mj(s, null)), i = e.Lj(n, i), i && i.mj()), s);
 						}
 						function Unt(e, t) {
 							var n, i, a, o, s, c, l, u, d;
@@ -40294,8 +39821,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n.Ug();
 						}
 						function Jnt(e, t, n, r, i) {
-							var a, o, s, c, l, u, d;
-							for (o = new E(t); o.a < o.c.c.length;) {
+							for (var a, o = new E(t), s, c, l, u, d; o.a < o.c.c.length;) {
 								if (a = P(z(o), 17), c = a.c, n.a._b(c)) l = (QT(), i3);
 								else if (r.a._b(c)) l = (QT(), a3);
 								else throw D(new Oh("Source port must be in one of the port sets."));
@@ -40497,9 +40023,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return !0;
 						}
 						function drt(e, t, n, r) {
-							var i, a, o, s, c;
-							for (o = new E(e.k); o.a < o.c.c.length;) i = P(z(o), 133), (!r || i.c == (xO(), n3)) && (c = i.b, c.g < 0 && i.d > 0 && (zp(c, c.d - i.d), i.c == (xO(), n3) && Lp(c, c.a - i.d), c.d <= 0 && c.i > 0 && UD(t, c, t.c.b, t.c)));
-							for (a = new E(e.f); a.a < a.c.c.length;) i = P(z(a), 133), (!r || i.c == (xO(), n3)) && (s = i.a, s.g < 0 && i.d > 0 && (Bp(s, s.i - i.d), i.c == (xO(), n3) && Rp(s, s.b - i.d), s.i <= 0 && s.d > 0 && UD(n, s, n.c.b, n.c)));
+							for (var i, a, o = new E(e.k), s, c; o.a < o.c.c.length;) i = P(z(o), 133), r && i.c != (xO(), n3) || (c = i.b, c.g < 0 && i.d > 0 && (zp(c, c.d - i.d), i.c == (xO(), n3) && Lp(c, c.a - i.d), c.d <= 0 && c.i > 0 && UD(t, c, t.c.b, t.c)));
+							for (a = new E(e.f); a.a < a.c.c.length;) i = P(z(a), 133), r && i.c != (xO(), n3) || (s = i.a, s.g < 0 && i.d > 0 && (Bp(s, s.i - i.d), i.c == (xO(), n3) && Rp(s, s.b - i.d), s.i <= 0 && s.d > 0 && UD(n, s, n.c.b, n.c)));
 						}
 						function frt(e, t, n, r, i) {
 							var a, o, s, c, l, u, d, f, p;
@@ -40712,8 +40237,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return null;
 						}
 						function krt(e, t) {
-							var n = 0, r, i, a, o, s, c, l, u;
-							for (i = new E((zE(0, e.c.length), P(e.c[0], 107)).g.b.j); i.a < i.c.c.length;) r = P(z(i), 12), r.p = n++;
+							for (var n = 0, r, i = new E((zE(0, e.c.length), P(e.c[0], 107)).g.b.j), a, o, s, c, l, u; i.a < i.c.c.length;) r = P(z(i), 12), r.p = n++;
 							for (t == (oV(), p5) ? Tb(e, new Wi()) : Tb(e, new Qi()), s = 0, u = e.c.length - 1; s < u;) o = (zE(s, e.c.length), P(e.c[s], 107)), l = (zE(u, e.c.length), P(e.c[u], 107)), a = t == p5 ? o.c : o.a, c = t == p5 ? l.a : l.c, nw(o, t, (tM(), n$), a), nw(l, t, t$, c), ++s, --u;
 							s == u && nw((zE(s, e.c.length), P(e.c[s], 107)), t, (tM(), e$), null);
 						}
@@ -40724,7 +40248,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function jrt(e, t, n) {
 							var r, i, a, o, s, c, l, u, d = e.a.i + e.a.g / 2, f = e.a.i + e.a.g / 2, p, m = t.i + t.g / 2, h, g = t.j + t.f / 2, _;
-							return s = new A(m, g), l = P(J(t, (xV(), a8)), 8), l.a += d, l.b += f, a = (s.b - l.b) / (s.a - l.a), r = s.b - a * s.a, h = n.i + n.g / 2, _ = n.j + n.f / 2, c = new A(h, _), u = P(J(n, a8), 8), u.a += d, u.b += f, o = (c.b - u.b) / (c.a - u.a), i = c.b - o * c.a, p = (r - i) / (o - a), l.a < p && s.a < p || p < l.a && p < s.a ? !1 : !(u.a < p && c.a < p || p < u.a && p < c.a);
+							return s = new A(m, g), l = P(J(t, (xV(), a8)), 8), l.a += d, l.b += f, a = (s.b - l.b) / (s.a - l.a), r = s.b - a * s.a, h = n.i + n.g / 2, _ = n.j + n.f / 2, c = new A(h, _), u = P(J(n, a8), 8), u.a += d, u.b += f, o = (c.b - u.b) / (c.a - u.a), i = c.b - o * c.a, p = (r - i) / (o - a), !(l.a < p && s.a < p || p < l.a && p < s.a || u.a < p && c.a < p || p < u.a && p < c.a);
 						}
 						function Mrt(e, t, n) {
 							var i, a, o, s;
@@ -40769,8 +40293,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							l = t.c, p = t.d, c = l.a.b, f = p.a.b, u.b || (c += l.n.b), m.b || (f += p.n.b), d = nE(r.Math.max(0, c - f)), s = nE(r.Math.max(0, f - c)), h = (g = r.Math.max(1, P(K(t, (vV(), G2)), 15).a), _ = wMe(t.c.i.k, t.d.i.k), g * _), a = cz(s_(o_(a_(c_(new ih(), h), s), n), P(Lw(e.k, t.c), 124))), o = cz(s_(o_(a_(c_(new ih(), h), d), n), P(Lw(e.k, t.d), 124))), i = new Lue(a, o), e.c[t.p] = i;
 						}
 						function Lrt(e, t, n) {
-							var i = 0, a, o, s, c, l;
-							for (o = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)); o.e != o.i.gc();) a = P(MF(o), 26), s = "", (!a.n && (a.n = new F(d7, a, 1, 7)), a.n).i == 0 || (s = P(H((!a.n && (a.n = new F(d7, a, 1, 7)), a.n), 0), 157).a), c = new Ape(s), Jj(c, a), W(c, (nj(), zZ), a), c.a = i++, c.d.a = a.i + a.g / 2, c.d.b = a.j + a.f / 2, c.e.a = r.Math.max(a.g, 1), c.e.b = r.Math.max(a.f, 1), Hb(t.e, c), nR(n.f, a, c), l = P(J(a, (tB(), gxt)), 102), l == (uL(), i5) && (l = r5);
+							for (var i = 0, a, o = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)), s, c, l; o.e != o.i.gc();) a = P(MF(o), 26), s = "", (!a.n && (a.n = new F(d7, a, 1, 7)), a.n).i == 0 || (s = P(H((!a.n && (a.n = new F(d7, a, 1, 7)), a.n), 0), 157).a), c = new Ape(s), Jj(c, a), W(c, (nj(), zZ), a), c.a = i++, c.d.a = a.i + a.g / 2, c.d.b = a.j + a.f / 2, c.e.a = r.Math.max(a.g, 1), c.e.b = r.Math.max(a.f, 1), Hb(t.e, c), nR(n.f, a, c), l = P(J(a, (tB(), gxt)), 102), l == (uL(), i5) && (l = r5);
 						}
 						function Rrt(e) {
 							var t, n, r;
@@ -40815,8 +40338,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return r;
 						}
 						function Brt(e, t) {
-							var n, r, i, a, o, s, c, l, u;
-							for (a = new E(e.b); a.a < a.c.c.length;) for (i = P(z(a), 25), s = new E(i.a); s.a < s.c.c.length;) for (o = P(z(s), 9), o.k == (BR(), mQ) && (c = (l = P(iO(new JC(Qb(fP(o).a.Jc(), new f()))), 17), u = P(iO(new JC(Qb(mP(o).a.Jc(), new f()))), 17), !jh(Vx(K(l, (Y(), c0)))) || !jh(Vx(K(u, c0))) ? t : RVe(t)), yB(o, c)), r = new JC(Qb(mP(o).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), c = jh(Vx(K(n, (Y(), c0)))) ? RVe(t) : t, SVe(n, c);
+							for (var n, r, i, a = new E(e.b), o, s, c, l, u; a.a < a.c.c.length;) for (i = P(z(a), 25), s = new E(i.a); s.a < s.c.c.length;) for (o = P(z(s), 9), o.k == (BR(), mQ) && (c = (l = P(iO(new JC(Qb(fP(o).a.Jc(), new f()))), 17), u = P(iO(new JC(Qb(mP(o).a.Jc(), new f()))), 17), !jh(Vx(K(l, (Y(), c0)))) || !jh(Vx(K(u, c0))) ? t : RVe(t)), yB(o, c)), r = new JC(Qb(mP(o).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), c = jh(Vx(K(n, (Y(), c0)))) ? RVe(t) : t, SVe(n, c);
 						}
 						function Vrt(e) {
 							var t, n, r, i, a, o;
@@ -40831,30 +40353,26 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Urt(e, t) {
 							var n, r, i, a, o;
-							if (t.Tg("Path-Like Graph Wrapping", 1), e.b.c.length == 0) {
-								t.Ug();
-								return;
+							if (t.Tg("Path-Like Graph Wrapping", 1), e.b.c.length == 0) t.Ug();
+							else if (i = new u6e(e), o = (i.i ?? (i.i = Jze(i, new _a())), O(i.i) * i.f), n = o / (i.i ?? (i.i = Jze(i, new _a())), O(i.i)), i.b > n) t.Ug();
+							else {
+								switch (P(K(e, (vV(), f4)), 350).g) {
+									case 2:
+										a = new ba();
+										break;
+									case 0:
+										a = new ua();
+										break;
+									default: a = new xa();
+								}
+								if (r = a.mg(e, i), !a.ng()) switch (P(K(e, m4), 351).g) {
+									case 2:
+										r = c4e(i, r);
+										break;
+									case 1: r = KQe(i, r);
+								}
+								oat(e, i, r), t.Ug();
 							}
-							if (i = new u6e(e), o = (i.i ?? (i.i = Jze(i, new _a())), O(i.i) * i.f), n = o / (i.i ?? (i.i = Jze(i, new _a())), O(i.i)), i.b > n) {
-								t.Ug();
-								return;
-							}
-							switch (P(K(e, (vV(), f4)), 350).g) {
-								case 2:
-									a = new ba();
-									break;
-								case 0:
-									a = new ua();
-									break;
-								default: a = new xa();
-							}
-							if (r = a.mg(e, i), !a.ng()) switch (P(K(e, m4), 351).g) {
-								case 2:
-									r = c4e(i, r);
-									break;
-								case 1: r = KQe(i, r);
-							}
-							oat(e, i, r), t.Ug();
 						}
 						function hB(e, t) {
 							var n, i, a, o, s, c, l, u;
@@ -40875,8 +40393,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return o;
 						}
 						function Krt(e, t) {
-							var n, r, i, a, o;
-							for (o = new JC(Qb(fP(t).a.Jc(), new f())); AR(o);) if (a = P(iO(o), 17), e.f.b == 0 ? (i = a.c.i.k == (BR(), _Q) && !!a.c.i.c && a.c.i.c.p == e.c, AR(new JC(Qb(fP(a.c.i).a.Jc(), new f()))) ? (n = P(iO(new JC(Qb(fP(a.c.i).a.Jc(), new f()))), 17).c.i.c, r = a.c.i.k == mQ && !!n && n.p == e.c) : r = !1) : (i = a.c.i.k == (BR(), _Q) && a.c.i.p == e.c, r = a.c.i.k == mQ && P(iO(new JC(Qb(fP(a.c.i).a.Jc(), new f()))), 17).c.i.p == e.c), i || r) return !0;
+							for (var n, r, i, a, o = new JC(Qb(fP(t).a.Jc(), new f())); AR(o);) if (a = P(iO(o), 17), e.f.b == 0 ? (i = a.c.i.k == (BR(), _Q) && !!a.c.i.c && a.c.i.c.p == e.c, AR(new JC(Qb(fP(a.c.i).a.Jc(), new f()))) ? (n = P(iO(new JC(Qb(fP(a.c.i).a.Jc(), new f()))), 17).c.i.c, r = a.c.i.k == mQ && !!n && n.p == e.c) : r = !1) : (i = a.c.i.k == (BR(), _Q) && a.c.i.p == e.c, r = a.c.i.k == mQ && P(iO(new JC(Qb(fP(a.c.i).a.Jc(), new f()))), 17).c.i.p == e.c), i || r) return !0;
 							return !1;
 						}
 						function qrt(e, t, n, i, a) {
@@ -40930,8 +40447,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function Yrt(e, t) {
-							var n = new On(), i, a, o, s, c, l, u;
-							for (a = new JC(Qb(fP(t).a.Jc(), new f())); AR(a);) if (i = P(iO(a), 17), !$D(i) && (c = i.c.i, f$e(c, wQ))) {
+							for (var n = new On(), i, a = new JC(Qb(fP(t).a.Jc(), new f())), o, s, c, l, u; AR(a);) if (i = P(iO(a), 17), !$D(i) && (c = i.c.i, f$e(c, wQ))) {
 								if (u = W9e(e, c, wQ, CQ), u == -1) continue;
 								n.b = r.Math.max(n.b, u), !n.a && (n.a = new Nm()), Hb(n.a, c);
 							}
@@ -40965,8 +40481,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return i = aO(i, t), i;
 						}
 						function $rt(e) {
-							var t, n, r, i, a, o, s, c, l, u;
-							for (c = new E(e.a); c.a < c.c.c.length;) if (s = P(z(c), 9), s.k == (BR(), pQ) && (i = P(K(s, (Y(), I1)), 64), i == (oV(), f5) || i == M5)) for (r = new JC(Qb(pP(s).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), t = n.a, t.b != 0 && (l = n.c, l.i == s && (a = (jx(t.b != 0), P(t.a.a.c, 8)), a.b = MM(U(k(w6, 1), X, 8, 0, [
+							for (var t, n, r, i, a, o, s, c = new E(e.a), l, u; c.a < c.c.c.length;) if (s = P(z(c), 9), s.k == (BR(), pQ) && (i = P(K(s, (Y(), I1)), 64), i == (oV(), f5) || i == M5)) for (r = new JC(Qb(pP(s).a.Jc(), new f())); AR(r);) n = P(iO(r), 17), t = n.a, t.b != 0 && (l = n.c, l.i == s && (a = (jx(t.b != 0), P(t.a.a.c, 8)), a.b = MM(U(k(w6, 1), X, 8, 0, [
 								l.i.n,
 								l.n,
 								l.a
@@ -40982,16 +40497,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n && Hb(this.j, n), Hb(this.k, i);
 						}
 						function eit(e, t, n, r) {
-							var i, a, o, s = -1, c, l, u;
-							for (u = new E(e); u.a < u.c.c.length;) l = P(z(u), 116), l.g = s--, i = AC(fD(yT(gT(new vC(null, new RE(l.f, 16)), new co()), new lo())).d), a = AC(fD(yT(gT(new vC(null, new RE(l.k, 16)), new uo()), new fo())).d), o = i, c = a, r || (o = AC(fD(yT(new vC(null, new RE(l.f, 16)), new po())).d), c = AC(fD(yT(new vC(null, new RE(l.k, 16)), new mo())).d)), l.d = o, l.a = i, l.i = c, l.b = a, c == 0 ? UD(n, l, n.c.b, n.c) : o == 0 && UD(t, l, t.c.b, t.c);
+							for (var i, a, o, s = -1, c, l, u = new E(e); u.a < u.c.c.length;) l = P(z(u), 116), l.g = s--, i = AC(fD(yT(gT(new vC(null, new RE(l.f, 16)), new co()), new lo())).d), a = AC(fD(yT(gT(new vC(null, new RE(l.k, 16)), new uo()), new fo())).d), o = i, c = a, r || (o = AC(fD(yT(new vC(null, new RE(l.f, 16)), new po())).d), c = AC(fD(yT(new vC(null, new RE(l.k, 16)), new mo())).d)), l.d = o, l.a = i, l.i = c, l.b = a, c == 0 ? UD(n, l, n.c.b, n.c) : o == 0 && UD(t, l, t.c.b, t.c);
 						}
 						function yB(e, t) {
 							var n, i, a, o, s, c;
 							if (e.k == (BR(), mQ) && (n = e.k == mQ && !Ag(gT(P(K(e, (Y(), s0)), 16).Mc(), new mm(new Ft()))).zd((t_(), oZ)) ? (PI(), L8) : t, W(e, (Y(), G1), n), n != (PI(), I8))) for (i = P(K(e, e0), 17), c = O(N(K(i, (vV(), c2)))), s = 0, n == F8 ? s = e.o.b - r.Math.ceil(c / 2) : n == L8 && (s = r.Math.ceil(e.o.b - O(N(K($w(e), Z2))) - c) / 2, e.o.b -= O(N(K($w(e), Z2))), e.o.b -= c), o = new E(e.j); o.a < o.c.c.length;) a = P(z(o), 12), a.n.b = s;
 						}
 						function tit(e, t, n) {
-							var r, i = !0, a, o, s, c, l, u, d;
-							for (o = new E(e.b); o.a < o.c.c.length;) {
+							for (var r, i = !0, a, o = new E(e.b), s, c, l, u, d; o.a < o.c.c.length;) {
 								for (a = P(z(o), 25), l = oU, u = null, c = new E(a.a); c.a < c.c.c.length;) if (s = P(z(c), 9), d = O(t.p[s.p]) + O(t.d[s.p]) - s.d.d, r = O(t.p[s.p]) + O(t.d[s.p]) + s.o.b + s.d.a, d > l && r > l) u = s, l = O(t.p[s.p]) + O(t.d[s.p]) + s.o.b + s.d.a;
 								else {
 									i = !1, n.$g() && n.ah("bk node placement breaks on " + s + " which should have been after " + u);
@@ -41014,8 +40527,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return W(a, (Y(), O1), G(i)), Vm(r.c, a), a;
 						}
 						function rit(e) {
-							var t, n, r, i, a, o, s, c, l, u, d, f, p;
-							for (n = (l = new om(e.c.b).a.vc().Jc(), new sm(l)); n.a.Ob();) t = (s = P(n.a.Pb(), 45), P(s.kd(), 144)), i = t.a, i ??= "", r = Mge(e.c, i), !r && i.length == 0 && (r = gWe(e)), r && !IP(r.c, t, !1) && QS(r.c, t);
+							for (var t, n = (l = new om(e.c.b).a.vc().Jc(), new sm(l)), r, i, a, o, s, c, l, u, d, f, p; n.a.Ob();) t = (s = P(n.a.Pb(), 45), P(s.kd(), 144)), i = t.a, i ??= "", r = Mge(e.c, i), !r && i.length == 0 && (r = gWe(e)), r && !IP(r.c, t, !1) && QS(r.c, t);
 							for (o = kF(e.a, 0); o.b != o.d.c;) a = P(vD(o), 475), u = tO(e.c, a.a), p = tO(e.c, a.b), u && p && QS(u.c, new gy(p, a.c));
 							for (AT(e.a), f = kF(e.b, 0); f.b != f.d.c;) d = P(vD(f), 475), t = jge(e.c, d.a), c = tO(e.c, d.b), t && c && Ole(t, c, d.c);
 							AT(e.b);
@@ -41141,8 +40653,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							s = e.d, e.f.a = n.a - s.b - s.c, e.f.b = n.b - s.d - s.a;
 						}
 						function fit(e) {
-							var t = E3e(e), n, i, a, o, s, c, l, u, d, f, p;
-							for (d = (c = new im(t).a.vc().Jc(), new rm(c)); d.a.Ob();) {
+							for (var t = E3e(e), n, i, a, o, s, c, l, u, d = (c = new im(t).a.vc().Jc(), new rm(c)), f, p; d.a.Ob();) {
 								for (u = (a = P(d.a.Pb(), 45), P(a.jd(), 9)), f = 0, p = 0, f = u.d.d, p = u.o.b + u.d.a, e.d[u.p] = 0, n = u; (o = e.a[n.p]) != u;) i = jqe(n, o), l = 0, l = e.c == ($T(), Z4) ? i.d.n.b + i.d.a.b - i.c.n.b - i.c.a.b : i.c.n.b + i.c.a.b - i.d.n.b - i.d.a.b, s = O(e.d[n.p]) + l, e.d[o.p] = s, f = r.Math.max(f, o.d.d - s), p = r.Math.max(p, s + o.o.b + o.d.a), n = o;
 								n = u;
 								do
@@ -41178,7 +40689,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function mit(e) {
 							var t, n, i, a, o, s, c = e.d, l, u, d, f = P(K(e, (Y(), b0)), 16), p;
-							if (t = P(K(e, w1), 16), !(!f && !t)) {
+							if (t = P(K(e, w1), 16), f || t) {
 								if (o = O(N(eF(e, (vV(), q2)))), s = O(N(eF(e, GOt))), p = 0, f) {
 									for (u = 0, a = f.Jc(); a.Ob();) i = P(a.Pb(), 9), u = r.Math.max(u, i.o.b), p += i.o.a;
 									p += o * (f.gc() - 1), c.d += u + s;
@@ -41258,8 +40769,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return t.gk();
 						}
 						function _it(e) {
-							var t, n, r, i, a, o, s, c;
-							for (i = new E(e.b); i.a < i.c.c.length;) for (r = P(z(i), 25), o = new E(WE(r.a)); o.a < o.c.c.length;) if (a = P(z(o), 9), oLe(a) && (n = P(K(a, (Y(), T1)), 318), !n.g && n.d)) for (t = n, c = n.d; c;) X9e(c.i, c.k, !1, !0), ak(t.a), ak(c.i), ak(c.k), ak(c.b), bE(c.c, t.c.d), bE(t.c, null), yE(t.a, null), yE(c.i, null), yE(c.k, null), yE(c.b, null), s = new Wje(t.i, c.a, t.e, c.j, c.f), s.k = t.k, s.n = t.n, s.b = t.b, s.c = c.c, s.g = t.g, s.d = c.d, W(t.i, T1, s), W(c.a, T1, s), c = c.d, t = s;
+							for (var t, n, r, i = new E(e.b), a, o, s, c; i.a < i.c.c.length;) for (r = P(z(i), 25), o = new E(WE(r.a)); o.a < o.c.c.length;) if (a = P(z(o), 9), oLe(a) && (n = P(K(a, (Y(), T1)), 318), !n.g && n.d)) for (t = n, c = n.d; c;) X9e(c.i, c.k, !1, !0), ak(t.a), ak(c.i), ak(c.k), ak(c.b), bE(c.c, t.c.d), bE(t.c, null), yE(t.a, null), yE(c.i, null), yE(c.k, null), yE(c.b, null), s = new Wje(t.i, c.a, t.e, c.j, c.f), s.k = t.k, s.n = t.n, s.b = t.b, s.c = c.c, s.g = t.g, s.d = c.d, W(t.i, T1, s), W(c.a, T1, s), c = c.d, t = s;
 						}
 						function DB(e, t, n, r) {
 							var i, a, o, s, c = uz(e.e.Ah(), t), l;
@@ -41388,18 +40898,16 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return T3e(e, t, n);
 						}
 						function bit(e, t) {
-							var n, r, i, a, o, s, c, l, u, d, p;
-							for (r = new JC(Qb(UR(t).a.Jc(), new f())); AR(r);) n = P(iO(r), 85), M(H((!n.b && (n.b = new pS(n7, n, 4, 7)), n.b), 0), 193) || (c = mL(P(H((!n.c && (n.c = new pS(n7, n, 5, 8)), n.c), 0), 84)), ER(n) || (o = t.i + t.g / 2, s = t.j + t.f / 2, u = c.i + c.g / 2, d = c.j + c.f / 2, p = new mg(), p.a = u - o, p.b = d - s, a = new A(p.a, p.b), GI(a, t.g, t.f), p.a -= a.a, p.b -= a.b, o = u - p.a, s = d - p.b, l = new A(p.a, p.b), GI(l, c.g, c.f), p.a -= l.a, p.b -= l.b, u = o + p.a, d = s + p.b, i = lz(n), vA(i, o), yA(i, s), pA(i, u), mA(i, d), bit(e, c)));
+							for (var n, r = new JC(Qb(UR(t).a.Jc(), new f())), i, a, o, s, c, l, u, d, p; AR(r);) n = P(iO(r), 85), M(H((!n.b && (n.b = new pS(n7, n, 4, 7)), n.b), 0), 193) || (c = mL(P(H((!n.c && (n.c = new pS(n7, n, 5, 8)), n.c), 0), 84)), ER(n) || (o = t.i + t.g / 2, s = t.j + t.f / 2, u = c.i + c.g / 2, d = c.j + c.f / 2, p = new mg(), p.a = u - o, p.b = d - s, a = new A(p.a, p.b), GI(a, t.g, t.f), p.a -= a.a, p.b -= a.b, o = u - p.a, s = d - p.b, l = new A(p.a, p.b), GI(l, c.g, c.f), p.a -= l.a, p.b -= l.b, u = o + p.a, d = s + p.b, i = lz(n), vA(i, o), yA(i, s), pA(i, u), mA(i, d), bit(e, c)));
 						}
 						function jB(e, t) {
 							var n, r, i, a, o = P(t, 137);
 							if (PR(e), PR(o), o.b != null) {
-								if (e.c = !0, e.b == null) {
-									e.b = V(q9, BH, 30, o.b.length, 15, 1), oB(o.b, 0, e.b, 0, o.b.length);
-									return;
+								if (e.c = !0, e.b == null) e.b = V(q9, BH, 30, o.b.length, 15, 1), oB(o.b, 0, e.b, 0, o.b.length);
+								else {
+									for (a = V(q9, BH, 30, e.b.length + o.b.length, 15, 1), n = 0, r = 0, i = 0; n < e.b.length || r < o.b.length;) n >= e.b.length ? (a[i++] = o.b[r++], a[i++] = o.b[r++]) : r >= o.b.length ? (a[i++] = e.b[n++], a[i++] = e.b[n++]) : o.b[r] < e.b[n] || o.b[r] === e.b[n] && o.b[r + 1] < e.b[n + 1] ? (a[i++] = o.b[r++], a[i++] = o.b[r++]) : (a[i++] = e.b[n++], a[i++] = e.b[n++]);
+									e.b = a;
 								}
-								for (a = V(q9, BH, 30, e.b.length + o.b.length, 15, 1), n = 0, r = 0, i = 0; n < e.b.length || r < o.b.length;) n >= e.b.length ? (a[i++] = o.b[r++], a[i++] = o.b[r++]) : r >= o.b.length ? (a[i++] = e.b[n++], a[i++] = e.b[n++]) : o.b[r] < e.b[n] || o.b[r] === e.b[n] && o.b[r + 1] < e.b[n + 1] ? (a[i++] = o.b[r++], a[i++] = o.b[r++]) : (a[i++] = e.b[n++], a[i++] = e.b[n++]);
-								e.b = a;
 							}
 						}
 						function xit(e, t) {
@@ -41467,8 +40975,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return c;
 						}
 						function jit(e, t) {
-							var n, i, a, o, s, c;
-							for (s = new Mj(new am(e.f.b).a); s.b;) {
+							for (var n, i, a, o, s = new Mj(new am(e.f.b).a), c; s.b;) {
 								if (o = JA(s), a = P(o.jd(), 592), t == 1) {
 									if (a.yf() != (HN(), x8) && a.yf() != _8) continue;
 								} else if (a.yf() != (HN(), v8) && a.yf() != y8) continue;
@@ -41552,8 +41059,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function Lit(e, t) {
-							var n, r, i, a, o, s, c, l, u, d, f, p, m, h;
-							for (d = 0; d < t.length; d++) {
+							for (var n, r, i, a, o, s, c, l, u, d = 0, f, p, m, h; d < t.length; d++) {
 								for (s = e.Jc(); s.Ob();) a = P(s.Pb(), 220), a.fg(d, t);
 								for (f = 0; f < t[d].length; f++) {
 									for (c = e.Jc(); c.Ob();) a = P(c.Pb(), 220), a.gg(d, f, t);
@@ -41737,8 +41243,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function eat(e, t) {
-							var n, r, i, a, o, s, c;
-							for (o = WC(e.a).Jc(); o.Ob();) {
+							for (var n, r, i, a, o = WC(e.a).Jc(), s, c; o.Ob();) {
 								if (a = P(o.Pb(), 17), a.b.c.length > 0) for (r = new CS(P(cO(e.a, a), 22)), DT(), Tb(r, new yte(t)), i = new iD(a.b, 0); i.b < i.d.gc();) {
 									switch (n = (jx(i.b < i.d.gc()), P(i.d.Xb(i.c = i.b++), 70)), s = -1, P(K(n, (vV(), r2)), 279).g) {
 										case 1:
@@ -41764,12 +41269,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function nat(e, t) {
 							var n, r, i, a, o, s, c, l, u, d, f, p;
-							if (t.Tg("Edge splitting", 1), e.b.c.length <= 2) {
+							if (t.Tg("Edge splitting", 1), e.b.c.length <= 2) t.Ug();
+							else {
+								for (a = new iD(e.b, 0), o = (jx(a.b < a.d.gc()), P(a.d.Xb(a.c = a.b++), 25)); a.b < a.d.gc();) for (i = o, o = (jx(a.b < a.d.gc()), P(a.d.Xb(a.c = a.b++), 25)), c = new E(i.a); c.a < c.c.c.length;) for (s = P(z(c), 9), u = new E(s.j); u.a < u.c.c.length;) for (l = P(z(u), 12), r = new E(l.g); r.a < r.c.c.length;) n = P(z(r), 17), f = n.d, d = f.i.c, d != i && d != o && mz(n, (p = new aI(e), jp(p, (BR(), hQ)), W(p, (Y(), e0), n), W(p, (vV(), z2), (uL(), e5)), yE(p, o), p));
 								t.Ug();
-								return;
 							}
-							for (a = new iD(e.b, 0), o = (jx(a.b < a.d.gc()), P(a.d.Xb(a.c = a.b++), 25)); a.b < a.d.gc();) for (i = o, o = (jx(a.b < a.d.gc()), P(a.d.Xb(a.c = a.b++), 25)), c = new E(i.a); c.a < c.c.c.length;) for (s = P(z(c), 9), u = new E(s.j); u.a < u.c.c.length;) for (l = P(z(u), 12), r = new E(l.g); r.a < r.c.c.length;) n = P(z(r), 17), f = n.d, d = f.i.c, d != i && d != o && mz(n, (p = new aI(e), jp(p, (BR(), hQ)), W(p, (Y(), e0), n), W(p, (vV(), z2), (uL(), e5)), yE(p, o), p));
-							t.Ug();
 						}
 						function rat(e) {
 							var t = dE(e), n, r, i, a = jh(Vx(J(t, (vV(), f2)))), o, s, c, l, u = 0, d, f;
@@ -41815,23 +41319,9 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function VB(e, t) {
 							var n, r, i, a, o, s;
 							if (t) {
-								if (!e.a && (e.a = new nh()), e.e == 2) {
-									Qm(e.a, t);
-									return;
-								}
-								if (t.e == 1) {
-									for (i = 0; i < t.Nm(); i++) VB(e, t.Jm(i));
-									return;
-								}
-								if (s = e.a.a.c.length, s == 0) {
-									Qm(e.a, t);
-									return;
-								}
-								if (o = P(qw(e.a, s - 1), 121), o.e != 0 && o.e != 10 || t.e != 0 && t.e != 10) {
-									Qm(e.a, t);
-									return;
-								}
-								a = t.e == 0 ? 2 : t.Km().length, o.e == 0 ? (n = new Kh(), r = o.Im(), r >= lU ? Ny(n, mGe(r)) : Hw(n, r & EH), o = (++W9, new XT(10, null, 0)), GCe(e.a, o, s - 1)) : (n = (o.Km().length + a, new Kh()), Ny(n, o.Km())), t.e == 0 ? (r = t.Im(), r >= lU ? Ny(n, mGe(r)) : Hw(n, r & EH)) : Ny(n, t.Km()), P(o, 518).b = n.a;
+								if (!e.a && (e.a = new nh()), e.e == 2) Qm(e.a, t);
+								else if (t.e == 1) for (i = 0; i < t.Nm(); i++) VB(e, t.Jm(i));
+								else s = e.a.a.c.length, s == 0 ? Qm(e.a, t) : (o = P(qw(e.a, s - 1), 121), o.e != 0 && o.e != 10 || t.e != 0 && t.e != 10 ? Qm(e.a, t) : (a = t.e == 0 ? 2 : t.Km().length, o.e == 0 ? (n = new Kh(), r = o.Im(), r >= lU ? Ny(n, mGe(r)) : Hw(n, r & EH), o = (++W9, new XT(10, null, 0)), GCe(e.a, o, s - 1)) : (n = (o.Km().length + a, new Kh()), Ny(n, o.Km())), t.e == 0 ? (r = t.Im(), r >= lU ? Ny(n, mGe(r)) : Hw(n, r & EH)) : Ny(n, t.Km()), P(o, 518).b = n.a));
 							}
 						}
 						function oat(e, t, n) {
@@ -42082,10 +41572,9 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (f = new E(c); f.a < f.c.c.length;) d = P(z(f), 444), uk(t.a, d.a, 0) != -1 || Hb(t.a, d.a), d.c && Vm(r.c, d);
 						}
 						function Dat(e, t, n) {
-							var r, i, a, o, s, c, l, u, d, f, p;
-							for (s = new E(t); s.a < s.c.c.length;) a = P(z(s), 239), a.e = null, a.c = 0;
+							for (var r, i, a, o, s = new E(t), c, l, u, d, f, p; s.a < s.c.c.length;) a = P(z(s), 239), a.e = null, a.c = 0;
 							for (c = null, o = new E(t); o.a < o.c.c.length;) if (a = P(z(o), 239), d = a.d[0], !(n && d.k != (BR(), _Q))) {
-								for (p = P(K(d, (Y(), W1)), 16).Jc(); p.Ob();) f = P(p.Pb(), 9), (!n || f.k == (BR(), _Q)) && ((!a.e && (a.e = new Nm()), a.e).Ec(e.b[f.c.p][f.p]), ++e.b[f.c.p][f.p].c);
+								for (p = P(K(d, (Y(), W1)), 16).Jc(); p.Ob();) f = P(p.Pb(), 9), n && f.k != (BR(), _Q) || ((!a.e && (a.e = new Nm()), a.e).Ec(e.b[f.c.p][f.p]), ++e.b[f.c.p][f.p].c);
 								if (!n && d.k == (BR(), _Q)) {
 									if (c) for (u = P(cO(e.d, c), 22).Jc(); u.Ob();) for (l = P(u.Pb(), 9), i = P(cO(e.d, d), 22).Jc(); i.Ob();) r = P(i.Pb(), 9), Xbe(e.b[l.c.p][l.p]).Ec(e.b[r.c.p][r.p]), ++e.b[r.c.p][r.p].c;
 									c = d;
@@ -42108,7 +41597,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function kat(e, t, n, r) {
 							var i, a, o, s = e.j, c, l;
-							if (s == (oV(), j5) && t != (uL(), r5) && t != (uL(), i5) && (s = Ent(e, n), sR(e, s), !(e.q ? e.q : (DT(), DT(), KX))._b((vV(), R2)) && s != j5 && (e.n.a != 0 || e.n.b != 0) && W(e, R2, nZe(e, s))), t == (uL(), t5)) {
+							if (s == (oV(), j5) && t != (uL(), r5) && t != (uL(), i5) && (s = Ent(e, n), sR(e, s), (e.q ? e.q : (DT(), DT(), KX))._b((vV(), R2)) || s == j5 || e.n.a == 0 && e.n.b == 0 || W(e, R2, nZe(e, s))), t == (uL(), t5)) {
 								switch (l = 0, s.g) {
 									case 1:
 									case 3:
@@ -42187,8 +41676,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n.Ug();
 						}
 						function Fat(e, t) {
-							var n, i, a, o = 0, s = 0, c, l, u, d, f, p, m, h, g, _, v;
-							for (u = new E(e.a); u.a < u.c.c.length;) c = P(z(u), 9), o = r.Math.max(o, c.d.b), s = r.Math.max(s, c.d.c);
+							for (var n, i, a, o = 0, s = 0, c, l, u = new E(e.a), d, f, p, m, h, g, _, v; u.a < u.c.c.length;) c = P(z(u), 9), o = r.Math.max(o, c.d.b), s = r.Math.max(s, c.d.c);
 							for (l = new E(e.a); l.a < l.c.c.length;) {
 								switch (c = P(z(l), 9), n = P(K(c, (vV(), k0)), 256), n.g) {
 									case 1:
@@ -42329,8 +41817,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (s = (l = new om(e.c).a.vc().Jc(), new sm(l)); s.a.Ob();) o = (a = P(s.a.Pb(), 45), P(a.kd(), 456)), t.i[o.c.p] = o.a;
 						}
 						function Uat(e, t, n, i) {
-							var a, o, s, c, l, u, d = n + t.c.c.a, f, p, m, h;
-							for (m = new E(t.j); m.a < m.c.c.length;) {
+							for (var a, o, s, c, l, u, d = n + t.c.c.a, f, p, m = new E(t.j), h; m.a < m.c.c.length;) {
 								if (p = P(z(m), 12), a = MM(U(k(w6, 1), X, 8, 0, [
 									p.i.n,
 									p.n,
@@ -42425,8 +41912,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							n.Ug();
 						}
 						function Jat(e) {
-							var t, n, i, a, o, s, c, l;
-							for (o = new E(e.a.b); o.a < o.c.c.length;) a = P(z(o), 82), a.b.c = a.g.c, a.b.d = a.g.d;
+							for (var t, n, i, a, o = new E(e.a.b), s, c, l; o.a < o.c.c.length;) a = P(z(o), 82), a.b.c = a.g.c, a.b.d = a.g.d;
 							for (l = new A(aU, aU), t = new A(oU, oU), i = new E(e.a.b); i.a < i.c.c.length;) n = P(z(i), 82), l.a = r.Math.min(l.a, n.g.c), l.b = r.Math.min(l.b, n.g.d), t.a = r.Math.max(t.a, n.g.c + n.g.b), t.b = r.Math.max(t.b, n.g.d + n.g.a);
 							for (c = Fw(e.c).a.nc(); c.Ob();) s = P(c.Pb(), 49), n = P(s.b, 82), l.a = r.Math.min(l.a, n.g.c), l.b = r.Math.min(l.b, n.g.d), t.a = r.Math.max(t.a, n.g.c + n.g.b), t.b = r.Math.max(t.b, n.g.d + n.g.a);
 							e.d = Fx(new A(l.a, l.b)), e.e = uS(new A(t.a, t.b), l), e.a.a.c.length = 0, e.a.b.c.length = 0;
@@ -42544,8 +42030,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.ml() && e.ll() && (o = LCe(e, P(n, 57)), j(o) !== j(n)) ? (e.vj(t), e.Bj(t, YFe(e, t, o)), e.$k() && (a = (i = P(n, 52), e.kl() ? e.il() ? i.Qh(e.b, nI(P(Hk(KT(e.b), e.Jj()), 19)).n, P(Hk(KT(e.b), e.Jj()).Fk(), 29).ik(), null) : i.Qh(e.b, LP(i.Ah(), nI(P(Hk(KT(e.b), e.Jj()), 19))), null, null) : i.Qh(e.b, -1 - e.Jj(), null, null)), !P(o, 52).Mh() && (a = (r = P(o, 52), e.kl() ? e.il() ? r.Oh(e.b, nI(P(Hk(KT(e.b), e.Jj()), 19)).n, P(Hk(KT(e.b), e.Jj()).Fk(), 29).ik(), a) : r.Oh(e.b, LP(r.Ah(), nI(P(Hk(KT(e.b), e.Jj()), 19))), null, a) : r.Oh(e.b, -1 - e.Jj(), null, a))), a && a.mj()), nb(e.b) && e.Hj(e.Gj(9, n, o, t, !1)), o) : n;
 						}
 						function rot(e) {
-							var t, n, r = new Nm(), i, a, o, s, c, l, u;
-							for (o = new E(e.e.a); o.a < o.c.c.length;) {
+							for (var t, n, r = new Nm(), i, a, o = new E(e.e.a), s, c, l, u; o.a < o.c.c.length;) {
 								for (i = P(z(o), 124), u = 0, i.k.c.length = 0, n = new E(sN(i)); n.a < n.c.c.length;) t = P(z(n), 217), t.f && (Hb(i.k, t), ++u);
 								u == 1 && Vm(r.c, i);
 							}
@@ -42556,21 +42041,19 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function iot(e, t) {
 							var n = P(sT(e.b, t), 127), i, a, o, s, c, l = P(P(cO(e.r, t), 22), 83), u, d, f, p, m;
-							if (l.dc()) {
-								n.n.b = 0, n.n.c = 0;
-								return;
+							if (l.dc()) n.n.b = 0, n.n.c = 0;
+							else {
+								for (u = e.u.Gc((lR(), s5)), s = 0, c = l.Jc(), d = null, f = 0, p = 0; c.Ob();) i = P(c.Pb(), 115), a = O(N(i.b.mf((Ox(), SZ)))), o = i.b.Kf().a, e.A.Gc(($P(), R5)) && vet(e, t), d ? (m = p + d.d.c + e.w + i.d.b, s = r.Math.max(s, (yb(), kA(KU), r.Math.abs(f - a) <= KU || f == a || isNaN(f) && isNaN(a) ? 0 : m / (a - f)))) : e.C && e.C.b > 0 && (s = r.Math.max(s, tBe(e.C.b + i.d.b, a))), d = i, f = a, p = o;
+								e.C && e.C.c > 0 && (m = p + e.C.c, u && (m += d.d.c), s = r.Math.max(s, (yb(), kA(KU), r.Math.abs(f - 1) <= KU || f == 1 ? 0 : m / (1 - f)))), n.n.b = 0, n.a.a = s;
 							}
-							for (u = e.u.Gc((lR(), s5)), s = 0, c = l.Jc(), d = null, f = 0, p = 0; c.Ob();) i = P(c.Pb(), 115), a = O(N(i.b.mf((Ox(), SZ)))), o = i.b.Kf().a, e.A.Gc(($P(), R5)) && vet(e, t), d ? (m = p + d.d.c + e.w + i.d.b, s = r.Math.max(s, (yb(), kA(KU), r.Math.abs(f - a) <= KU || f == a || isNaN(f) && isNaN(a) ? 0 : m / (a - f)))) : e.C && e.C.b > 0 && (s = r.Math.max(s, tBe(e.C.b + i.d.b, a))), d = i, f = a, p = o;
-							e.C && e.C.c > 0 && (m = p + e.C.c, u && (m += d.d.c), s = r.Math.max(s, (yb(), kA(KU), r.Math.abs(f - 1) <= KU || f == 1 ? 0 : m / (1 - f)))), n.n.b = 0, n.a.a = s;
 						}
 						function aot(e, t) {
 							var n = P(sT(e.b, t), 127), i, a, o, s, c, l = P(P(cO(e.r, t), 22), 83), u, d, f, p, m;
-							if (l.dc()) {
-								n.n.d = 0, n.n.a = 0;
-								return;
+							if (l.dc()) n.n.d = 0, n.n.a = 0;
+							else {
+								for (u = e.u.Gc((lR(), s5)), s = 0, e.A.Gc(($P(), R5)) && yet(e, t), c = l.Jc(), d = null, p = 0, f = 0; c.Ob();) i = P(c.Pb(), 115), o = O(N(i.b.mf((Ox(), SZ)))), a = i.b.Kf().b, d ? (m = f + d.d.a + e.w + i.d.d, s = r.Math.max(s, (yb(), kA(KU), r.Math.abs(p - o) <= KU || p == o || isNaN(p) && isNaN(o) ? 0 : m / (o - p)))) : e.C && e.C.d > 0 && (s = r.Math.max(s, tBe(e.C.d + i.d.d, o))), d = i, p = o, f = a;
+								e.C && e.C.a > 0 && (m = f + e.C.a, u && (m += d.d.a), s = r.Math.max(s, (yb(), kA(KU), r.Math.abs(p - 1) <= KU || p == 1 ? 0 : m / (1 - p)))), n.n.d = 0, n.a.b = s;
 							}
-							for (u = e.u.Gc((lR(), s5)), s = 0, e.A.Gc(($P(), R5)) && yet(e, t), c = l.Jc(), d = null, p = 0, f = 0; c.Ob();) i = P(c.Pb(), 115), o = O(N(i.b.mf((Ox(), SZ)))), a = i.b.Kf().b, d ? (m = f + d.d.a + e.w + i.d.d, s = r.Math.max(s, (yb(), kA(KU), r.Math.abs(p - o) <= KU || p == o || isNaN(p) && isNaN(o) ? 0 : m / (o - p)))) : e.C && e.C.d > 0 && (s = r.Math.max(s, tBe(e.C.d + i.d.d, o))), d = i, p = o, f = a;
-							e.C && e.C.a > 0 && (m = f + e.C.a, u && (m += d.d.a), s = r.Math.max(s, (yb(), kA(KU), r.Math.abs(p - 1) <= KU || p == 1 ? 0 : m / (1 - p)))), n.n.d = 0, n.a.b = s;
 						}
 						function oot(e, t, n) {
 							var r, i, a, o, s, c;
@@ -42638,9 +42121,9 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function fot(e, t, n, r, i, a) {
 							var o;
-							if (!(t == null || !DP(t, wBt, TBt))) throw D(new Oh("invalid scheme: " + t));
+							if (t != null && DP(t, wBt, TBt)) throw D(new Oh("invalid scheme: " + t));
 							if (!e && !(n != null && Jy(n, xL(35)) == -1 && n.length > 0 && (BE(0, n.length), n.charCodeAt(0) != 47))) throw D(new Oh("invalid opaquePart: " + n));
-							if (e && !(t != null && Ug(k7, t.toLowerCase())) && !(n == null || !DP(n, D7, O7)) || e && t != null && Ug(k7, t.toLowerCase()) && !UQe(n)) throw D(new Oh(m_t + n));
+							if (e && !(t != null && Ug(k7, t.toLowerCase())) && n != null && DP(n, D7, O7) || e && t != null && Ug(k7, t.toLowerCase()) && !UQe(n)) throw D(new Oh(m_t + n));
 							if (!BGe(r)) throw D(new Oh("invalid device: " + r));
 							if (!FUe(i)) throw o = i == null ? "invalid segments: null" : "invalid segment: " + vUe(i), D(new Oh(o));
 							if (a != null && Jy(a, xL(35)) != -1) throw D(new Oh("invalid query: " + a));
@@ -42664,18 +42147,17 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function mot(e, t, n) {
 							var i, a, o, s, c, l, u, d, f, p, m, h, g, _, v;
-							if (n.Tg("Network simplex layering", 1), e.b = t, v = P(K(t, (vV(), u4)), 15).a * 4, _ = e.b.a, _.c.length < 1) {
-								n.Ug();
-								return;
-							}
-							for (o = htt(e, _), g = null, a = kF(o, 0); a.b != a.d.c;) {
-								for (i = P(vD(a), 16), c = v * nE(r.Math.sqrt(i.gc())), s = Htt(i), Kz(sse(lse(cse(OS(s), c), g), !0), n.dh(1)), p = e.b.b, h = new E(s.a); h.a < h.c.c.length;) {
-									for (m = P(z(h), 124); p.c.length <= m.e;) MC(p, p.c.length, new Rw(e.b));
-									d = P(m.f, 9), yE(d, P(hC(p, m.e), 25));
+							if (n.Tg("Network simplex layering", 1), e.b = t, v = P(K(t, (vV(), u4)), 15).a * 4, _ = e.b.a, _.c.length < 1) n.Ug();
+							else {
+								for (o = htt(e, _), g = null, a = kF(o, 0); a.b != a.d.c;) {
+									for (i = P(vD(a), 16), c = v * nE(r.Math.sqrt(i.gc())), s = Htt(i), Kz(sse(lse(cse(OS(s), c), g), !0), n.dh(1)), p = e.b.b, h = new E(s.a); h.a < h.c.c.length;) {
+										for (m = P(z(h), 124); p.c.length <= m.e;) MC(p, p.c.length, new Rw(e.b));
+										d = P(m.f, 9), yE(d, P(hC(p, m.e), 25));
+									}
+									if (o.b > 1) for (g = V(q9, BH, 30, e.b.b.c.length, 15, 1), f = 0, u = new E(e.b.b); u.a < u.c.c.length;) l = P(z(u), 25), g[f++] = l.a.c.length;
 								}
-								if (o.b > 1) for (g = V(q9, BH, 30, e.b.b.c.length, 15, 1), f = 0, u = new E(e.b.b); u.a < u.c.c.length;) l = P(z(u), 25), g[f++] = l.a.c.length;
+								_.c.length = 0, e.a = null, e.b = null, e.c = null, n.Ug();
 							}
-							_.c.length = 0, e.a = null, e.b = null, e.c = null, n.Ug();
 						}
 						function hot(e, t) {
 							var n, r, i, a, o, s, c, l, u = new Nm(), d = new Ib();
@@ -42715,21 +42197,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function _ot(e, t) {
 							var n = new Jh(), r, i, a, o = !1;
-							for (a = 0; a < t.length; a++) {
-								if (r = (BE(a, t.length), t.charCodeAt(a)), r == 32) {
-									for (SF(e, n, 0), n.a += " ", SF(e, n, 0); a + 1 < t.length && (BE(a + 1, t.length), t.charCodeAt(a + 1) == 32);) ++a;
-									continue;
-								}
-								if (o) {
-									r == 39 ? a + 1 < t.length && (BE(a + 1, t.length), t.charCodeAt(a + 1) == 39) ? (n.a += String.fromCharCode(r), ++a) : o = !1 : n.a += String.fromCharCode(r);
-									continue;
-								}
-								if (Jy("GyMLdkHmsSEcDahKzZv", xL(r)) > 0) {
-									SF(e, n, 0), n.a += String.fromCharCode(r), i = pqe(t, a), SF(e, n, i), a += i - 1;
-									continue;
-								}
-								r == 39 ? a + 1 < t.length && (BE(a + 1, t.length), t.charCodeAt(a + 1) == 39) ? (n.a += "'", ++a) : o = !0 : n.a += String.fromCharCode(r);
-							}
+							for (a = 0; a < t.length; a++) if (r = (BE(a, t.length), t.charCodeAt(a)), r == 32) for (SF(e, n, 0), n.a += " ", SF(e, n, 0); a + 1 < t.length && (BE(a + 1, t.length), t.charCodeAt(a + 1) == 32);) ++a;
+							else o ? r == 39 ? a + 1 < t.length && (BE(a + 1, t.length), t.charCodeAt(a + 1) == 39) ? (n.a += String.fromCharCode(r), ++a) : o = !1 : n.a += String.fromCharCode(r) : Jy("GyMLdkHmsSEcDahKzZv", xL(r)) > 0 ? (SF(e, n, 0), n.a += String.fromCharCode(r), i = pqe(t, a), SF(e, n, i), a += i - 1) : r == 39 ? a + 1 < t.length && (BE(a + 1, t.length), t.charCodeAt(a + 1) == 39) ? (n.a += "'", ++a) : o = !0 : n.a += String.fromCharCode(r);
 							SF(e, n, 0), w$e(e);
 						}
 						function vot(e, t, n, r, i) {
@@ -42758,8 +42227,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (i = (l + u) / 2, p = new E(y); p.a < p.c.c.length;) d = P(z(p), 9), W(d, (Y(), x0), i);
 						}
 						function bot(e, t) {
-							var n, r, i, a, o, s, c, l, u, d, f;
-							for (i = new E(e.a.b); i.a < i.c.c.length;) for (n = P(z(i), 25), c = new E(n.a); c.a < c.c.c.length;) s = P(z(c), 9), t.j[s.p] = s, t.i[s.p] = t.o == (pE(), e3) ? oU : aU;
+							for (var n, r, i = new E(e.a.b), a, o, s, c, l, u, d, f; i.a < i.c.c.length;) for (n = P(z(i), 25), c = new E(n.a); c.a < c.c.c.length;) s = P(z(c), 9), t.j[s.p] = s, t.i[s.p] = t.o == (pE(), e3) ? oU : aU;
 							for (vw(e.c), o = e.a.b, t.c == ($T(), Z4) && (o = FP(o)), JAe(e.e, t, e.b), F_(t.p, null), a = o.Jc(); a.Ob();) for (n = P(a.Pb(), 25), l = n.a, t.o == (pE(), e3) && (l = FP(l)), f = l.Jc(); f.Ob();) d = P(f.Pb(), 9), t.g[d.p] == d && Xct(e, d, t);
 							for (Hat(e, t), r = o.Jc(); r.Ob();) for (n = P(r.Pb(), 25), f = new E(n.a); f.a < f.c.c.length;) d = P(z(f), 9), t.p[d.p] = t.p[t.g[d.p].p], d == t.g[d.p] && (u = O(t.i[t.j[d.p].p]), (t.o == (pE(), e3) && u > oU || t.o == $4 && u < aU) && (t.p[d.p] = O(t.p[d.p]) + u));
 							e.e.wg();
@@ -42769,8 +42237,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							if (jh(Vx(K(n, (vV(), f2))))) for (s = new E(n.j); s.a < s.c.c.length;) for (o = P(z(s), 12), f = oD(o.g), l = f, u = 0, d = l.length; u < d; ++u) c = l[u], a = c.d.i == n, i = a && jh(Vx(K(c, p2))), i && (m = c.c, p = P(Lw(e.b, m), 9), p || (p = uV(m, (uL(), r5), m.j, -1, null, null, m.o, P(K(t, e2), 86), t), W(p, (Y(), e0), m), aT(e.b, m, p), Hb(t.a, p)), g = c.d, h = P(Lw(e.b, g), 9), h || (h = uV(g, (uL(), r5), g.j, 1, null, null, g.o, P(K(t, e2), 86), t), W(h, (Y(), e0), g), aT(e.b, g, h), Hb(t.a, h)), r = oO(c), vE(r, P(hC(p.j, 0), 12)), bE(r, P(hC(h.j, 0), 12)), vR(e.a, c, new AS(r, t, (NA(), I4))), P(K(t, (Y(), R1)), 22).Ec((vz(), a1)));
 						}
 						function Sot(e, t, n, r, i) {
-							var a = new Nm(), o, s, c, l, u, d, f, p, m, h, g;
-							for (l = new E(r); l.a < l.c.c.length;) if (s = P(z(l), 444), o = null, s.f == (NA(), I4)) for (m = new E(s.e); m.a < m.c.c.length;) p = P(z(m), 17), g = p.d.i, $w(g) == t ? zLe(e, t, s, p, s.b, p.d) : !n || Rj(g, n) ? j1e(e, t, s, r, p) : (f = IB(e, t, n, p, s.b, I4, o), f != o && Vm(a.c, f), f.c && (o = f));
+							for (var a = new Nm(), o, s, c, l = new E(r), u, d, f, p, m, h, g; l.a < l.c.c.length;) if (s = P(z(l), 444), o = null, s.f == (NA(), I4)) for (m = new E(s.e); m.a < m.c.c.length;) p = P(z(m), 17), g = p.d.i, $w(g) == t ? zLe(e, t, s, p, s.b, p.d) : !n || Rj(g, n) ? j1e(e, t, s, r, p) : (f = IB(e, t, n, p, s.b, I4, o), f != o && Vm(a.c, f), f.c && (o = f));
 							else for (d = new E(s.e); d.a < d.c.c.length;) if (u = P(z(d), 17), h = u.c.i, $w(h) == t) zLe(e, t, s, u, u.c, s.b);
 							else if (!n || Rj(h, n)) continue;
 							else f = IB(e, t, n, u, s.b, F4, o), f != o && Vm(a.c, f), f.c && (o = f);
@@ -42784,8 +42251,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							x = c - u + (p.b + p.c), s = l - d + (p.d + p.a), jh(Vx(J(a, (xV(), Y6)))) || sV(a, x, s, !1, !1), BF(a, L6, x - (p.b + p.c)), BF(a, I6, s - (p.d + p.a));
 						}
 						function wot(e) {
-							var t = 0, n, i, a, o, s, c;
-							for (o = new E(e.b.a); o.a < o.c.c.length;) i = P(z(o), 194), i.b = 0, i.c = 0;
+							for (var t = 0, n, i, a, o = new E(e.b.a), s, c; o.a < o.c.c.length;) i = P(z(o), 194), i.b = 0, i.c = 0;
 							for (X1e(e, 0), NP(e, e.g), ez(e.c), Aoe(e.c), n = (HN(), v8), Gz(jv(nV(Gz(jv(nV(Gz(nV(e.c, n)), JWe(n)))), n))), nV(e.c, v8), tP(e, e.g), u1e(e, 0), jit(e, 0), i8e(e, 1), X1e(e, 1), NP(e, e.d), ez(e.c), s = new E(e.b.a); s.a < s.c.c.length;) i = P(z(s), 194), t += r.Math.abs(i.c);
 							for (c = new E(e.b.a); c.a < c.c.c.length;) i = P(z(c), 194), i.b = 0, i.c = 0;
 							for (n = x8, Gz(jv(nV(Gz(jv(nV(Gz(Aoe(nV(e.c, n))), JWe(n)))), n))), nV(e.c, v8), tP(e, e.d), u1e(e, 1), jit(e, 1), i8e(e, 0), Aoe(e.c), a = new E(e.b.a); a.a < a.c.c.length;) i = P(z(a), 194), t += r.Math.abs(i.c);
@@ -42905,14 +42371,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return oQe(e).b;
 						}
 						function Aot(e) {
-							var t, n, r, i, a, o, s, c, l, u, d;
-							for (o = new E(e.d.b); o.a < o.c.c.length;) for (a = P(z(o), 25), c = new E(a.a); c.a < c.c.c.length;) {
-								if (s = P(z(c), 9), jh(Vx(K(s, (vV(), M0)))) && !_D(pP(s))) {
-									r = P(iDe(pP(s)), 17), u = r.c.i, u == s && (u = r.d.i), d = new gy(u, uS(Nb(s.n), u.n)), aT(e.b, s, d);
-									continue;
-								}
-								i = new ST(s.n.a - s.d.b, s.n.b - s.d.d, s.o.a + s.d.b + s.d.c, s.o.b + s.d.d + s.d.a), t = $me(mle(fle(ple(new Xie(), s), i), ECt), e.a), ehe(dle(DRe(new Yie(), U(k(sZ, 1), LV, 60, 0, [t])), t), e.a), l = new Fm(), aT(e.e, t, l), n = SD(new JC(Qb(fP(s).a.Jc(), new f()))) - SD(new JC(Qb(mP(s).a.Jc(), new f()))), n < 0 ? TM(l, !0, (HN(), v8)) : n > 0 && TM(l, !0, (HN(), y8)), s.k == (BR(), pQ) && dTe(l), aT(e.f, s, t);
-							}
+							for (var t, n, r, i, a, o = new E(e.d.b), s, c, l, u, d; o.a < o.c.c.length;) for (a = P(z(o), 25), c = new E(a.a); c.a < c.c.c.length;) s = P(z(c), 9), jh(Vx(K(s, (vV(), M0)))) && !_D(pP(s)) ? (r = P(iDe(pP(s)), 17), u = r.c.i, u == s && (u = r.d.i), d = new gy(u, uS(Nb(s.n), u.n)), aT(e.b, s, d)) : (i = new ST(s.n.a - s.d.b, s.n.b - s.d.d, s.o.a + s.d.b + s.d.c, s.o.b + s.d.d + s.d.a), t = $me(mle(fle(ple(new Xie(), s), i), ECt), e.a), ehe(dle(DRe(new Yie(), U(k(sZ, 1), LV, 60, 0, [t])), t), e.a), l = new Fm(), aT(e.e, t, l), n = SD(new JC(Qb(fP(s).a.Jc(), new f()))) - SD(new JC(Qb(mP(s).a.Jc(), new f()))), n < 0 ? TM(l, !0, (HN(), v8)) : n > 0 && TM(l, !0, (HN(), y8)), s.k == (BR(), pQ) && dTe(l), aT(e.f, s, t));
 						}
 						function jot(e, t) {
 							var n, i, a, o, s, c, l, u = aU, d = aU, f, p, m, h, g, _, v, y;
@@ -42925,8 +42384,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return e.g[t.p] = l, i += e.d[t.p][0], new gy(G(i), (ax(), !!c));
 						}
 						function Not(e, t, n) {
-							var r, i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b, x, S;
-							return f = e.c[t], p = e.c[n], m = P(K(f, (Y(), W1)), 16), m && m.gc() != 0 && m.Gc(p) || (h = f.k != (BR(), hQ) && p.k != hQ, g = P(K(f, U1), 9), _ = P(K(p, U1), 9), v = g != _, y = !!g && g != f || !!_ && _ != p, b = fI(f, (oV(), p5)), x = fI(p, A5), y |= fI(f, A5) || fI(p, p5), S = y && v || b || x, h && S) || f.k == (BR(), vQ) && p.k == _Q || p.k == (BR(), vQ) && f.k == _Q ? !1 : (u = e.c[t], a = e.c[n], i = RZe(e.e, u, a, (oV(), M5)), c = RZe(e.i, u, a, f5), P5e(e.f, u, a), l = WHe(e.b, u, a) + P(i.a, 15).a + P(c.a, 15).a + e.f.d, s = WHe(e.b, a, u) + P(i.b, 15).a + P(c.b, 15).a + e.f.b, e.a && (d = P(K(u, e0), 12), o = P(K(a, e0), 12), r = OXe(e.g, d, o), l += P(r.a, 15).a, s += P(r.b, 15).a), l > s);
+							var r, i, a, o, s, c, l, u, d, f = e.c[t], p = e.c[n], m = P(K(f, (Y(), W1)), 16), h, g, _, v, y, b, x, S;
+							return m && m.gc() != 0 && m.Gc(p) || (h = f.k != (BR(), hQ) && p.k != hQ, g = P(K(f, U1), 9), _ = P(K(p, U1), 9), v = g != _, y = !!g && g != f || !!_ && _ != p, b = fI(f, (oV(), p5)), x = fI(p, A5), y |= fI(f, A5) || fI(p, p5), S = y && v || b || x, h && S) || f.k == (BR(), vQ) && p.k == _Q || p.k == (BR(), vQ) && f.k == _Q ? !1 : (u = e.c[t], a = e.c[n], i = RZe(e.e, u, a, (oV(), M5)), c = RZe(e.i, u, a, f5), P5e(e.f, u, a), l = WHe(e.b, u, a) + P(i.a, 15).a + P(c.a, 15).a + e.f.d, s = WHe(e.b, a, u) + P(i.b, 15).a + P(c.b, 15).a + e.f.b, e.a && (d = P(K(u, e0), 12), o = P(K(a, e0), 12), r = OXe(e.g, d, o), l += P(r.a, 15).a, s += P(r.b, 15).a), l > s);
 						}
 						function Pot(e, t) {
 							var n = O(N(K(t, (vV(), Y2)))), r, i, a, o;
@@ -43026,8 +42485,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							y_(e, new gL($h(ng(Qh(tg(eg(new mc(), NW), Bdt), "Minimizes the stress within a layout using stress majorization. Stress exists if the euclidean distance between a pair of nodes doesn't match their graph theoretic distance, that is, the shortest path between the two nodes. The method allows to specify individual edge lengths."), new lt()), dW))), B(e, NW, yW, jF(Ixt)), B(e, NW, xW, (ax(), !0)), B(e, NW, TW, jF(zxt)), B(e, NW, PW, jF(Bxt)), B(e, NW, wW, jF(Vxt)), B(e, NW, EW, jF(Rxt)), B(e, NW, SW, jF(Hxt)), B(e, NW, DW, jF(Uxt)), B(e, NW, Fdt, jF(Fxt)), B(e, NW, Ldt, jF(Nxt)), B(e, NW, Rdt, jF(Pxt)), B(e, NW, zdt, jF(Lxt)), B(e, NW, Idt, jF(VZ));
 						}
 						function qot(e) {
-							var t = null, n, r, i, a, o, s, c;
-							for (r = new E(e); r.a < r.c.c.length;) n = P(z(r), 239), O(Rb(n.g, n.d[0]).a), n.b = null, n.e && n.e.gc() > 0 && n.c == 0 && (!t && (t = new Nm()), Vm(t.c, n));
+							for (var t = null, n, r = new E(e), i, a, o, s, c; r.a < r.c.c.length;) n = P(z(r), 239), O(Rb(n.g, n.d[0]).a), n.b = null, n.e && n.e.gc() > 0 && n.c == 0 && (!t && (t = new Nm()), Vm(t.c, n));
 							if (t) for (; t.c.length != 0;) {
 								if (n = P(pO(t, 0), 239), n.b && n.b.c.length > 0) {
 									for (a = (!n.b && (n.b = new Nm()), new E(n.b)); a.a < a.c.c.length;) if (i = P(z(a), 239), Mh(Rb(i.g, i.d[0]).a) == Mh(Rb(n.g, n.d[0]).a)) {
@@ -43040,11 +42498,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function XB(e, t) {
 							var n, r, i, a, o, s, c, l, u;
-							if (t.e == 5) {
-								Dot(e, t);
-								return;
-							}
-							if (l = t, l.b != null && e.b != null) {
+							if (t.e == 5) Dot(e, t);
+							else if (l = t, l.b != null && e.b != null) {
 								for (PR(e), zB(e), PR(l), zB(l), n = V(q9, BH, 30, e.b.length + l.b.length, 15, 1), u = 0, r = 0, o = 0; r < e.b.length && o < l.b.length;) if (i = e.b[r], a = e.b[r + 1], s = l.b[o], c = l.b[o + 1], a < s) n[u++] = e.b[r++], n[u++] = e.b[r++];
 								else if (a >= s && i <= c) s <= i && a <= c ? r += 2 : s <= i ? (e.b[r] = c + 1, o += 2) : a <= c ? (n[u++] = i, n[u++] = s - 1, r += 2) : (n[u++] = i, n[u++] = s - 1, e.b[r] = c + 1, o += 2);
 								else if (c < i) o += 2;
@@ -43054,8 +42509,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function Jot(e) {
-							var t, n, r, i, a, o, s, c, l, u, d, f, p, m, h, g, _;
-							for (r = new E(e.e.b); r.a < r.c.c.length;) for (n = P(z(r), 25), a = new E(n.a); a.a < a.c.c.length;) if (i = P(z(a), 9), p = e.i[i.p], l = p.a.e, c = p.d.e, i.n.b = l, _ = c - l - i.o.b, t = PB(i), f = (KF(), d = (i.q ? i.q : (DT(), DT(), KX))._b((vV(), D2)) ? P(K(i, D2), 203) : P(K($w(i), O2), 203), d), t && (f == w4 || f == C4) && (i.o.b += _), t && (f == gkt || f == w4 || f == C4)) {
+							for (var t, n, r = new E(e.e.b), i, a, o, s, c, l, u, d, f, p, m, h, g, _; r.a < r.c.c.length;) for (n = P(z(r), 25), a = new E(n.a); a.a < a.c.c.length;) if (i = P(z(a), 9), p = e.i[i.p], l = p.a.e, c = p.d.e, i.n.b = l, _ = c - l - i.o.b, t = PB(i), f = (KF(), d = (i.q ? i.q : (DT(), DT(), KX))._b((vV(), D2)) ? P(K(i, D2), 203) : P(K($w(i), O2), 203), d), t && (f == w4 || f == C4) && (i.o.b += _), t && (f == gkt || f == w4 || f == C4)) {
 								for (h = new E(i.j); h.a < h.c.c.length;) m = P(z(h), 12), (oV(), _5).Gc(m.j) && (u = P(Lw(e.k, m), 124), m.n.b = u.e - l);
 								for (s = new E(i.b); s.a < s.c.c.length;) o = P(z(s), 70), g = P(K(i, w2), 22), g.Gc((jR(), G8)) ? o.n.b += _ : g.Gc(K8) && (o.n.b += _ / 2);
 								(f == w4 || f == C4) && aP(i, (oV(), A5)).Ic(new Bne(_));
@@ -43094,8 +42548,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function Qot(e) {
-							var t, n, i, a, o, s, c, l, u, d, f, p;
-							for (a = new E(e.a.a.b); a.a < a.c.c.length;) for (i = P(z(a), 60), l = i.c.Jc(); l.Ob();) c = P(l.Pb(), 60), i.a != c.a && (f = ib(e.a.d) ? e.a.g.df(i, c) : e.a.g.ef(i, c), o = i.b.a + i.d.b + f - c.b.a, o = r.Math.ceil(o), o = r.Math.max(0, o), kIe(i, c) ? (s = sx(new ah(), e.d), u = nE(r.Math.ceil(c.b.a - i.b.a)), t = u - (c.b.a - i.b.a), d = bD(i).a, n = i, d || (d = bD(c).a, t = -t, n = c), d && (n.b.a -= t, d.n.a -= t), cz(s_(o_(c_(a_(new ih(), r.Math.max(0, u)), 1), s), e.c[i.a.d])), cz(s_(o_(c_(a_(new ih(), r.Math.max(0, -u)), 1), s), e.c[c.a.d]))) : (p = 1, (M(i.g, 156) && M(c.g, 9) || M(c.g, 156) && M(i.g, 9)) && (p = 2), cz(s_(o_(c_(a_(new ih(), nE(o)), p), e.c[i.a.d]), e.c[c.a.d]))));
+							for (var t, n, i, a = new E(e.a.a.b), o, s, c, l, u, d, f, p; a.a < a.c.c.length;) for (i = P(z(a), 60), l = i.c.Jc(); l.Ob();) c = P(l.Pb(), 60), i.a != c.a && (f = ib(e.a.d) ? e.a.g.df(i, c) : e.a.g.ef(i, c), o = i.b.a + i.d.b + f - c.b.a, o = r.Math.ceil(o), o = r.Math.max(0, o), kIe(i, c) ? (s = sx(new ah(), e.d), u = nE(r.Math.ceil(c.b.a - i.b.a)), t = u - (c.b.a - i.b.a), d = bD(i).a, n = i, d || (d = bD(c).a, t = -t, n = c), d && (n.b.a -= t, d.n.a -= t), cz(s_(o_(c_(a_(new ih(), r.Math.max(0, u)), 1), s), e.c[i.a.d])), cz(s_(o_(c_(a_(new ih(), r.Math.max(0, -u)), 1), s), e.c[c.a.d]))) : (p = 1, (M(i.g, 156) && M(c.g, 9) || M(c.g, 156) && M(i.g, 9)) && (p = 2), cz(s_(o_(c_(a_(new ih(), nE(o)), p), e.c[i.a.d]), e.c[c.a.d]))));
 						}
 						function $ot(e, t, n) {
 							var r, i, a, o, s, c, l, u, d, f, p;
@@ -43133,7 +42586,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function ZB(e, t) {
 							var n, r, i, a = e.F;
-							t == null ? (e.F = null, aN(e, null)) : (e.F = (eT(t), t), r = Jy(t, xL(60)), r == -1 ? (i = t, Jy(t, xL(46)) == -1 && (r = Jy(t, xL(91)), r != -1 && (i = (NO(0, r, t.length), t.substr(0, r))), !hS(i, kV) && !hS(i, eY) && !hS(i, tY) && !hS(i, nY) && !hS(i, rY) && !hS(i, iY) && !hS(i, aY) && !hS(i, oY) ? (i = O_t, r != -1 && (i += "" + (BE(r, t.length + 1), t.substr(r)))) : i = t), aN(e, i), i == t && (e.F = e.D)) : (i = (NO(0, r, t.length), t.substr(0, r)), Jy(t, xL(46)) == -1 && !hS(i, kV) && !hS(i, eY) && !hS(i, tY) && !hS(i, nY) && !hS(i, rY) && !hS(i, iY) && !hS(i, aY) && !hS(i, oY) && (i = O_t), n = $b(t, xL(62)), n != -1 && (i += "" + (BE(n + 1, t.length + 1), t.substr(n + 1))), aN(e, i))), e.Db & 4 && !(e.Db & 1) && Fj(e, new aw(e, 1, 5, a, t));
+							t == null ? (e.F = null, aN(e, null)) : (e.F = (eT(t), t), r = Jy(t, xL(60)), r == -1 ? (i = t, Jy(t, xL(46)) == -1 && (r = Jy(t, xL(91)), r != -1 && (i = (NO(0, r, t.length), t.substr(0, r))), !hS(i, kV) && !hS(i, eY) && !hS(i, tY) && !hS(i, nY) && !hS(i, rY) && !hS(i, iY) && !hS(i, aY) && !hS(i, oY) ? (i = O_t, r != -1 && (i += "" + (BE(r, t.length + 1), t.substr(r)))) : i = t), aN(e, i), i == t && (e.F = e.D)) : (i = (NO(0, r, t.length), t.substr(0, r)), Jy(t, xL(46)) != -1 || hS(i, kV) || hS(i, eY) || hS(i, tY) || hS(i, nY) || hS(i, rY) || hS(i, iY) || hS(i, aY) || hS(i, oY) || (i = O_t), n = $b(t, xL(62)), n != -1 && (i += "" + (BE(n + 1, t.length + 1), t.substr(n + 1))), aN(e, i))), e.Db & 4 && !(e.Db & 1) && Fj(e, new aw(e, 1, 5, a, t));
 						}
 						function rst(e, t) {
 							var n, r, i, a, o, s, c, l, u, d, f, p, m;
@@ -43242,7 +42695,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function lst(e, t) {
 							var n, i, a, o, s, c, l, u;
-							for (W(t, (Y(), _0), G(e.b)), W(t, v0, G(e.b)), ++e.b, Mfe(e.d, t), W(t, y0, (ax(), !0)), i = new JC(Qb(pP(t).a.Jc(), new f())); AR(i);) n = P(iO(i), 17), (n.c.i == t || uk(e.a, n, 0) != -1) && (n.c.i != t || uk(e.a, n, 0) == -1) && (u = null, u = n.d.i == t ? n.c.i : n.d.i, P(K(u, _0), 15).a == -1 ? (lst(e, u), W(t, v0, G(r.Math.min(P(K(t, v0), 15).a, P(K(u, v0), 15).a)))) : jh(Vx(K(u, y0))) && W(t, v0, G(r.Math.min(P(K(t, v0), 15).a, P(K(u, _0), 15).a))));
+							for (W(t, (Y(), _0), G(e.b)), W(t, v0, G(e.b)), ++e.b, Mfe(e.d, t), W(t, y0, (ax(), !0)), i = new JC(Qb(pP(t).a.Jc(), new f())); AR(i);) n = P(iO(i), 17), n.c.i != t && uk(e.a, n, 0) == -1 || n.c.i == t && uk(e.a, n, 0) != -1 || (u = null, u = n.d.i == t ? n.c.i : n.d.i, P(K(u, _0), 15).a == -1 ? (lst(e, u), W(t, v0, G(r.Math.min(P(K(t, v0), 15).a, P(K(u, v0), 15).a)))) : jh(Vx(K(u, y0))) && W(t, v0, G(r.Math.min(P(K(t, v0), 15).a, P(K(u, _0), 15).a))));
 							if (j(K(t, v0)) === j(K(t, _0))) {
 								l = new th(), o = null;
 								do
@@ -43341,9 +42794,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return null;
 						}
 						function _st(e) {
-							var t, n, r, i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b, x, S;
-							for (d = new Hwe(new Wee(e)); d.c != d.d.a.d;) for (u = NIe(d), s = P(u.d, 57), t = P(u.e, 57), o = s.Ah(), h = 0, b = (o.i ?? uB(o), o.i).length; h < b; ++h) if (l = (a = (o.i ?? uB(o), o.i), h >= 0 && h < a.length ? a[h] : null), l.pk() && !l.qk()) {
-								if (M(l, 103)) c = P(l, 19), (c.Bb & rJ) == 0 && (S = nI(c), !(S && (S.Bb & rJ) != 0)) && Jrt(e, c, s, t);
+							for (var t, n, r, i, a, o, s, c, l, u, d = new Hwe(new Wee(e)), f, p, m, h, g, _, v, y, b, x, S; d.c != d.d.a.d;) for (u = NIe(d), s = P(u.d, 57), t = P(u.e, 57), o = s.Ah(), h = 0, b = (o.i ?? uB(o), o.i).length; h < b; ++h) if (l = (a = (o.i ?? uB(o), o.i), h >= 0 && h < a.length ? a[h] : null), l.pk() && !l.qk()) {
+								if (M(l, 103)) c = P(l, 19), (c.Bb & rJ) == 0 && (S = nI(c), !S || (S.Bb & rJ) == 0) && Jrt(e, c, s, t);
 								else if (O_(), P(l, 69).vk() && (n = (x = l, P(x ? P(t, 52).di(x) : null, 163)), n)) for (p = P(s.Jh(l), 163), r = n.gc(), g = 0, m = p.gc(); g < m; ++g) if (f = p.Rl(g), M(f, 103)) {
 									if (y = p.Sl(g), i = kk(e, y), i == null && y != null) {
 										if (v = P(f, 19), !e.b || (v.Bb & rJ) != 0 || nI(v)) continue;
@@ -43360,12 +42812,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function vst(e, t, n) {
 							var i;
-							if (n.Tg("StretchWidth layering", 1), t.a.c.length == 0) {
-								n.Ug();
-								return;
+							if (n.Tg("StretchWidth layering", 1), t.a.c.length == 0) n.Ug();
+							else {
+								for (e.c = t, e.t = 0, e.u = 0, e.i = aU, e.g = oU, e.d = O(N(K(t, (vV(), Y2)))), yJe(e), f6e(e), d6e(e), JZe(e), NKe(e), e.i = r.Math.max(1, e.i), e.g = r.Math.max(1, e.g), e.d /= e.i, e.f = e.g / e.i, e.s = $Je(e), i = new Rw(e.c), Hb(e.c.b, i), e.r = WE(e.p), e.n = rE(e.k, e.k.length); e.r.c.length != 0;) e.o = MUe(e), !e.o || $Ve(e) && e.b.a.gc() != 0 ? (RQe(e, i), i = new Rw(e.c), Hb(e.c.b, i), hj(e.a, e.b), e.b.a.$b(), e.t = e.u, e.u = 0) : $Ve(e) ? (e.c.b.c.length = 0, i = new Rw(e.c), Hb(e.c.b, i), e.t = 0, e.u = 0, e.b.a.$b(), e.a.a.$b(), ++e.f, e.r = WE(e.p), e.n = rE(e.k, e.k.length)) : (yE(e.o, i), lk(e.r, e.o), gw(e.b, e.o), e.t = e.t - e.k[e.o.p] * e.d + e.j[e.o.p], e.u += e.e[e.o.p] * e.d);
+								t.a.c.length = 0, eR(t.b), n.Ug();
 							}
-							for (e.c = t, e.t = 0, e.u = 0, e.i = aU, e.g = oU, e.d = O(N(K(t, (vV(), Y2)))), yJe(e), f6e(e), d6e(e), JZe(e), NKe(e), e.i = r.Math.max(1, e.i), e.g = r.Math.max(1, e.g), e.d /= e.i, e.f = e.g / e.i, e.s = $Je(e), i = new Rw(e.c), Hb(e.c.b, i), e.r = WE(e.p), e.n = rE(e.k, e.k.length); e.r.c.length != 0;) e.o = MUe(e), !e.o || $Ve(e) && e.b.a.gc() != 0 ? (RQe(e, i), i = new Rw(e.c), Hb(e.c.b, i), hj(e.a, e.b), e.b.a.$b(), e.t = e.u, e.u = 0) : $Ve(e) ? (e.c.b.c.length = 0, i = new Rw(e.c), Hb(e.c.b, i), e.t = 0, e.u = 0, e.b.a.$b(), e.a.a.$b(), ++e.f, e.r = WE(e.p), e.n = rE(e.k, e.k.length)) : (yE(e.o, i), lk(e.r, e.o), gw(e.b, e.o), e.t = e.t - e.k[e.o.p] * e.d + e.j[e.o.p], e.u += e.e[e.o.p] * e.d);
-							t.a.c.length = 0, eR(t.b), n.Ug();
 						}
 						function eV(e, t, n, i) {
 							var a, o, s, c, l = e, u, d = uS(new A(t.a, t.b), e), f, p, m, h, g, _, v, y, b;
@@ -43374,11 +42825,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function yst(e) {
 							var t, n, i, a, o, s, c, l, u, d, f;
 							for (e.j = V(q9, BH, 30, e.g, 15, 1), e.o = new Nm(), n_(jk(new vC(null, new RE(e.e.b, 16)), new qa()), new Vne(e)), e.a = V(J9, zU, 30, e.b, 16, 1), jN(new vC(null, new RE(e.e.b, 16)), new Une(e)), i = (f = new Nm(), n_(gT(jk(new vC(null, new RE(e.e.b, 16)), new Ya()), new Hne(e)), new zue(e, f)), f), l = new E(i); l.a < l.c.c.length;) if (c = P(z(l), 501), !(c.c.length <= 1)) {
-								if (c.c.length == 2) {
-									P4e(c), PB((zE(0, c.c.length), P(c.c[0], 17)).d.i) || Hb(e.o, c);
-									continue;
-								}
-								if (!(a$e(c) || a2e(c, new Ja()))) for (u = new E(c), a = null; u.a < u.c.c.length;) t = P(z(u), 17), n = e.c[t.p], d = !a || u.a >= u.c.c.length ? wMe((BR(), _Q), hQ) : wMe((BR(), hQ), hQ), d *= 2, o = n.a.g, n.a.g = r.Math.max(o, o + (d - o)), s = n.b.g, n.b.g = r.Math.max(s, s + (d - s)), a = t;
+								if (c.c.length == 2) P4e(c), PB((zE(0, c.c.length), P(c.c[0], 17)).d.i) || Hb(e.o, c);
+								else if (!(a$e(c) || a2e(c, new Ja()))) for (u = new E(c), a = null; u.a < u.c.c.length;) t = P(z(u), 17), n = e.c[t.p], d = !a || u.a >= u.c.c.length ? wMe((BR(), _Q), hQ) : wMe((BR(), hQ), hQ), d *= 2, o = n.a.g, n.a.g = r.Math.max(o, o + (d - o)), s = n.b.g, n.b.g = r.Math.max(s, s + (d - s)), a = t;
 							}
 						}
 						function tV(e, t) {
@@ -43525,27 +42973,22 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function rV(e, t) {
 							var n, r, i, a, o, s, c, l;
-							if (M(e.Bh(), 174) ? (rV(P(e.Bh(), 174), t), t.a += " > ") : t.a += "Root ", n = e.Ah().zb, hS(n.substr(0, 3), "Elk") ? Iy(t, (BE(3, n.length + 1), n.substr(3))) : t.a += "" + n, i = e.ih(), i) {
-								Iy((t.a += " ", t), i);
-								return;
-							}
-							if (M(e, 362) && (l = P(e, 157).a, l)) {
-								Iy((t.a += " ", t), l);
-								return;
-							}
-							for (o = new Yb(e.jh()); o.e != o.i.gc();) if (a = P(MF(o), 157), l = a.a, l) {
-								Iy((t.a += " ", t), l);
-								return;
-							}
-							if (M(e, 271) && (r = P(e, 85), !r.b && (r.b = new pS(n7, r, 4, 7)), r.b.i != 0 && (!r.c && (r.c = new pS(n7, r, 5, 8)), r.c.i != 0))) {
-								for (t.a += " (", s = new vx((!r.b && (r.b = new pS(n7, r, 4, 7)), r.b)); s.e != s.i.gc();) s.e > 0 && (t.a += IV), rV(P(MF(s), 174), t);
-								for (t.a += JW, c = new vx((!r.c && (r.c = new pS(n7, r, 5, 8)), r.c)); c.e != c.i.gc();) c.e > 0 && (t.a += IV), rV(P(MF(c), 174), t);
-								t.a += ")";
+							if (M(e.Bh(), 174) ? (rV(P(e.Bh(), 174), t), t.a += " > ") : t.a += "Root ", n = e.Ah().zb, hS(n.substr(0, 3), "Elk") ? Iy(t, (BE(3, n.length + 1), n.substr(3))) : t.a += "" + n, i = e.ih(), i) Iy((t.a += " ", t), i);
+							else if (M(e, 362) && (l = P(e, 157).a, l)) Iy((t.a += " ", t), l);
+							else {
+								for (o = new Yb(e.jh()); o.e != o.i.gc();) if (a = P(MF(o), 157), l = a.a, l) {
+									Iy((t.a += " ", t), l);
+									return;
+								}
+								if (M(e, 271) && (r = P(e, 85), !r.b && (r.b = new pS(n7, r, 4, 7)), r.b.i != 0 && (!r.c && (r.c = new pS(n7, r, 5, 8)), r.c.i != 0))) {
+									for (t.a += " (", s = new vx((!r.b && (r.b = new pS(n7, r, 4, 7)), r.b)); s.e != s.i.gc();) s.e > 0 && (t.a += IV), rV(P(MF(s), 174), t);
+									for (t.a += JW, c = new vx((!r.c && (r.c = new pS(n7, r, 5, 8)), r.c)); c.e != c.i.gc();) c.e > 0 && (t.a += IV), rV(P(MF(c), 174), t);
+									t.a += ")";
+								}
 							}
 						}
 						function xst(e, t, n) {
-							var i, a, o, s, c, l, u, d;
-							for (l = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)); l.e != l.i.gc();) for (c = P(MF(l), 26), a = new JC(Qb(UR(c).a.Jc(), new f())); AR(a);) {
+							for (var i, a, o, s, c, l = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)), u, d; l.e != l.i.gc();) for (c = P(MF(l), 26), a = new JC(Qb(UR(c).a.Jc(), new f())); AR(a);) {
 								if (i = P(iO(a), 85), !i.b && (i.b = new pS(n7, i, 4, 7)), !(i.b.i <= 1 && (!i.c && (i.c = new pS(n7, i, 5, 8)), i.c.i <= 1))) throw D(new zh("Graph must not contain hyperedges."));
 								if (!ER(i) && c != mL(P(H((!i.c && (i.c = new pS(n7, i, 5, 8)), i.c), 0), 84))) for (u = new u_e(), Jj(u, i), W(u, (nj(), zZ), i), Op(u, P(Ty(FC(n.f, c)), 155)), kp(u, P(Lw(n, mL(P(H((!i.c && (i.c = new pS(n7, i, 5, 8)), i.c), 0), 84))), 155)), Hb(t.c, u), s = new Yb((!i.n && (i.n = new F(d7, i, 1, 7)), i.n)); s.e != s.i.gc();) o = P(MF(s), 157), d = new DMe(u, o.a), Jj(d, o), W(d, zZ, o), d.e.a = r.Math.max(o.g, 1), d.e.b = r.Math.max(o.f, 1), oit(d), Hb(t.d, d);
 							}
@@ -43629,16 +43072,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Tst(e, t) {
 							var n, i, a, o, s, c, l, u, d = P(P(cO(e.r, t), 22), 83), f, p, m, h, g, _, v;
-							if (d.gc() <= 2 || t == (oV(), f5) || t == (oV(), M5)) {
-								Vct(e, t);
-								return;
+							if (d.gc() <= 2 || t == (oV(), f5) || t == (oV(), M5)) Vct(e, t);
+							else {
+								for (g = e.u.Gc((lR(), u5)), n = t == (oV(), p5) ? (nM(), EZ) : (nM(), CZ), v = t == p5 ? (Mk(), vZ) : (Mk(), bZ), i = use(Rve(n), e.s), _ = t == p5 ? aU : oU, u = d.Jc(); u.Ob();) c = P(u.Pb(), 115), !(!c.c || c.c.d.c.length <= 0) && (h = c.b.Kf(), m = c.e, f = c.c, p = f.i, p.b = (o = f.n, f.e.a + o.b + o.c), p.a = (s = f.n, f.e.b + s.d + s.a), g ? (p.c = m.a - (a = f.n, f.e.a + a.b + a.c) - e.s, g = !1) : p.c = m.a + h.a + e.s, WT(v, _dt), f.f = v, zO(f, (ek(), _Z)), Hb(i.d, new HC(p, UWe(i, p))), _ = t == p5 ? r.Math.min(_, m.b) : r.Math.max(_, m.b + c.b.Kf().b));
+								for (_ += t == p5 ? -e.t : e.t, hKe((i.e = _, i)), l = d.Jc(); l.Ob();) c = P(l.Pb(), 115), !(!c.c || c.c.d.c.length <= 0) && (p = c.c.i, p.c -= c.e.a, p.d -= c.e.b);
 							}
-							for (g = e.u.Gc((lR(), u5)), n = t == (oV(), p5) ? (nM(), EZ) : (nM(), CZ), v = t == p5 ? (Mk(), vZ) : (Mk(), bZ), i = use(Rve(n), e.s), _ = t == p5 ? aU : oU, u = d.Jc(); u.Ob();) c = P(u.Pb(), 115), !(!c.c || c.c.d.c.length <= 0) && (h = c.b.Kf(), m = c.e, f = c.c, p = f.i, p.b = (o = f.n, f.e.a + o.b + o.c), p.a = (s = f.n, f.e.b + s.d + s.a), g ? (p.c = m.a - (a = f.n, f.e.a + a.b + a.c) - e.s, g = !1) : p.c = m.a + h.a + e.s, WT(v, _dt), f.f = v, zO(f, (ek(), _Z)), Hb(i.d, new HC(p, UWe(i, p))), _ = t == p5 ? r.Math.min(_, m.b) : r.Math.max(_, m.b + c.b.Kf().b));
-							for (_ += t == p5 ? -e.t : e.t, hKe((i.e = _, i)), l = d.Jc(); l.Ob();) c = P(l.Pb(), 115), !(!c.c || c.c.d.c.length <= 0) && (p = c.c.i, p.c -= c.e.a, p.d -= c.e.b);
 						}
 						function Est(e, t, n) {
-							var r, i = new Nm(), a, o, s, c, l, u, d, f, p, m, h, g, _, v, y;
-							for (h = new E(t.a); h.a < h.c.c.length;) if (m = P(z(h), 9), p = m.e, p && (r = Est(e, p, m), dM(i, r), xot(e, p, m), P(K(p, (Y(), R1)), 22).Gc((vz(), a1)))) for (v = P(K(m, (vV(), z2)), 102), f = P(K(m, V2), 182).Gc((lR(), s5)), _ = new E(m.j); _.a < _.c.c.length;) for (g = P(z(_), 12), a = P(Lw(e.b, g), 9), a || (a = uV(g, v, g.j, -(g.e.c.length - g.g.c.length), null, new mg(), g.o, P(K(p, e2), 86), p), W(a, e0, g), aT(e.b, g, a), Hb(p.a, a)), o = P(hC(a.j, 0), 12), u = new E(g.f); u.a < u.c.c.length;) l = P(z(u), 70), s = new Pse(), s.o.a = l.o.a, s.o.b = l.o.b, Hb(o.f, s), f || (y = g.j, d = 0, yw(P(K(m, V2), 22)) && (d = V4e(l.n, l.o, g.o, 0, y)), v == (uL(), r5) || (oV(), _5).Gc(y) ? s.o.a = d : s.o.b = d);
+							for (var r, i = new Nm(), a, o, s, c, l, u, d, f, p, m, h = new E(t.a), g, _, v, y; h.a < h.c.c.length;) if (m = P(z(h), 9), p = m.e, p && (r = Est(e, p, m), dM(i, r), xot(e, p, m), P(K(p, (Y(), R1)), 22).Gc((vz(), a1)))) for (v = P(K(m, (vV(), z2)), 102), f = P(K(m, V2), 182).Gc((lR(), s5)), _ = new E(m.j); _.a < _.c.c.length;) for (g = P(z(_), 12), a = P(Lw(e.b, g), 9), a || (a = uV(g, v, g.j, -(g.e.c.length - g.g.c.length), null, new mg(), g.o, P(K(p, e2), 86), p), W(a, e0, g), aT(e.b, g, a), Hb(p.a, a)), o = P(hC(a.j, 0), 12), u = new E(g.f); u.a < u.c.c.length;) l = P(z(u), 70), s = new Pse(), s.o.a = l.o.a, s.o.b = l.o.b, Hb(o.f, s), f || (y = g.j, d = 0, yw(P(K(m, V2), 22)) && (d = V4e(l.n, l.o, g.o, 0, y)), v == (uL(), r5) || (oV(), _5).Gc(y) ? s.o.a = d : s.o.b = d);
 							return c = new Nm(), Sot(e, t, n, i, c), n && Eat(e, t, n, c), c;
 						}
 						function Dst(e, t, n) {
@@ -43650,8 +43091,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function Ost(e) {
-							var t, n, r, i, a, o, s, c, l, u, d, f, p, m, h, g;
-							for (m = new E(e); m.a < m.c.c.length;) {
+							for (var t, n, r, i, a, o, s, c, l, u, d, f, p, m = new E(e), h, g; m.a < m.c.c.length;) {
 								for (p = P(z(m), 9), Tx(p.n), Tx(p.o), SPe(p.f), Jet(p), eet(p), g = new E(p.j); g.a < g.c.c.length;) {
 									for (h = P(z(g), 12), Tx(h.n), Tx(h.a), Tx(h.o), sR(h, vYe(h.j)), a = P(K(h, (vV(), B2)), 15), a && W(h, B2, G(-a.a)), i = new E(h.g); i.a < i.c.c.length;) {
 										for (r = P(z(i), 17), n = kF(r.a, 0); n.b != n.d.c;) t = P(vD(n), 8), Tx(t);
@@ -43665,8 +43105,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function kst(e) {
 							Qx();
-							var t, n, i = e.f.n, a, o, s, c;
-							for (s = kwe(e.r).a.nc(); s.Ob();) {
+							for (var t, n, i = e.f.n, a, o, s = kwe(e.r).a.nc(), c; s.Ob();) {
 								if (o = P(s.Pb(), 115), a = 0, o.b.nf((xV(), t8)) && (a = O(N(o.b.mf(t8))), a < 0)) switch (o.b.$f().g) {
 									case 1:
 										i.d = r.Math.max(i.d, -a);
@@ -43698,8 +43137,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return t.length == 0 ? e.le(Out, SH, -1, -1) : (u = $L(t), hS(u.substr(0, 3), "at ") && (u = (BE(3, u.length + 1), u.substr(3))), u = u.replace(/\[.*?\]/g, ""), o = u.indexOf("("), o == -1 ? (o = u.indexOf("@"), o == -1 ? (l = u, u = "") : (l = $L((BE(o + 1, u.length + 1), u.substr(o + 1))), u = $L((NO(0, o, u.length), u.substr(0, o))))) : (n = u.indexOf(")", o), l = (NO(o + 1, n, u.length), u.substr(o + 1, n - (o + 1))), u = $L((NO(0, o, u.length), u.substr(0, o)))), o = Jy(u, xL(46)), o != -1 && (u = (BE(o + 1, u.length + 1), u.substr(o + 1))), (u.length == 0 || hS(u, "Anonymous function")) && (u = SH), s = $b(l, xL(58)), i = R_e(l, xL(58), s - 1), c = -1, r = -1, a = Out, s != -1 && i != -1 && (a = (NO(0, i, l.length), l.substr(0, i)), c = bhe((NO(i + 1, s, l.length), l.substr(i + 1, s - (i + 1)))), r = bhe((BE(s + 1, l.length + 1), l.substr(s + 1)))), e.le(a, u, c, r));
 						}
 						function jst(e) {
-							var t, n, r, i, a, o, s, c, l, u, d;
-							for (l = new E(e); l.a < l.c.c.length;) {
+							for (var t, n, r, i, a, o, s, c, l = new E(e), u, d; l.a < l.c.c.length;) {
 								switch (c = P(z(l), 9), o = P(K(c, (vV(), h2)), 165), a = null, o.g) {
 									case 1:
 									case 2:
@@ -43741,7 +43179,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Nst(e, t, n, r) {
 							var i, a, o, s = new Qst(t), c;
-							return z5e(s, r), i = !0, e && e.nf((xV(), B6)) && (a = P(e.mf((xV(), B6)), 86), i = a == (HN(), b8) || a == v8 || a == y8), net(s, !1), Qk(s.e.Pf(), new Nve(s, !1, i)), aE(s, s.f, (tA(), lZ), (oV(), p5)), aE(s, s.f, dZ, A5), aE(s, s.g, lZ, M5), aE(s, s.g, dZ, f5), TJe(s, p5), TJe(s, A5), GTe(s, f5), GTe(s, M5), Qx(), o = s.A.Gc(($P(), F5)) && s.B.Gc((qz(), U5)) ? CKe(s) : null, o && mse(s.a, o), kst(s), eXe(s), tXe(s), Yot(s), jnt(s), $Xe(s), yF(s, p5), yF(s, A5), Det(s), uat(s), n ? (LGe(s), eZe(s), yF(s, f5), yF(s, M5), c = s.B.Gc((qz(), W5)), H2e(s, c, p5), H2e(s, c, A5), U2e(s, c, f5), U2e(s, c, M5), n_(new vC(null, new RE(new om(s.i), 0)), new qe()), n_(gT(new vC(null, kwe(s.r).a.oc()), new Je()), new Ye()), QQe(s), s.e.Nf(s.o), n_(new vC(null, kwe(s.r).a.oc()), new Xe()), s.o) : s.o;
+							return z5e(s, r), i = !0, e && e.nf((xV(), B6)) && (a = P(e.mf((xV(), B6)), 86), i = a == (HN(), b8) || a == v8 || a == y8), net(s, !1), Qk(s.e.Pf(), new Nve(s, !1, i)), aE(s, s.f, (tA(), lZ), (oV(), p5)), aE(s, s.f, dZ, A5), aE(s, s.g, lZ, M5), aE(s, s.g, dZ, f5), TJe(s, p5), TJe(s, A5), GTe(s, f5), GTe(s, M5), Qx(), o = s.A.Gc(($P(), F5)) && s.B.Gc((qz(), U5)) ? CKe(s) : null, o && mse(s.a, o), kst(s), eXe(s), tXe(s), Yot(s), jnt(s), $Xe(s), yF(s, p5), yF(s, A5), Det(s), uat(s), n && (LGe(s), eZe(s), yF(s, f5), yF(s, M5), c = s.B.Gc((qz(), W5)), H2e(s, c, p5), H2e(s, c, A5), U2e(s, c, f5), U2e(s, c, M5), n_(new vC(null, new RE(new om(s.i), 0)), new qe()), n_(gT(new vC(null, kwe(s.r).a.oc()), new Je()), new Ye()), QQe(s), s.e.Nf(s.o), n_(new vC(null, kwe(s.r).a.oc()), new Xe())), s.o;
 						}
 						function Pst(e) {
 							var t, n, i, a, o, s, c, l, u = aU, d, f, p, m, h, g;
@@ -44310,20 +43748,19 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function yct(e, t) {
 							var n, i, a, o, s, c, l, u, d, f, p = P(P(cO(e.r, t), 22), 83), m, h, g, _, v, y, b, x, S, C;
-							if (t == (oV(), f5) || t == M5) {
-								Jst(e, t);
-								return;
+							if (t == (oV(), f5) || t == M5) Jst(e, t);
+							else {
+								for (o = t == p5 ? (nM(), CZ) : (nM(), EZ), x = t == p5 ? (Mk(), bZ) : (Mk(), vZ), n = P(sT(e.b, t), 127), i = n.i, a = i.c + Zk(U(k(Z9, 1), dU, 30, 15, [
+									n.n.b,
+									e.C.b,
+									e.k
+								])), v = i.c + i.b - Zk(U(k(Z9, 1), dU, 30, 15, [
+									n.n.c,
+									e.C.c,
+									e.k
+								])), s = use(Rve(o), e.t), y = t == p5 ? oU : aU, f = p.Jc(); f.Ob();) u = P(f.Pb(), 115), !(!u.c || u.c.d.c.length <= 0) && (_ = u.b.Kf(), g = u.e, m = u.c, h = m.i, h.b = (l = m.n, m.e.a + l.b + l.c), h.a = (c = m.n, m.e.b + c.d + c.a), WT(x, _dt), m.f = x, zO(m, (ek(), _Z)), h.c = g.a - (h.b - _.a) / 2, S = r.Math.min(a, g.a), C = r.Math.max(v, g.a + _.a), h.c < S ? h.c = S : h.c + h.b > C && (h.c = C - h.b), Hb(s.d, new HC(h, UWe(s, h))), y = t == p5 ? r.Math.max(y, g.b + u.b.Kf().b) : r.Math.min(y, g.b));
+								for (y += t == p5 ? e.t : -e.t, b = hKe((s.e = y, s)), b > 0 && (P(sT(e.b, t), 127).a.b = b), d = p.Jc(); d.Ob();) u = P(d.Pb(), 115), !(!u.c || u.c.d.c.length <= 0) && (h = u.c.i, h.c -= u.e.a, h.d -= u.e.b);
 							}
-							for (o = t == p5 ? (nM(), CZ) : (nM(), EZ), x = t == p5 ? (Mk(), bZ) : (Mk(), vZ), n = P(sT(e.b, t), 127), i = n.i, a = i.c + Zk(U(k(Z9, 1), dU, 30, 15, [
-								n.n.b,
-								e.C.b,
-								e.k
-							])), v = i.c + i.b - Zk(U(k(Z9, 1), dU, 30, 15, [
-								n.n.c,
-								e.C.c,
-								e.k
-							])), s = use(Rve(o), e.t), y = t == p5 ? oU : aU, f = p.Jc(); f.Ob();) u = P(f.Pb(), 115), !(!u.c || u.c.d.c.length <= 0) && (_ = u.b.Kf(), g = u.e, m = u.c, h = m.i, h.b = (l = m.n, m.e.a + l.b + l.c), h.a = (c = m.n, m.e.b + c.d + c.a), WT(x, _dt), m.f = x, zO(m, (ek(), _Z)), h.c = g.a - (h.b - _.a) / 2, S = r.Math.min(a, g.a), C = r.Math.max(v, g.a + _.a), h.c < S ? h.c = S : h.c + h.b > C && (h.c = C - h.b), Hb(s.d, new HC(h, UWe(s, h))), y = t == p5 ? r.Math.max(y, g.b + u.b.Kf().b) : r.Math.min(y, g.b));
-							for (y += t == p5 ? e.t : -e.t, b = hKe((s.e = y, s)), b > 0 && (P(sT(e.b, t), 127).a.b = b), d = p.Jc(); d.Ob();) u = P(d.Pb(), 115), !(!u.c || u.c.d.c.length <= 0) && (h = u.c.i, h.c -= u.e.a, h.d -= u.e.b);
 						}
 						function bct(e, t) {
 							OB();
@@ -44575,8 +44012,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							t.Ug();
 						}
 						function Pct(e, t, n) {
-							var i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b, x, S;
-							for (c = new E(e.a.b); c.a < c.c.c.length;) for (o = P(z(c), 25), b = new E(o.a); b.a < b.c.c.length;) y = P(z(b), 9), t.g[y.p] = y, t.a[y.p] = y, t.d[y.p] = 0;
+							for (var i, a, o, s, c = new E(e.a.b), l, u, d, f, p, m, h, g, _, v, y, b, x, S; c.a < c.c.c.length;) for (o = P(z(c), 25), b = new E(o.a); b.a < b.c.c.length;) y = P(z(b), 9), t.g[y.p] = y, t.a[y.p] = y, t.d[y.p] = 0;
 							for (l = e.a.b, t.c == ($T(), Z4) && (l = FP(l)), s = l.Jc(); s.Ob();) for (o = P(s.Pb(), 25), m = -1, p = o.a, t.o == (pE(), e3) && (m = MV, p = FP(p)), S = p.Jc(); S.Ob();) if (x = P(S.Pb(), 9), f = null, f = t.c == Z4 ? P(hC(e.b.f, x.p), 16) : P(hC(e.b.b, x.p), 16), f.gc() > 0) {
 								if (i = f.gc(), u = nE(r.Math.floor((i + 1) / 2)) - 1, a = nE(r.Math.ceil((i + 1) / 2)) - 1, t.o == e3) for (d = a; d >= u; d--) t.a[x.p] == x && (g = P(f.Xb(d), 49), h = P(g.a, 9), !Gg(n, g.b) && m > e.b.e[h.p] && (t.a[h.p] = x, t.g[x.p] = t.g[h.p], t.a[x.p] = t.g[x.p], t.f[t.g[x.p].p] = (ax(), !!(jh(t.f[t.g[x.p].p]) & x.k == (BR(), hQ))), m = e.b.e[h.p]));
 								else for (d = u; d <= a; d++) t.a[x.p] == x && (v = P(f.Xb(d), 49), _ = P(v.a, 9), !Gg(n, v.b) && m < e.b.e[_.p] && (t.a[_.p] = x, t.g[x.p] = t.g[_.p], t.a[x.p] = t.g[x.p], t.f[t.g[x.p].p] = (ax(), !!(jh(t.f[t.g[x.p].p]) & x.k == (BR(), hQ))), m = e.b.e[_.p]));
@@ -44709,17 +44145,16 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Kct(e, t, n) {
 							var i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b, x, S, C, ee, w, T, te, ne, re;
-							if (n.Tg("Spline edge routing", 1), t.b.c.length == 0) {
-								t.f.a = 0, n.Ug();
-								return;
+							if (n.Tg("Spline edge routing", 1), t.b.c.length == 0) t.f.a = 0, n.Ug();
+							else {
+								y = O(N(K(t, (vV(), o4)))), c = O(N(K(t, $2))), s = O(N(K(t, X2))), v = P(K(t, s2), 349), w = v == (rN(), z4), ee = O(N(K(t, pOt))), e.d = t, e.j.c.length = 0, e.a.c.length = 0, vw(e.k), l = P(hC(t.b, 0), 25), d = Dy(l.a, (dz(), t3)), h = P(hC(t.b, t.b.c.length - 1), 25), f = Dy(h.a, t3), g = new E(t.b), _ = null, re = 0;
+								do {
+									for (b = g.a < g.c.c.length ? P(z(g), 25) : null, mct(e, _, b), trt(e), T = nse(sBe(yT(gT(new vC(null, new RE(e.i, 16)), new xo()), new So()))), ne = 0, x = re, p = !_ || d && _ == l, m = !b || f && b == h, T > 0 ? (u = 0, _ && (u += c), u += (T - 1) * s, b && (u += c), w && b && (u = r.Math.max(u, s7e(b, s, y, ee))), u < y && !p && !m && (ne = (y - u) / 2, u = y), x += u) : !p && !m && (x += y), b && Fat(b, x), C = new E(e.i); C.a < C.c.c.length;) S = P(z(C), 132), S.a.c = re, S.a.b = x - re, S.F = ne, S.p = !_;
+									dM(e.a, e.i), re = x, b && (re += b.c.a), _ = b, p = m;
+								} while (b);
+								for (a = new E(e.j); a.a < a.c.c.length;) i = P(z(a), 17), o = Mze(e, i), W(i, (Y(), f0), o), te = S7e(e, i), W(i, m0, te);
+								t.f.a = re, e.d = null, n.Ug();
 							}
-							y = O(N(K(t, (vV(), o4)))), c = O(N(K(t, $2))), s = O(N(K(t, X2))), v = P(K(t, s2), 349), w = v == (rN(), z4), ee = O(N(K(t, pOt))), e.d = t, e.j.c.length = 0, e.a.c.length = 0, vw(e.k), l = P(hC(t.b, 0), 25), d = Dy(l.a, (dz(), t3)), h = P(hC(t.b, t.b.c.length - 1), 25), f = Dy(h.a, t3), g = new E(t.b), _ = null, re = 0;
-							do {
-								for (b = g.a < g.c.c.length ? P(z(g), 25) : null, mct(e, _, b), trt(e), T = nse(sBe(yT(gT(new vC(null, new RE(e.i, 16)), new xo()), new So()))), ne = 0, x = re, p = !_ || d && _ == l, m = !b || f && b == h, T > 0 ? (u = 0, _ && (u += c), u += (T - 1) * s, b && (u += c), w && b && (u = r.Math.max(u, s7e(b, s, y, ee))), u < y && !p && !m && (ne = (y - u) / 2, u = y), x += u) : !p && !m && (x += y), b && Fat(b, x), C = new E(e.i); C.a < C.c.c.length;) S = P(z(C), 132), S.a.c = re, S.a.b = x - re, S.F = ne, S.p = !_;
-								dM(e.a, e.i), re = x, b && (re += b.c.a), _ = b, p = m;
-							} while (b);
-							for (a = new E(e.j); a.a < a.c.c.length;) i = P(z(a), 17), o = Mze(e, i), W(i, (Y(), f0), o), te = S7e(e, i), W(i, m0, te);
-							t.f.a = re, e.d = null, n.Ug();
 						}
 						function qct(e, t) {
 							var n, i, a, o, s, c, l, u, d, p, m, h, g, _, v, y, b, x, S, C, ee, w, T, te, ne;
@@ -44804,11 +44239,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							if (n < -1 || !e.a.i || yS(P(K(e.a.o, z2), 102)) || aP(e.a.o, (oV(), f5)).gc() < 2 && aP(e.a.o, M5).gc() < 2) return !0;
 							if (e.a.c.ig()) return !1;
 							for (S = 0, x = 0, b = new Nm(), c = e.a.e, l = 0, u = c.length; l < u; ++l) {
-								for (s = c[l], p = s, m = 0, g = p.length; m < g; ++m) {
-									if (d = p[m], d.k == (BR(), vQ)) {
-										Vm(b.c, d);
-										continue;
-									}
+								for (s = c[l], p = s, m = 0, g = p.length; m < g; ++m) if (d = p[m], d.k == (BR(), vQ)) Vm(b.c, d);
+								else {
 									for (r = e.b[d.c.p][d.p], d.k == pQ ? (r.b = 1, P(K(d, (Y(), e0)), 12).j == (oV(), f5) && (x += r.a)) : (T = aP(d, (oV(), M5)), T.dc() || !Pb(T, new Da()) ? r.c = 1 : (i = aP(d, f5), (i.dc() || !Pb(i, new Ea())) && (S += r.a))), o = new JC(Qb(mP(d).a.Jc(), new f())); AR(o);) a = P(iO(o), 17), S += r.c, x += r.b, w = a.d.i, hFe(e, r, w);
 									for (v = DA(U(k(oX, 1), LV, 20, 0, [aP(d, (oV(), p5)), aP(d, A5)])), ee = new JC(new Ime(v.a.length, v.a)); AR(ee);) C = P(iO(ee), 12), y = P(K(C, (Y(), r0)), 9), y && (S += r.c, x += r.b, hFe(e, r, y));
 								}
@@ -44818,8 +44250,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return t = S + x, _ = t == 0 ? aU : (S - x) / t, _ >= n;
 						}
 						function Qct(e) {
-							var t, n, i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b, x, S, C, ee, w, T, te;
-							for (b = e.a, x = 0, S = b.length; x < S; ++x) {
+							for (var t, n, i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b = e.a, x = 0, S = b.length, C, ee, w, T, te; x < S; ++x) {
 								for (y = b[x], u = MV, d = MV, h = new E(y.e); h.a < h.c.c.length;) p = P(z(h), 9), s = p.c ? uk(p.c.a, p, 0) : -1, s > 0 ? (f = P(hC(p.c.a, s - 1), 9), w = jb(e.b, p, f), _ = p.n.b - p.d.d - (f.n.b + f.o.b + f.d.a + w)) : _ = p.n.b - p.d.d, u = r.Math.min(_, u), s < p.c.a.c.length - 1 ? (f = P(hC(p.c.a, s + 1), 9), w = jb(e.b, p, f), v = f.n.b - f.d.d - (p.n.b + p.o.b + p.d.a + w)) : v = 2 * p.n.b, d = r.Math.min(v, d);
 								for (l = MV, o = !1, a = P(hC(y.e, 0), 9), te = new E(a.j); te.a < te.c.c.length;) for (T = P(z(te), 12), g = a.n.b + T.n.b + T.a.b, i = new E(T.e); i.a < i.c.c.length;) n = P(z(i), 17), C = n.c, t = C.i.n.b + C.n.b + C.a.b - g, r.Math.abs(t) < r.Math.abs(l) && r.Math.abs(t) < (t < 0 ? u : d) && (l = t, o = !0);
 								for (c = P(hC(y.e, y.e.c.length - 1), 9), ee = new E(c.j); ee.a < ee.c.c.length;) for (C = P(z(ee), 12), g = c.n.b + C.n.b + C.a.b, i = new E(C.g); i.a < i.c.c.length;) n = P(z(i), 17), T = n.d, t = T.i.n.b + T.n.b + T.a.b - g, r.Math.abs(t) < r.Math.abs(l) && r.Math.abs(t) < (t < 0 ? u : d) && (l = t, o = !0);
@@ -44844,8 +44275,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 						}
 						function tlt(e, t, n) {
-							var i, a, o, s, c, l, u, d, f, p;
-							for (c = kF(e.b, 0); c.b != c.d.c;) if (s = P(vD(c), 40), !hS(s.c, YK)) for (u = k6e(s, e), t == (HN(), v8) || t == y8 ? Tb(u, new ps()) : Tb(u, new ms()), l = u.c.length, i = 0; i < l; i++) d = (zE(i, u.c.length), P(u.c[i], 65)).c, hS(d.c, "n11"), !(jh(Vx(K(s, (aV(), Rjt)))) && !wHe((zE(i, u.c.length), P(u.c[i], 65)), e)) && (a = l == 1 ? .5 : (i + 1) / (l + 1), t == v8 ? (o = O(N(K(s, v3))), p = s.e.b + s.f.b * a, Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(r.Math.min(o, s.e.a - n), p)), Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(s.e.a, p))) : t == y8 ? (o = O(N(K(s, _3))) + n, p = s.e.b + s.f.b * a, Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(o, p)), Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(s.e.a + s.f.a, p))) : t == x8 ? (o = O(N(K(s, v3))), f = s.e.a + s.f.a * a, Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(f, r.Math.min(s.e.b - n, o))), Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(f, s.e.b))) : (o = O(N(K(s, _3))) + n, f = s.e.a + s.f.a * a, Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(f, o)), Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(f, s.e.b + s.f.b))));
+							for (var i, a, o, s, c = kF(e.b, 0), l, u, d, f, p; c.b != c.d.c;) if (s = P(vD(c), 40), !hS(s.c, YK)) for (u = k6e(s, e), t == (HN(), v8) || t == y8 ? Tb(u, new ps()) : Tb(u, new ms()), l = u.c.length, i = 0; i < l; i++) d = (zE(i, u.c.length), P(u.c[i], 65)).c, hS(d.c, "n11"), (!jh(Vx(K(s, (aV(), Rjt)))) || wHe((zE(i, u.c.length), P(u.c[i], 65)), e)) && (a = l == 1 ? .5 : (i + 1) / (l + 1), t == v8 ? (o = O(N(K(s, v3))), p = s.e.b + s.f.b * a, Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(r.Math.min(o, s.e.a - n), p)), Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(s.e.a, p))) : t == y8 ? (o = O(N(K(s, _3))) + n, p = s.e.b + s.f.b * a, Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(o, p)), Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(s.e.a + s.f.a, p))) : t == x8 ? (o = O(N(K(s, v3))), f = s.e.a + s.f.a * a, Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(f, r.Math.min(s.e.b - n, o))), Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(f, s.e.b))) : (o = O(N(K(s, _3))) + n, f = s.e.a + s.f.a * a, Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(f, o)), Ry((zE(i, u.c.length), P(u.c[i], 65)).a, new A(f, s.e.b + s.f.b))));
 						}
 						function uV(e, t, n, r, i, a, o, s, c) {
 							var l, u, d, f, p = n, m, h;
@@ -45401,13 +44831,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (e.d = new A(aU, aU), e.c = new A(oU, oU), p = t.Jc(); p.Ob();) for (d = P(p.Pb(), 36), b = new E(d.a); b.a < b.c.c.length;) y = P(z(b), 9), e.d.a = r.Math.min(e.d.a, y.n.a - y.d.b), e.d.b = r.Math.min(e.d.b, y.n.b - y.d.d), e.c.a = r.Math.max(e.c.a, y.n.a + y.o.a + y.d.c), e.c.b = r.Math.max(e.c.b, y.n.b + y.o.b + y.d.a);
 							for (c = new nae(), f = t.Jc(); f.Ob();) d = P(f.Pb(), 36), i = Yct(e, d), Hb(c.a, i), i.a |= !P(K(i.c, (Y(), N1)), 22).dc();
 							for (e.b = (YM(), w = new mt(), w.f = new GRe(n), w.b = cot(w.f, c), w), Oot((h = e.b, new _h(), h)), e.e = new mg(), e.a = e.b.f.e, s = new E(c.a); s.a < s.c.c.length;) for (a = P(z(s), 840), x = lOe(e.b, a), Get(a.c, x.a, x.b), _ = new E(a.c.a); _.a < _.c.c.length;) g = P(z(_), 9), g.k == (BR(), pQ) && (v = R8e(e, g.n, P(K(g, (Y(), I1)), 64)), lS(Ky(g.n), v));
-							for (o = new E(c.a); o.a < o.c.c.length;) for (a = P(z(o), 840), u = new E(QWe(a)); u.a < u.c.c.length;) for (l = P(z(u), 17), ee = new hg(l.a), wx(ee, 0, VE(l.c)), QS(ee, VE(l.d)), m = null, C = kF(ee, 0); C.b != C.d.c;) {
-								if (S = P(vD(C), 8), !m) {
-									m = S;
-									continue;
-								}
-								aRe(m.a, S.a) ? (e.e.a = r.Math.min(e.e.a, m.a), e.a.a = r.Math.max(e.a.a, m.a)) : aRe(m.b, S.b) && (e.e.b = r.Math.min(e.e.b, m.b), e.a.b = r.Math.max(e.a.b, m.b)), m = S;
-							}
+							for (o = new E(c.a); o.a < o.c.c.length;) for (a = P(z(o), 840), u = new E(QWe(a)); u.a < u.c.c.length;) for (l = P(z(u), 17), ee = new hg(l.a), wx(ee, 0, VE(l.c)), QS(ee, VE(l.d)), m = null, C = kF(ee, 0); C.b != C.d.c;) S = P(vD(C), 8), m && (aRe(m.a, S.a) ? (e.e.a = r.Math.min(e.e.a, m.a), e.a.a = r.Math.max(e.a.a, m.a)) : aRe(m.b, S.b) && (e.e.b = r.Math.min(e.e.b, m.b), e.a.b = r.Math.max(e.a.b, m.b))), m = S;
 							Fx(e.e), lS(e.a, e.e);
 						}
 						function xlt(e, t) {
@@ -45600,15 +45024,9 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function Alt(e, t, n) {
 							var r, i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b, x, S, C, ee, w, T;
 							for (n.Tg(hmt, 1), T = P(VD(gT(new vC(null, new RE(t, 16)), new ss()), VO(new Se(), new xe(), new Te(), U(k(aZ, 1), Z, 130, 0, [(eN(), iZ)]))), 16), u = P(VD(gT(new vC(null, new RE(t, 16)), new are(t)), VO(new Se(), new xe(), new Te(), U(k(aZ, 1), Z, 130, 0, [iZ]))), 16), m = P(VD(gT(new vC(null, new RE(t, 16)), new ire(t)), VO(new Se(), new xe(), new Te(), U(k(aZ, 1), Z, 130, 0, [iZ]))), 16), h = V(u3, QK, 40, t.gc(), 0, 1), o = 0; o < u.gc(); o++) i = P(u.Xb(o), 40), w = P(K(i, (cB(), D3)), 15).a, w >= 0 && w < u.gc() && !h[w] && (h[w] = i, u.ed(o), --o);
-							for (s = 0; s < u.gc(); s++) for (i = P(u.Xb(s), 40), w = P(K(i, (cB(), D3)), 15).a, f = 0;; f++) {
-								if (p = w + f, p < h.length && p >= 0 && !h[p]) {
-									h[p] = i, u.ed(s), --s;
-									break;
-								}
-								if (p = w - f, p < h.length && p >= 0 && !h[p]) {
-									h[p] = i, u.ed(s), --s;
-									break;
-								}
+							for (s = 0; s < u.gc(); s++) for (i = P(u.Xb(s), 40), w = P(K(i, (cB(), D3)), 15).a, f = 0;; f++) if (p = w + f, p < h.length && p >= 0 && !h[p] || (p = w - f, p < h.length && p >= 0 && !h[p])) {
+								h[p] = i, u.ed(s), --s;
+								break;
 							}
 							for (m.gd(new cs()), c = h.length - 1; c >= 0; c--) !h[c] && !m.dc() && (h[c] = P(m.Xb(0), 40), m.ed(0));
 							for (l = 0; l < h.length; l++) !h[l] && !T.dc() && (h[l] = P(T.Xb(0), 40), T.ed(0));
@@ -45630,11 +45048,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function Mlt(e) {
 							var t, n, r, i, a, o, s, c, l, u, d, p, m, h, g, _, v, y, b, x, S, C, ee = P(K(e, (vV(), z2)), 102), w, T, te, ne, re;
 							if (ee != (uL(), r5) && ee != i5) {
-								for (h = e.b, m = h.c.length, u = new IO((BA(m + 2, hH), Uk(lP(lP(5, m + 2), (m + 2) / 10 | 0)))), g = new IO((BA(m + 2, hH), Uk(lP(lP(5, m + 2), (m + 2) / 10 | 0)))), Hb(u, new Pm()), Hb(u, new Pm()), Hb(g, new Nm()), Hb(g, new Nm()), C = new Nm(), t = 0; t < m; t++) for (n = (zE(t, h.c.length), P(h.c[t], 25)), w = (zE(t, u.c.length), P(u.c[t], 92)), _ = new Pm(), Vm(u.c, _), te = (zE(t, g.c.length), P(g.c[t], 16)), y = new Nm(), Vm(g.c, y), i = new E(n.a); i.a < i.c.c.length;) {
-									if (r = P(z(i), 9), FWe(r)) {
-										Vm(C.c, r);
-										continue;
-									}
+								for (h = e.b, m = h.c.length, u = new IO((BA(m + 2, hH), Uk(lP(lP(5, m + 2), (m + 2) / 10 | 0)))), g = new IO((BA(m + 2, hH), Uk(lP(lP(5, m + 2), (m + 2) / 10 | 0)))), Hb(u, new Pm()), Hb(u, new Pm()), Hb(g, new Nm()), Hb(g, new Nm()), C = new Nm(), t = 0; t < m; t++) for (n = (zE(t, h.c.length), P(h.c[t], 25)), w = (zE(t, u.c.length), P(u.c[t], 92)), _ = new Pm(), Vm(u.c, _), te = (zE(t, g.c.length), P(g.c[t], 16)), y = new Nm(), Vm(g.c, y), i = new E(n.a); i.a < i.c.c.length;) if (r = P(z(i), 9), FWe(r)) Vm(C.c, r);
+								else {
 									for (l = new JC(Qb(fP(r).a.Jc(), new f())); AR(l);) s = P(iO(l), 17), ne = s.c.i, FWe(ne) && (T = P(w.xc(K(ne, (Y(), e0))), 9), T || (T = b4e(e, ne), w.yc(K(ne, e0), T), te.Ec(T)), vE(s, P(hC(T.j, 1), 12)));
 									for (c = new JC(Qb(mP(r).a.Jc(), new f())); AR(c);) s = P(iO(c), 17), re = s.d.i, FWe(re) && (v = P(Lw(_, K(re, (Y(), e0))), 9), v || (v = b4e(e, re), aT(_, K(re, e0), v), Vm(y.c, v)), bE(s, P(hC(v.j, 0), 12)));
 								}
@@ -45663,58 +45078,50 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						function Plt(e, t, n, r, i) {
 							var a, o, s, c, l, u, d, f, p, m, h = !1, g, _;
 							for (c = !1, f = e + 1, m = (zE(e, t.c.length), P(t.c[e], 186)), s = m.a, l = null, o = 0; o < m.a.c.length; o++) if (a = (zE(o, s.c.length), P(s.c[o], 173)), !a.c) {
-								if (a.b.c.length == 0) {
-									Zg(), BI(m, a), --o, h = !0;
-									continue;
-								}
-								if (a.k || (l && bI(l), l = new pOe(l ? l.e + l.d + r : 0, m.f, r), ZF(a, l.e + l.d, m.f), Hb(m.d, l), xBe(l, a), a.k = !0), u = null, u = (_ = null, o < m.a.c.length - 1 ? _ = P(hC(m.a, o + 1), 173) : f < t.c.length && (zE(f, t.c.length), P(t.c[f], 186)).a.c.length != 0 && (_ = P(hC((zE(f, t.c.length), P(t.c[f], 186)).a, 0), 173)), _), g = !1, u && (g = !MN(u.j, m)), u) {
-									if (u.b.c.length != 0 && !jh(Vx(P(hC(u.b, 0), 26).mf((wz(), Y3))))) GO(a, n - a.s), bI(a.q), h |= z1e(m, a, u, n, r);
-									else {
-										BI(m, u);
-										break;
-									}
-									if (u.b.c.length == 0) for (t.c.length > f && BI((zE(f, t.c.length), P(t.c[f], 186)), u), u = null; t.c.length > f && (zE(f, t.c.length), P(t.c[f], 186)).a.c.length == 0;) lk(t, (zE(f, t.c.length), t.c[f]));
-									if (!u) {
-										--o;
-										continue;
-									}
-									if (!jh(Vx(P(hC(u.b, 0), 26).mf((wz(), Y3)))) && gnt(t, m, a, u, g, n, f, r)) {
-										h = !0;
-										continue;
-									}
-									if (g) {
-										if (p = m.b, d = u.f, !jh(Vx(P(hC(u.b, 0), 26).mf(Y3))) && sot(t, m, a, u, n, f, r, i)) {
-											if (h = !0, p < d) {
-												c = !0, u.j = m;
-												break;
-											}
+								if (a.b.c.length == 0) Zg(), BI(m, a), --o, h = !0;
+								else {
+									if (a.k || (l && bI(l), l = new pOe(l ? l.e + l.d + r : 0, m.f, r), ZF(a, l.e + l.d, m.f), Hb(m.d, l), xBe(l, a), a.k = !0), u = null, u = (_ = null, o < m.a.c.length - 1 ? _ = P(hC(m.a, o + 1), 173) : f < t.c.length && (zE(f, t.c.length), P(t.c[f], 186)).a.c.length != 0 && (_ = P(hC((zE(f, t.c.length), P(t.c[f], 186)).a, 0), 173)), _), g = !1, u && (g = !MN(u.j, m)), u) {
+										if (u.b.c.length != 0 && !jh(Vx(P(hC(u.b, 0), 26).mf((wz(), Y3))))) GO(a, n - a.s), bI(a.q), h |= z1e(m, a, u, n, r);
+										else {
+											BI(m, u);
+											break;
+										}
+										if (u.b.c.length == 0) for (t.c.length > f && BI((zE(f, t.c.length), P(t.c[f], 186)), u), u = null; t.c.length > f && (zE(f, t.c.length), P(t.c[f], 186)).a.c.length == 0;) lk(t, (zE(f, t.c.length), t.c[f]));
+										if (!u) {
+											--o;
 											continue;
 										}
-										if (AUe(m, a)) {
+										if (!jh(Vx(P(hC(u.b, 0), 26).mf((wz(), Y3)))) && gnt(t, m, a, u, g, n, f, r)) {
+											h = !0;
+											continue;
+										}
+										if (g) {
+											if (p = m.b, d = u.f, !jh(Vx(P(hC(u.b, 0), 26).mf(Y3))) && sot(t, m, a, u, n, f, r, i)) {
+												if (h = !0, p < d) {
+													c = !0, u.j = m;
+													break;
+												}
+												continue;
+											}
+											if (AUe(m, a)) {
+												a.c = !0, h = !0;
+												continue;
+											}
+										} else if (AUe(m, a)) {
 											a.c = !0, h = !0;
 											continue;
 										}
-									} else if (AUe(m, a)) {
-										a.c = !0, h = !0;
-										continue;
+										if (h) continue;
 									}
-									if (h) continue;
+									AUe(m, a) ? (a.c = !0, h = !0, u && (u.k = !1)) : bI(a.q);
 								}
-								if (AUe(m, a)) {
-									a.c = !0, h = !0, u && (u.k = !1);
-									continue;
-								}
-								bI(a.q);
 							}
 							return new gy((ax(), !!h), !!c);
 						}
 						function _V(e) {
 							var t, n, r;
-							if (e.d >= e.j) {
-								e.a = -1, e.c = 1;
-								return;
-							}
-							if (t = iT(e.i, e.d++), e.a = t, e.b == 1) {
+							if (e.d >= e.j) e.a = -1, e.c = 1;
+							else if (t = iT(e.i, e.d++), e.a = t, e.b == 1) {
 								switch (t) {
 									case 92:
 										if (r = 10, e.d >= e.j) throw D(new Vh(DV((xb(), zJ))));
@@ -45730,85 +45137,85 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 									default: (t & 64512) == uU && e.d < e.j && (n = iT(e.i, e.d), (n & 64512) == 56320 && (e.a = lU + (t - uU << 10) + n - 56320, ++e.d)), r = 0;
 								}
 								e.c = r;
-								return;
-							}
-							switch (t) {
-								case 124:
-									r = 2;
-									break;
-								case 42:
-									r = 3;
-									break;
-								case 43:
-									r = 4;
-									break;
-								case 63:
-									r = 5;
-									break;
-								case 41:
-									r = 7;
-									break;
-								case 46:
-									r = 8;
-									break;
-								case 91:
-									r = 9;
-									break;
-								case 94:
-									r = 11;
-									break;
-								case 36:
-									r = 12;
-									break;
-								case 40:
-									if (r = 6, e.d >= e.j || iT(e.i, e.d) != 63) break;
-									if (++e.d >= e.j) throw D(new Vh(DV((xb(), BJ))));
-									switch (t = iT(e.i, e.d++), t) {
-										case 58:
-											r = 13;
-											break;
-										case 61:
-											r = 14;
-											break;
-										case 33:
-											r = 15;
-											break;
-										case 91:
-											r = 19;
-											break;
-										case 62:
-											r = 18;
-											break;
-										case 60:
-											if (e.d >= e.j) throw D(new Vh(DV((xb(), BJ))));
-											if (t = iT(e.i, e.d++), t == 61) r = 16;
-											else if (t == 33) r = 17;
-											else throw D(new Vh(DV((xb(), Ngt))));
-											break;
-										case 35:
-											for (; e.d < e.j && (t = iT(e.i, e.d++), t != 41););
-											if (t != 41) throw D(new Vh(DV((xb(), Pgt))));
-											r = 21;
-											break;
-										default:
-											if (t == 45 || 97 <= t && t <= 122 || 65 <= t && t <= 90) {
-												--e.d, r = 22;
+							} else {
+								switch (t) {
+									case 124:
+										r = 2;
+										break;
+									case 42:
+										r = 3;
+										break;
+									case 43:
+										r = 4;
+										break;
+									case 63:
+										r = 5;
+										break;
+									case 41:
+										r = 7;
+										break;
+									case 46:
+										r = 8;
+										break;
+									case 91:
+										r = 9;
+										break;
+									case 94:
+										r = 11;
+										break;
+									case 36:
+										r = 12;
+										break;
+									case 40:
+										if (r = 6, e.d >= e.j || iT(e.i, e.d) != 63) break;
+										if (++e.d >= e.j) throw D(new Vh(DV((xb(), BJ))));
+										switch (t = iT(e.i, e.d++), t) {
+											case 58:
+												r = 13;
 												break;
-											}
-											if (t == 40) {
-												r = 23;
+											case 61:
+												r = 14;
 												break;
-											}
-											throw D(new Vh(DV((xb(), BJ))));
-									}
-									break;
-								case 92:
-									if (r = 10, e.d >= e.j) throw D(new Vh(DV((xb(), zJ))));
-									e.a = iT(e.i, e.d++);
-									break;
-								default: r = 0;
+											case 33:
+												r = 15;
+												break;
+											case 91:
+												r = 19;
+												break;
+											case 62:
+												r = 18;
+												break;
+											case 60:
+												if (e.d >= e.j) throw D(new Vh(DV((xb(), BJ))));
+												if (t = iT(e.i, e.d++), t == 61) r = 16;
+												else if (t == 33) r = 17;
+												else throw D(new Vh(DV((xb(), Ngt))));
+												break;
+											case 35:
+												for (; e.d < e.j && (t = iT(e.i, e.d++), t != 41););
+												if (t != 41) throw D(new Vh(DV((xb(), Pgt))));
+												r = 21;
+												break;
+											default:
+												if (t == 45 || 97 <= t && t <= 122 || 65 <= t && t <= 90) {
+													--e.d, r = 22;
+													break;
+												}
+												if (t == 40) {
+													r = 23;
+													break;
+												}
+												throw D(new Vh(DV((xb(), BJ))));
+										}
+										break;
+									case 92:
+										if (r = 10, e.d >= e.j) throw D(new Vh(DV((xb(), zJ))));
+										e.a = iT(e.i, e.d++);
+										break;
+									default: r = 0;
+								}
+								e.c = r;
 							}
-							e.c = r;
 						}
 						function Flt(e, t, n) {
 							var r, i, a, o, s, c, l, u, d, f, p, m, h, g;
@@ -45845,23 +45252,22 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}
 						function Ilt(e, t, n) {
 							var r, i, a, o, s, c, l, u, d, p, m, h, g, _, v, y, b, x, S;
-							if (n.Tg("Coffman-Graham Layering", 1), t.a.c.length == 0) {
-								n.Ug();
-								return;
+							if (n.Tg("Coffman-Graham Layering", 1), t.a.c.length == 0) n.Ug();
+							else {
+								for (S = P(K(t, (vV(), bOt)), 15).a, c = 0, o = 0, p = new E(t.a); p.a < p.c.c.length;) for (d = P(z(p), 9), d.p = c++, a = new JC(Qb(mP(d).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), i.p = o++;
+								for (e.d = V(J9, zU, 30, c, 16, 1), e.a = V(J9, zU, 30, o, 16, 1), e.b = V(q9, BH, 30, c, 15, 1), e.e = V(q9, BH, 30, c, 15, 1), e.f = V(q9, BH, 30, c, 15, 1), zA(e.c), gQe(e, t), h = new rw(new gne(e)), x = new E(t.a); x.a < x.c.c.length;) {
+									for (y = P(z(x), 9), a = new JC(Qb(fP(y).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), e.a[i.p] || ++e.b[y.p];
+									e.b[y.p] == 0 && WS(wL(h, y), gU);
+								}
+								for (s = 0; h.b.c.length != 0;) for (y = P(Ak(h), 9), e.f[y.p] = s++, a = new JC(Qb(mP(y).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), !e.a[i.p] && (_ = i.d.i, --e.b[_.p], vR(e.c, _, G(e.f[y.p])), e.b[_.p] == 0 && WS(wL(h, _), gU));
+								for (m = new rw(new _ne(e)), b = new E(t.a); b.a < b.c.c.length;) {
+									for (y = P(z(b), 9), a = new JC(Qb(mP(y).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), e.a[i.p] || ++e.e[y.p];
+									e.e[y.p] == 0 && WS(wL(m, y), gU);
+								}
+								for (u = new Nm(), r = BTe(t, u); m.b.c.length != 0;) for (v = P(Ak(m), 9), (r.a.c.length >= S || !KKe(v, r)) && (r = BTe(t, u)), yE(v, r), a = new JC(Qb(fP(v).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), !e.a[i.p] && (g = i.c.i, --e.e[g.p], e.e[g.p] == 0 && WS(wL(m, g), gU));
+								for (l = u.c.length - 1; l >= 0; --l) Hb(t.b, (zE(l, u.c.length), P(u.c[l], 25)));
+								t.a.c.length = 0, n.Ug();
 							}
-							for (S = P(K(t, (vV(), bOt)), 15).a, c = 0, o = 0, p = new E(t.a); p.a < p.c.c.length;) for (d = P(z(p), 9), d.p = c++, a = new JC(Qb(mP(d).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), i.p = o++;
-							for (e.d = V(J9, zU, 30, c, 16, 1), e.a = V(J9, zU, 30, o, 16, 1), e.b = V(q9, BH, 30, c, 15, 1), e.e = V(q9, BH, 30, c, 15, 1), e.f = V(q9, BH, 30, c, 15, 1), zA(e.c), gQe(e, t), h = new rw(new gne(e)), x = new E(t.a); x.a < x.c.c.length;) {
-								for (y = P(z(x), 9), a = new JC(Qb(fP(y).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), e.a[i.p] || ++e.b[y.p];
-								e.b[y.p] == 0 && WS(wL(h, y), gU);
-							}
-							for (s = 0; h.b.c.length != 0;) for (y = P(Ak(h), 9), e.f[y.p] = s++, a = new JC(Qb(mP(y).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), !e.a[i.p] && (_ = i.d.i, --e.b[_.p], vR(e.c, _, G(e.f[y.p])), e.b[_.p] == 0 && WS(wL(h, _), gU));
-							for (m = new rw(new _ne(e)), b = new E(t.a); b.a < b.c.c.length;) {
-								for (y = P(z(b), 9), a = new JC(Qb(mP(y).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), e.a[i.p] || ++e.e[y.p];
-								e.e[y.p] == 0 && WS(wL(m, y), gU);
-							}
-							for (u = new Nm(), r = BTe(t, u); m.b.c.length != 0;) for (v = P(Ak(m), 9), (r.a.c.length >= S || !KKe(v, r)) && (r = BTe(t, u)), yE(v, r), a = new JC(Qb(fP(v).a.Jc(), new f())); AR(a);) i = P(iO(a), 17), !e.a[i.p] && (g = i.c.i, --e.e[g.p], e.e[g.p] == 0 && WS(wL(m, g), gU));
-							for (l = u.c.length - 1; l >= 0; --l) Hb(t.b, (zE(l, u.c.length), P(u.c[l], 25)));
-							t.a.c.length = 0, n.Ug();
 						}
 						function Llt(e) {
 							var t, n, r, i, a, o, s, c, l;
@@ -46372,8 +45778,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							e.gb || (e.gb = !0, e.b = Vj(e, 0), uj(e.b, 18), dj(e.b, 19), e.a = Vj(e, 1), uj(e.a, 1), dj(e.a, 2), dj(e.a, 3), dj(e.a, 4), dj(e.a, 5), e.o = Vj(e, 2), uj(e.o, 8), uj(e.o, 9), dj(e.o, 10), dj(e.o, 11), dj(e.o, 12), dj(e.o, 13), dj(e.o, 14), dj(e.o, 15), dj(e.o, 16), dj(e.o, 17), dj(e.o, 18), dj(e.o, 19), dj(e.o, 20), dj(e.o, 21), dj(e.o, 22), dj(e.o, 23), Wk(e.o), Wk(e.o), Wk(e.o), Wk(e.o), Wk(e.o), Wk(e.o), Wk(e.o), Wk(e.o), Wk(e.o), Wk(e.o), e.p = Vj(e, 3), uj(e.p, 2), uj(e.p, 3), uj(e.p, 4), uj(e.p, 5), dj(e.p, 6), dj(e.p, 7), Wk(e.p), Wk(e.p), e.q = Vj(e, 4), uj(e.q, 8), e.v = Vj(e, 5), dj(e.v, 9), Wk(e.v), Wk(e.v), Wk(e.v), e.w = Vj(e, 6), uj(e.w, 2), uj(e.w, 3), uj(e.w, 4), dj(e.w, 5), e.B = Vj(e, 7), dj(e.B, 1), Wk(e.B), Wk(e.B), Wk(e.B), e.Q = Vj(e, 8), dj(e.Q, 0), Wk(e.Q), e.R = Vj(e, 9), uj(e.R, 1), e.S = Vj(e, 10), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), Wk(e.S), e.T = Vj(e, 11), dj(e.T, 10), dj(e.T, 11), dj(e.T, 12), dj(e.T, 13), dj(e.T, 14), Wk(e.T), Wk(e.T), e.U = Vj(e, 12), uj(e.U, 2), uj(e.U, 3), dj(e.U, 4), dj(e.U, 5), dj(e.U, 6), dj(e.U, 7), Wk(e.U), e.V = Vj(e, 13), dj(e.V, 10), e.W = Vj(e, 14), uj(e.W, 18), uj(e.W, 19), uj(e.W, 20), dj(e.W, 21), dj(e.W, 22), dj(e.W, 23), e.bb = Vj(e, 15), uj(e.bb, 10), uj(e.bb, 11), uj(e.bb, 12), uj(e.bb, 13), uj(e.bb, 14), uj(e.bb, 15), uj(e.bb, 16), dj(e.bb, 17), Wk(e.bb), Wk(e.bb), e.eb = Vj(e, 16), uj(e.eb, 2), uj(e.eb, 3), uj(e.eb, 4), uj(e.eb, 5), uj(e.eb, 6), uj(e.eb, 7), dj(e.eb, 8), dj(e.eb, 9), e.ab = Vj(e, 17), uj(e.ab, 0), uj(e.ab, 1), e.H = Vj(e, 18), dj(e.H, 0), dj(e.H, 1), dj(e.H, 2), dj(e.H, 3), dj(e.H, 4), dj(e.H, 5), Wk(e.H), e.db = Vj(e, 19), dj(e.db, 2), e.c = Hj(e, 20), e.d = Hj(e, 21), e.e = Hj(e, 22), e.f = Hj(e, 23), e.i = Hj(e, 24), e.g = Hj(e, 25), e.j = Hj(e, 26), e.k = Hj(e, 27), e.n = Hj(e, 28), e.r = Hj(e, 29), e.s = Hj(e, 30), e.t = Hj(e, 31), e.u = Hj(e, 32), e.fb = Hj(e, 33), e.A = Hj(e, 34), e.C = Hj(e, 35), e.D = Hj(e, 36), e.F = Hj(e, 37), e.G = Hj(e, 38), e.I = Hj(e, 39), e.J = Hj(e, 40), e.L = Hj(e, 41), e.M = Hj(e, 42), e.N = Hj(e, 43), e.O = Hj(e, 44), e.P = Hj(e, 45), e.X = Hj(e, 46), e.Y = Hj(e, 47), e.Z = Hj(e, 48), e.$ = Hj(e, 49), e._ = Hj(e, 50), e.cb = Hj(e, 51), e.K = Hj(e, 52));
 						}
 						function Qlt(e, t, n, i) {
-							var a, o, s, c, l, u, d, f, p, m, h;
-							for (f = kF(e.b, 0); f.b != f.d.c;) if (d = P(vD(f), 40), !hS(d.c, YK)) for (o = P(VD(new vC(null, new RE(Z4e(d, e), 16)), VO(new Se(), new xe(), new Te(), U(k(aZ, 1), Z, 130, 0, [(eN(), iZ)]))), 16), t == (HN(), v8) || t == y8 ? o.gd(new hs()) : o.gd(new gs()), h = o.gc(), a = 0; a < h; a++) s = h == 1 ? .5 : (1 + a) / (h + 1), t == v8 ? (u = O(N(K(d, (aV(), _3)))), d.e.a + d.f.a + i < u ? zy(P(o.Xb(a), 65).a, new A(u + n, d.e.b + d.f.b * s)) : P(o.Xb(a), 65).a.b > 0 && (c = P(Dx(P(o.Xb(a), 65).a), 8).a, p = d.e.a + d.f.a / 2, l = P(Dx(P(o.Xb(a), 65).a), 8).b, m = d.e.b + d.f.b / 2, i > 0 && r.Math.abs(l - m) / (r.Math.abs(c - p) / 40) > 50 && (m > l ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a + i / 5.3, d.e.b + d.f.b * s - i / 2)) : zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a + i / 5.3, d.e.b + d.f.b * s + i / 2)))), zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a, d.e.b + d.f.b * s))) : t == y8 ? (u = O(N(K(d, (aV(), v3)))), d.e.a - i > u ? zy(P(o.Xb(a), 65).a, new A(u - n, d.e.b + d.f.b * s)) : P(o.Xb(a), 65).a.b > 0 && (c = P(Dx(P(o.Xb(a), 65).a), 8).a, p = d.e.a + d.f.a / 2, l = P(Dx(P(o.Xb(a), 65).a), 8).b, m = d.e.b + d.f.b / 2, i > 0 && r.Math.abs(l - m) / (r.Math.abs(c - p) / 40) > 50 && (m > l ? zy(P(o.Xb(a), 65).a, new A(d.e.a - i / 5.3, d.e.b + d.f.b * s - i / 2)) : zy(P(o.Xb(a), 65).a, new A(d.e.a - i / 5.3, d.e.b + d.f.b * s + i / 2)))), zy(P(o.Xb(a), 65).a, new A(d.e.a, d.e.b + d.f.b * s))) : t == x8 ? (u = O(N(K(d, (aV(), _3)))), d.e.b + d.f.b + i < u ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, u + n)) : P(o.Xb(a), 65).a.b > 0 && (c = P(Dx(P(o.Xb(a), 65).a), 8).a, p = d.e.a + d.f.a / 2, l = P(Dx(P(o.Xb(a), 65).a), 8).b, m = d.e.b + d.f.b / 2, i > 0 && r.Math.abs(c - p) / (r.Math.abs(l - m) / 40) > 50 && (p > c ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s - i / 2, d.e.b + i / 5.3 + d.f.b)) : zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s + i / 2, d.e.b + i / 5.3 + d.f.b)))), zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, d.e.b + d.f.b))) : (u = O(N(K(d, (aV(), v3)))), wHe(P(o.Xb(a), 65), e) ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, P(Dx(P(o.Xb(a), 65).a), 8).b)) : d.e.b - i > u ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, u - n)) : P(o.Xb(a), 65).a.b > 0 && (c = P(Dx(P(o.Xb(a), 65).a), 8).a, p = d.e.a + d.f.a / 2, l = P(Dx(P(o.Xb(a), 65).a), 8).b, m = d.e.b + d.f.b / 2, i > 0 && r.Math.abs(c - p) / (r.Math.abs(l - m) / 40) > 50 && (p > c ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s - i / 2, d.e.b - i / 5.3)) : zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s + i / 2, d.e.b - i / 5.3)))), zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, d.e.b)));
+							for (var a, o, s, c, l, u, d, f = kF(e.b, 0), p, m, h; f.b != f.d.c;) if (d = P(vD(f), 40), !hS(d.c, YK)) for (o = P(VD(new vC(null, new RE(Z4e(d, e), 16)), VO(new Se(), new xe(), new Te(), U(k(aZ, 1), Z, 130, 0, [(eN(), iZ)]))), 16), t == (HN(), v8) || t == y8 ? o.gd(new hs()) : o.gd(new gs()), h = o.gc(), a = 0; a < h; a++) s = h == 1 ? .5 : (1 + a) / (h + 1), t == v8 ? (u = O(N(K(d, (aV(), _3)))), d.e.a + d.f.a + i < u ? zy(P(o.Xb(a), 65).a, new A(u + n, d.e.b + d.f.b * s)) : P(o.Xb(a), 65).a.b > 0 && (c = P(Dx(P(o.Xb(a), 65).a), 8).a, p = d.e.a + d.f.a / 2, l = P(Dx(P(o.Xb(a), 65).a), 8).b, m = d.e.b + d.f.b / 2, i > 0 && r.Math.abs(l - m) / (r.Math.abs(c - p) / 40) > 50 && (m > l ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a + i / 5.3, d.e.b + d.f.b * s - i / 2)) : zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a + i / 5.3, d.e.b + d.f.b * s + i / 2)))), zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a, d.e.b + d.f.b * s))) : t == y8 ? (u = O(N(K(d, (aV(), v3)))), d.e.a - i > u ? zy(P(o.Xb(a), 65).a, new A(u - n, d.e.b + d.f.b * s)) : P(o.Xb(a), 65).a.b > 0 && (c = P(Dx(P(o.Xb(a), 65).a), 8).a, p = d.e.a + d.f.a / 2, l = P(Dx(P(o.Xb(a), 65).a), 8).b, m = d.e.b + d.f.b / 2, i > 0 && r.Math.abs(l - m) / (r.Math.abs(c - p) / 40) > 50 && (m > l ? zy(P(o.Xb(a), 65).a, new A(d.e.a - i / 5.3, d.e.b + d.f.b * s - i / 2)) : zy(P(o.Xb(a), 65).a, new A(d.e.a - i / 5.3, d.e.b + d.f.b * s + i / 2)))), zy(P(o.Xb(a), 65).a, new A(d.e.a, d.e.b + d.f.b * s))) : t == x8 ? (u = O(N(K(d, (aV(), _3)))), d.e.b + d.f.b + i < u ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, u + n)) : P(o.Xb(a), 65).a.b > 0 && (c = P(Dx(P(o.Xb(a), 65).a), 8).a, p = d.e.a + d.f.a / 2, l = P(Dx(P(o.Xb(a), 65).a), 8).b, m = d.e.b + d.f.b / 2, i > 0 && r.Math.abs(c - p) / (r.Math.abs(l - m) / 40) > 50 && (p > c ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s - i / 2, d.e.b + i / 5.3 + d.f.b)) : zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s + i / 2, d.e.b + i / 5.3 + d.f.b)))), zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, d.e.b + d.f.b))) : (u = O(N(K(d, (aV(), v3)))), wHe(P(o.Xb(a), 65), e) ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, P(Dx(P(o.Xb(a), 65).a), 8).b)) : d.e.b - i > u ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, u - n)) : P(o.Xb(a), 65).a.b > 0 && (c = P(Dx(P(o.Xb(a), 65).a), 8).a, p = d.e.a + d.f.a / 2, l = P(Dx(P(o.Xb(a), 65).a), 8).b, m = d.e.b + d.f.b / 2, i > 0 && r.Math.abs(c - p) / (r.Math.abs(l - m) / 40) > 50 && (p > c ? zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s - i / 2, d.e.b - i / 5.3)) : zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s + i / 2, d.e.b - i / 5.3)))), zy(P(o.Xb(a), 65).a, new A(d.e.a + d.f.a * s, d.e.b)));
 						}
 						function $lt(e, t, n) {
 							var r, i, a, o = t, s, c, l, u, d, f = n, p, m, h, g, _, v, y, b, x, S;
@@ -47812,8 +47217,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Pb = function() {
 							return bIe(this);
 						}, Q.e = 1, L(BV, "AbstractIterator", 702), q(2049, 1, { 229: 1 }), Q.Zb = function() {
-							var e;
-							return e = this.f, e || (this.f = this.ac());
+							return this.f ||= this.ac();
 						}, Q.Fb = function(e) {
 							return HM(this, e);
 						}, Q.Hb = function() {
@@ -47900,8 +47304,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q._b = function(e) {
 							return !!ZQe(this, e, !1);
 						}, Q.uc = function(e) {
-							var t, n, r;
-							for (n = this.vc().Jc(); n.Ob();) if (t = P(n.Pb(), 45), r = t.kd(), j(e) === j(r) || e != null && MN(e, r)) return !0;
+							for (var t, n = this.vc().Jc(), r; n.Ob();) if (t = P(n.Pb(), 45), r = t.kd(), j(e) === j(r) || e != null && MN(e, r)) return !0;
 							return !1;
 						}, Q.Fb = function(e) {
 							var t, n, r;
@@ -48022,8 +47425,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, L(BV, "AbstractMapBasedMultimap/AsMap/AsMapEntries/0methodref$wrapEntry$Type", 1098), q(734, 1, UV, vSe), Q.Nb = function(e) {
 							pw(this, e);
 						}, Q.Pb = function() {
-							var e;
-							return e = P(this.b.Pb(), 45), this.a = P(e.kd(), 18), pNe(this.c, e);
+							var e = P(this.b.Pb(), 45);
+							return this.a = P(e.kd(), 18), pNe(this.c, e);
 						}, Q.Ob = function() {
 							return this.b.Ob();
 						}, Q.Qb = function() {
@@ -48052,8 +47455,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Hb = function() {
 							return sj(this.b.ec());
 						}, Q.Jc = function() {
-							var e;
-							return e = this.b.vc().Jc(), new Tce(this, e);
+							var e = this.b.vc().Jc();
+							return new Tce(this, e);
 						}, Q.Kc = function(e) {
 							var t, n = 0;
 							return t = P(this.b.Ac(e), 18), t && (n = t.gc(), t.$b(), this.a.d -= n), n > 0;
@@ -48080,8 +47483,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Rc = function() {
 							return this.Uc().Rc();
 						}, Q.Sc = function() {
-							var e;
-							return e = this.b, e || (this.b = this.Qc());
+							return this.b ||= this.Qc();
 						}, Q.Tc = function() {
 							return this.Uc().Tc();
 						}, Q.Uc = function() {
@@ -48091,11 +47493,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Qc = function() {
 							return new Lg(this.a, P(P(this.d, 134), 138));
 						}, Q.ec = function() {
-							var e;
-							return e = this.b, P(e || (this.b = new Lg(this.a, P(P(this.d, 134), 138))), 277);
+							var e = this.b;
+							return P(e || (this.b = new Lg(this.a, P(P(this.d, 134), 138))), 277);
 						}, Q.Sc = function() {
-							var e;
-							return e = this.b, P(e || (this.b = new Lg(this.a, P(P(this.d, 134), 138))), 277);
+							var e = this.b;
+							return P(e || (this.b = new Lg(this.a, P(P(this.d, 134), 138))), 277);
 						}, Q.Uc = function() {
 							return P(P(this.d, 134), 138);
 						}, Q.Vc = function(e) {
@@ -48261,15 +47663,15 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}), Q.Ic = function(e) {
 							Mw(e), fT(this).Ic(new hp(e));
 						}, Q.Lc = function() {
-							var e;
-							return e = fT(this).Lc(), bL(e, new _(), 64 | e.wd() & 1296, this.a.d);
+							var e = fT(this).Lc();
+							return bL(e, new _(), 64 | e.wd() & 1296, this.a.d);
 						}, Q.Ec = function(e) {
 							return Ioe(), !0;
 						}, Q.Fc = function(e) {
 							return Mw(this), Mw(e), M(e, 541) ? uje(P(e, 834)) : !e.dc() && Ok(this, e.Jc());
 						}, Q.Gc = function(e) {
-							var t;
-							return t = P(hN(ET(this.a), e), 18), (t ? t.gc() : 0) > 0;
+							var t = P(hN(ET(this.a), e), 18);
+							return (t ? t.gc() : 0) > 0;
 						}, Q.Fb = function(e) {
 							return W6e(this, e);
 						}, Q.Hb = function() {
@@ -48301,8 +47703,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.fc = function(e) {
 							return this.qd(e);
 						}, Q.Zb = function() {
-							var e;
-							return e = this.f, e || (this.f = this.ac());
+							return this.f ||= this.ac();
 						}, Q.od = function() {
 							return DT(), DT(), qX;
 						}, Q.Fb = function(e) {
@@ -48334,16 +47735,15 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.mc = function(e) {
 							return M(e, 277) ? Pwe(P(e, 277)) : (DT(), new Yme(P(e, 83)));
 						}, Q.Zb = function() {
-							var e;
-							return e = this.f, e || (this.f = M(this.c, 138) ? new Gx(this, P(this.c, 138)) : M(this.c, 134) ? new Wx(this, P(this.c, 134)) : new Pg(this, this.c));
+							return this.f ||= M(this.c, 138) ? new Gx(this, P(this.c, 138)) : M(this.c, 134) ? new Wx(this, P(this.c, 134)) : new Pg(this, this.c);
 						}, Q.pc = function(e, t) {
 							return M(t, 277) ? new qfe(this, e, P(t, 277)) : new yge(this, e, P(t, 83));
 						}, L(BV, "AbstractSortedSetMultimap", 1692), q(1693, 1692, HV), Q.Zb = function() {
-							var e;
-							return e = this.f, P(P(e || (this.f = M(this.c, 138) ? new Gx(this, P(this.c, 138)) : M(this.c, 134) ? new Wx(this, P(this.c, 134)) : new Pg(this, this.c)), 134), 138);
+							var e = this.f;
+							return P(P(e || (this.f = M(this.c, 138) ? new Gx(this, P(this.c, 138)) : M(this.c, 134) ? new Wx(this, P(this.c, 134)) : new Pg(this, this.c)), 134), 138);
 						}, Q.ec = function() {
-							var e;
-							return e = this.i, P(P(e || (this.i = M(this.c, 138) ? new Lg(this, P(this.c, 138)) : M(this.c, 134) ? new Ig(this, P(this.c, 134)) : new Xb(this, this.c)), 83), 277);
+							var e = this.i;
+							return P(P(e || (this.i = M(this.c, 138) ? new Lg(this, P(this.c, 138)) : M(this.c, 134) ? new Ig(this, P(this.c, 134)) : new Xb(this, this.c)), 83), 277);
 						}, Q.bc = function() {
 							return M(this.c, 138) ? new Lg(this, P(this.c, 138)) : M(this.c, 134) ? new Ig(this, P(this.c, 134)) : new Xb(this, this.c);
 						}, L(BV, "AbstractSortedKeySortedSetMultimap", 1693), q(2074, 1, { 2011: 1 }), Q.Fb = function(e) {
@@ -48839,8 +48239,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, L(BV, "ForwardingSortedSet", 2038), q(532, 2042, oH, iI), Q.zc = function(e) {
 							Tj(this, e);
 						}, Q.Bc = function() {
-							var e;
-							return e = this.d, new Cb(e || (this.d = new ip(this)));
+							var e = this.d;
+							return new Cb(e || (this.d = new ip(this)));
 						}, Q.$b = function() {
 							JD(this);
 						}, Q._b = function(e) {
@@ -48863,8 +48263,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.gc = function() {
 							return this.i;
 						}, Q.vd = function() {
-							var e;
-							return e = this.d, new Cb(e || (this.d = new ip(this)));
+							var e = this.d;
+							return new Cb(e || (this.d = new ip(this)));
 						}, Q.f = 0, Q.g = 0, Q.i = 0, L(BV, "HashBiMap", 532), q(533, 1, UV), Q.Nb = function(e) {
 							pw(this, e);
 						}, Q.Ob = function() {
@@ -48980,33 +48380,29 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, L(BV, "ImmutableMap/1", 614), q(1036, 1, {}, u), Q.Kb = function(e) {
 							return P(e, 45).jd();
 						}, L(BV, "ImmutableMap/2methodref$getKey$Type", 1036), q(1035, 1, {}, Kge), L(BV, "ImmutableMap/Builder", 1035), q(2063, 2044, cH), Q.Kd = function() {
-							var e;
-							return e = this.b, e || (this.b = new $f(this));
+							return this.b ||= new $f(this);
 						}, Q.Ld = function() {
 							return new Gbe(this, pI(this, V(iX, LV, 1, this.gc(), 5, 1)));
 						}, L(BV, "ImmutableSet/CachingAsList", 2063), q(2064, 2063, cH), Q.Jc = function() {
-							var e;
-							return e = KC(this.a).Md(), new Yf(e);
+							return new Yf(KC(this.a).Md());
 						}, Q.Ld = function() {
 							return new $f(this);
 						}, Q.Ic = function(e) {
 							var t, n;
 							for (Mw(e), n = this.gc(), t = 0; t < n; t++) e.Ad(P(KC(this.a).Kd().Xb(t), 45).jd());
 						}, Q.Md = function() {
-							var e;
-							return e = this.b, xx(e || (this.b = new $f(this)), 0);
+							var e = this.b;
+							return xx(e || (this.b = new $f(this)), 0);
 						}, Q.Lc = function() {
 							return dC(this.gc(), 1296, new Qf(this));
 						}, L(BV, "IndexedImmutableSet", 2064), q(1196, 2064, cH, Xf), Q.Jc = function() {
-							var e;
-							return e = KC(this.a).Md(), new Yf(e);
+							return new Yf(KC(this.a).Md());
 						}, Q.Gc = function(e) {
 							return this.a._b(e);
 						}, Q.Ic = function(e) {
 							Mw(e), Aj(this.a, new Jf(e));
 						}, Q.Md = function() {
-							var e;
-							return e = KC(this.a).Md(), new Yf(e);
+							return new Yf(KC(this.a).Md());
 						}, Q.gc = function() {
 							return this.a.gc();
 						}, Q.Lc = function() {
@@ -49138,8 +48534,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							var e;
 							return new RE((e = this.g, P(e || (this.g = new Yae(this)), 22)), 17);
 						}, Q.ec = function() {
-							var e;
-							return e = this.i, e || (this.i = new Xb(this, this.c));
+							return this.i ||= new Xb(this, this.c);
 						}, Q.nc = function() {
 							return new aoe(new Uwe(this));
 						}, Q.oc = function() {
@@ -49214,8 +48609,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Qb = function() {
 							mSe(this), TS(!!this.d), T7e(this.c, this.d.i), this.a = this.c.e, this.d = null;
 						}, Q.a = 0, L(BV, "LinkedHashMultimap/ValueSet/1", 1883), q(768, 2049, HV, pfe), Q.Zb = function() {
-							var e;
-							return e = this.f, e || (this.f = new Ple(this));
+							return this.f ||= new Ple(this);
 						}, Q.Fb = function(e) {
 							return HM(this, e);
 						}, Q.cc = function(e) {
@@ -49630,15 +49024,15 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, L(BV, "Streams/lambda$0$Type", 1118), q(1119, 1, _H, _p), Q.be = function() {
 							pQe(this.a);
 						}, L(BV, "Streams/lambda$1$Type", 1119), q(1694, 1693, HV, tDe), Q.Zb = function() {
-							var e;
-							return e = this.f, P(P(e || (this.f = M(this.c, 138) ? new Gx(this, P(this.c, 138)) : M(this.c, 134) ? new Wx(this, P(this.c, 134)) : new Pg(this, this.c)), 134), 138);
+							var e = this.f;
+							return P(P(e || (this.f = M(this.c, 138) ? new Gx(this, P(this.c, 138)) : M(this.c, 134) ? new Wx(this, P(this.c, 134)) : new Pg(this, this.c)), 134), 138);
 						}, Q.hc = function() {
 							return new Eg(this.b);
 						}, Q.nd = function() {
 							return new Eg(this.b);
 						}, Q.ec = function() {
-							var e;
-							return e = this.i, P(P(e || (this.i = M(this.c, 138) ? new Lg(this, P(this.c, 138)) : M(this.c, 134) ? new Ig(this, P(this.c, 134)) : new Xb(this, this.c)), 83), 277);
+							var e = this.i;
+							return P(P(e || (this.i = M(this.c, 138) ? new Lg(this, P(this.c, 138)) : M(this.c, 134) ? new Ig(this, P(this.c, 134)) : new Xb(this, this.c)), 83), 277);
 						}, Q.ac = function() {
 							return M(this.c, 138) ? new Gx(this, P(this.c, 138)) : M(this.c, 134) ? new Wx(this, P(this.c, 134)) : new Pg(this, this.c);
 						}, Q.ic = function(e) {
@@ -49696,8 +49090,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 								n.push(i);
 								var a = ":" + i, o = t[a];
 								if (o) {
-									var s, c;
-									for (s = 0, c = o.length; s < c; s++) if (o[s] === r) return;
+									for (var s = 0, c = o.length; s < c; s++) if (o[s] === r) return;
 								}
 								(o || (t[a] = [])).push(r), r = r.caller;
 							}
@@ -50097,8 +49490,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Gc = function(e) {
 							return this.a._b(e);
 						}, Q.Jc = function() {
-							var e;
-							return e = this.a.vc().Jc(), new rm(e);
+							return new rm(this.a.vc().Jc());
 						}, Q.Kc = function(e) {
 							return this.a._b(e) ? (this.a.Ac(e), !0) : !1;
 						}, Q.gc = function() {
@@ -50108,8 +49500,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Ob = function() {
 							return this.a.Ob();
 						}, Q.Pb = function() {
-							var e;
-							return e = P(this.a.Pb(), 45), e.jd();
+							return P(this.a.Pb(), 45).jd();
 						}, Q.Qb = function() {
 							this.a.Qb();
 						}, L(WV, "AbstractMap/1/1", 530), q(230, 31, KV, om), Q.$b = function() {
@@ -50117,8 +49508,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Gc = function(e) {
 							return this.a.uc(e);
 						}, Q.Jc = function() {
-							var e;
-							return e = this.a.vc().Jc(), new sm(e);
+							return new sm(this.a.vc().Jc());
 						}, Q.gc = function() {
 							return this.a.gc();
 						}, L(WV, "AbstractMap/2", 230), q(305, 1, UV, sm), Q.Nb = function(e) {
@@ -50126,8 +49516,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Ob = function() {
 							return this.a.Ob();
 						}, Q.Pb = function() {
-							var e;
-							return e = P(this.a.Pb(), 45), e.kd();
+							return P(this.a.Pb(), 45).kd();
 						}, Q.Qb = function() {
 							this.a.Qb();
 						}, L(WV, "AbstractMap/2/1", 305), q(480, 1, {
@@ -50541,8 +49930,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Hb = function() {
 							return sj(this.a);
 						}, L(WV, "Collections/UnmodifiableSortedSet", 693), q(843, 1, _U, se), Q.Le = function(e, t) {
-							var n;
-							return n = jMe(P(e, 12), P(t, 12)), n == 0 ? Fnt(P(e, 12), P(t, 12)) : n;
+							var n = jMe(P(e, 12), P(t, 12));
+							return n == 0 ? Fnt(P(e, 12), P(t, 12)) : n;
 						}, Q.Fb = function(e) {
 							return this === e;
 						}, Q.Me = function() {
@@ -50580,8 +49969,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q._b = function(e) {
 							return Hle(this, e);
 						}, Q.uc = function(e) {
-							var t, n;
-							for (n = new qg(this.a); n.a < n.c.a.length;) if (t = AD(n), oT(e, this.b[t.g])) return !0;
+							for (var t, n = new qg(this.a); n.a < n.c.a.length;) if (t = AD(n), oT(e, this.b[t.g])) return !0;
 							return !1;
 						}, Q.vc = function() {
 							return new Hee(this);
@@ -51048,8 +50436,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.De = function(e) {
 							return qS(this, LHe(this.c, e));
 						}, Q.Ee = function() {
-							var e;
-							return e = this.f.Re() ? this.a ? tF(this.c, this.b, !0) : tF(this.c, this.b, !1) : qFe(this.c), e && Kw(this, e.d) ? e : null;
+							var e = this.f.Re() ? this.a ? tF(this.c, this.b, !0) : tF(this.c, this.b, !1) : qFe(this.c);
+							return e && Kw(this, e.d) ? e : null;
 						}, Q.Fe = function(e) {
 							return qS(this, nF(this.c, e, !0));
 						}, Q.Ge = function(e) {
@@ -51297,8 +50685,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						q(1730, 1, $V, lte), Q.Ad = function(e) {
 							hVe(this.a, P(e, 49));
 						}, L(PU, sdt, 1730), q(1834, 1, {}, Be), Q.bf = function(e) {
-							var t, n, r, i, a, o, s;
-							for (n = new E(e.a.b); n.a < n.c.c.length;) t = P(z(n), 60), t.c.$b();
+							for (var t, n = new E(e.a.b), r, i, a, o, s; n.a < n.c.c.length;) t = P(z(n), 60), t.c.$b();
 							for (i = new E(e.a.b); i.a < i.c.c.length;) for (r = P(z(i), 60), o = new E(e.a.b); o.a < o.c.c.length;) a = P(z(o), 60), r != a && (r.a && r.a == a.a || (s = ib(e.d) ? e.g.ef(r, a) : e.g.df(r, a), (a.d.c > r.d.c || r.d.c == a.d.c && r.d.b < a.d.b) && $Ke(a.d.d + a.d.a + s, r.d.d) && eqe(a.d.d, r.d.d + r.d.a + s) && r.c.Ec(a)));
 						}, L(PU, "QuadraticConstraintCalculation", 1834), q(517, 1, { 517: 1 }, Fm), Q.a = !1, Q.b = !1, Q.c = !1, Q.d = !1, L(PU, cdt, 517), q(805, 1, {}, YSe), Q.bf = function(e) {
 							this.c = e, rR(this, new Ue());
@@ -51662,8 +51049,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var axt, oxt, sxt, MZ, cxt, lxt, uxt, dxt, fxt, pxt, mxt, hxt, gxt, _xt, NZ, vxt, PZ, yxt, bxt, xxt, FZ, IZ, Sxt, Cxt, wxt, Txt, Ext;
 						L(lW, "ForceOptions", 985), q(986, 1, {}, ct), Q.uf = function() {
-							var e;
-							return e = new Zie(), e;
+							return new Zie();
 						}, Q.vf = function(e) {}, L(lW, "ForceOptions/ForceFactory", 986);
 						var LZ, RZ, zZ, BZ;
 						q(846, 1, cW, zd), Q.tf = function(e) {
@@ -51675,8 +51061,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var VZ, Nxt, Pxt, Fxt, Ixt, Lxt, Rxt, zxt, Bxt, Vxt, Hxt, Uxt;
 						L(lW, "StressOptions", 989), q(990, 1, {}, lt), Q.uf = function() {
-							var e;
-							return e = new d_e(), e;
+							return new d_e();
 						}, Q.vf = function(e) {}, L(lW, "StressOptions/StressFactory", 990), q(1081, 214, $U, d_e), Q.kf = function(e, t) {
 							var n, r, i, a, o;
 							for (t.Tg(Bdt, 1), jh(Vx(J(e, (LI(), Ixt)))) ? jh(Vx(J(e, Hxt))) || eE((n = new hm((S_(), new Eh(e))), n)) : L8e(new Zie(), e, t.dh(1)), i = YVe(e), r = Srt(this.a, i), o = r.Jc(); o.Ob();) a = P(o.Pb(), 235), !(a.e.c.length <= 1) && (Xit(this.b, a), z6e(this.b), Qk(a.d, new ut()));
@@ -51834,70 +51219,66 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, L(BW, "RectilinearConvexHull/lambda$4$Type", 1684), q(1685, 1, {}, WOe), L(BW, "Scanline", 1685), q(2069, 1, {}), L(VW, "AbstractGraphPlacer", 2069), q(336, 1, { 336: 1 }, Ahe), Q.Df = function(e) {
 							return this.Ef(e) ? (vR(this.b, P(K(e, (Y(), N1)), 22), e), !0) : !1;
 						}, Q.Ef = function(e) {
-							var t = P(K(e, (Y(), N1)), 22), n, r;
-							for (r = P(cO(aQ, t), 22).Jc(); r.Ob();) if (n = P(r.Pb(), 22), !P(cO(this.b, n), 16).dc()) return !1;
+							for (var t = P(K(e, (Y(), N1)), 22), n, r = P(cO(aQ, t), 22).Jc(); r.Ob();) if (n = P(r.Pb(), 22), !P(cO(this.b, n), 16).dc()) return !1;
 							return !0;
 						};
 						var aQ;
 						L(VW, "ComponentGroup", 336), q(766, 2069, {}, tae), Q.Ff = function(e) {
-							var t, n;
-							for (n = new E(this.a); n.a < n.c.c.length;) if (t = P(z(n), 336), t.Df(e)) return;
+							for (var t, n = new E(this.a); n.a < n.c.c.length;) if (t = P(z(n), 336), t.Df(e)) return;
 							Hb(this.a, new Ahe(e));
 						}, Q.Cf = function(e, t) {
 							var n, r, i, a, o, s, c, l, u, d, f, p, m;
-							if (this.a.c.length = 0, t.a.c.length = 0, e.dc()) {
-								t.f.a = 0, t.f.b = 0;
-								return;
+							if (this.a.c.length = 0, t.a.c.length = 0, e.dc()) t.f.a = 0, t.f.b = 0;
+							else {
+								for (o = P(e.Xb(0), 36), Jj(t, o), i = e.Jc(); i.Ob();) r = P(i.Pb(), 36), this.Ff(r);
+								for (m = new mg(), a = O(N(K(o, (vV(), J2)))), l = new E(this.a); l.a < l.c.c.length;) s = P(z(l), 336), u = hlt(s, a), BO(Fw(s.b), m.a, m.b), m.a += u.a, m.b += u.b;
+								if (t.f.a = m.a - a, t.f.b = m.b - a, jh(Vx(K(o, N0))) && j(K(o, a2)) === j((KN(), O8))) {
+									for (p = e.Jc(); p.Ob();) d = P(p.Pb(), 36), Nz(d, d.c.a, d.c.b);
+									for (n = new Dt(), blt(n, e, a), f = e.Jc(); f.Ob();) d = P(f.Pb(), 36), lS(Ky(d.c), n.e);
+									lS(Ky(t.f), n.a);
+								}
+								for (c = new E(this.a); c.a < c.c.c.length;) s = P(z(c), 336), OFe(t, Fw(s.b));
 							}
-							for (o = P(e.Xb(0), 36), Jj(t, o), i = e.Jc(); i.Ob();) r = P(i.Pb(), 36), this.Ff(r);
-							for (m = new mg(), a = O(N(K(o, (vV(), J2)))), l = new E(this.a); l.a < l.c.c.length;) s = P(z(l), 336), u = hlt(s, a), BO(Fw(s.b), m.a, m.b), m.a += u.a, m.b += u.b;
-							if (t.f.a = m.a - a, t.f.b = m.b - a, jh(Vx(K(o, N0))) && j(K(o, a2)) === j((KN(), O8))) {
-								for (p = e.Jc(); p.Ob();) d = P(p.Pb(), 36), Nz(d, d.c.a, d.c.b);
-								for (n = new Dt(), blt(n, e, a), f = e.Jc(); f.Ob();) d = P(f.Pb(), 36), lS(Ky(d.c), n.e);
-								lS(Ky(t.f), n.a);
-							}
-							for (c = new E(this.a); c.a < c.c.c.length;) s = P(z(c), 336), OFe(t, Fw(s.b));
 						}, L(VW, "ComponentGroupGraphPlacer", 766), q(1278, 766, {}, pae), Q.Ff = function(e) {
 							cWe(this, e);
 						}, Q.Cf = function(e, t) {
 							var n, i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b;
-							if (this.a.c.length = 0, t.a.c.length = 0, e.dc()) {
-								t.f.a = 0, t.f.b = 0;
-								return;
-							}
-							for (s = P(e.Xb(0), 36), Jj(t, s), a = e.Jc(); a.Ob();) i = P(a.Pb(), 36), cWe(this, i);
-							for (b = new mg(), y = new mg(), g = new mg(), h = new mg(), o = O(N(K(s, (vV(), J2)))), u = new E(this.a); u.a < u.c.c.length;) {
-								if (c = P(z(u), 336), ib(P(K(t, (xV(), B6)), 86))) {
-									for (g.a = b.a, v = new bh(Pw(jwe(c.b).a).a.kc()); v.b.Ob();) if (_ = P(j_(v.b.Pb()), 22), _.Gc((oV(), p5))) {
-										g.a = y.a;
-										break;
+							if (this.a.c.length = 0, t.a.c.length = 0, e.dc()) t.f.a = 0, t.f.b = 0;
+							else {
+								for (s = P(e.Xb(0), 36), Jj(t, s), a = e.Jc(); a.Ob();) i = P(a.Pb(), 36), cWe(this, i);
+								for (b = new mg(), y = new mg(), g = new mg(), h = new mg(), o = O(N(K(s, (vV(), J2)))), u = new E(this.a); u.a < u.c.c.length;) {
+									if (c = P(z(u), 336), ib(P(K(t, (xV(), B6)), 86))) {
+										for (g.a = b.a, v = new bh(Pw(jwe(c.b).a).a.kc()); v.b.Ob();) if (_ = P(j_(v.b.Pb()), 22), _.Gc((oV(), p5))) {
+											g.a = y.a;
+											break;
+										}
+									} else if (ab(P(K(t, B6), 86))) {
+										for (g.b = b.b, v = new bh(Pw(jwe(c.b).a).a.kc()); v.b.Ob();) if (_ = P(j_(v.b.Pb()), 22), _.Gc((oV(), M5))) {
+											g.b = y.b;
+											break;
+										}
 									}
-								} else if (ab(P(K(t, B6), 86))) {
-									for (g.b = b.b, v = new bh(Pw(jwe(c.b).a).a.kc()); v.b.Ob();) if (_ = P(j_(v.b.Pb()), 22), _.Gc((oV(), M5))) {
-										g.b = y.b;
-										break;
+									if (d = hlt(P(c, 565), o), BO(Fw(c.b), g.a, g.b), ib(P(K(t, B6), 86))) {
+										for (y.a = g.a + d.a, h.a = r.Math.max(h.a, y.a), v = new bh(Pw(jwe(c.b).a).a.kc()); v.b.Ob();) if (_ = P(j_(v.b.Pb()), 22), _.Gc((oV(), A5))) {
+											b.a = g.a + d.a;
+											break;
+										}
+										y.b = g.b + d.b, g.b = y.b, h.b = r.Math.max(h.b, g.b);
+									} else if (ab(P(K(t, B6), 86))) {
+										for (y.b = g.b + d.b, h.b = r.Math.max(h.b, y.b), v = new bh(Pw(jwe(c.b).a).a.kc()); v.b.Ob();) if (_ = P(j_(v.b.Pb()), 22), _.Gc((oV(), f5))) {
+											b.b = g.b + d.b;
+											break;
+										}
+										y.a = g.a + d.a, g.a = y.a, h.a = r.Math.max(h.a, g.a);
 									}
 								}
-								if (d = hlt(P(c, 565), o), BO(Fw(c.b), g.a, g.b), ib(P(K(t, B6), 86))) {
-									for (y.a = g.a + d.a, h.a = r.Math.max(h.a, y.a), v = new bh(Pw(jwe(c.b).a).a.kc()); v.b.Ob();) if (_ = P(j_(v.b.Pb()), 22), _.Gc((oV(), A5))) {
-										b.a = g.a + d.a;
-										break;
-									}
-									y.b = g.b + d.b, g.b = y.b, h.b = r.Math.max(h.b, g.b);
-								} else if (ab(P(K(t, B6), 86))) {
-									for (y.b = g.b + d.b, h.b = r.Math.max(h.b, y.b), v = new bh(Pw(jwe(c.b).a).a.kc()); v.b.Ob();) if (_ = P(j_(v.b.Pb()), 22), _.Gc((oV(), f5))) {
-										b.b = g.b + d.b;
-										break;
-									}
-									y.a = g.a + d.a, g.a = y.a, h.a = r.Math.max(h.a, g.a);
+								if (t.f.a = h.a - o, t.f.b = h.b - o, jh(Vx(K(s, N0))) && j(K(s, a2)) === j((KN(), O8))) {
+									for (m = e.Jc(); m.Ob();) f = P(m.Pb(), 36), Nz(f, f.c.a, f.c.b);
+									for (n = new Dt(), blt(n, e, o), p = e.Jc(); p.Ob();) f = P(p.Pb(), 36), lS(Ky(f.c), n.e);
+									lS(Ky(t.f), n.a);
 								}
+								for (l = new E(this.a); l.a < l.c.c.length;) c = P(z(l), 336), OFe(t, Fw(c.b));
 							}
-							if (t.f.a = h.a - o, t.f.b = h.b - o, jh(Vx(K(s, N0))) && j(K(s, a2)) === j((KN(), O8))) {
-								for (m = e.Jc(); m.Ob();) f = P(m.Pb(), 36), Nz(f, f.c.a, f.c.b);
-								for (n = new Dt(), blt(n, e, o), p = e.Jc(); p.Ob();) f = P(p.Pb(), 36), lS(Ky(f.c), n.e);
-								lS(Ky(t.f), n.a);
-							}
-							for (l = new E(this.a); l.a < l.c.c.length;) c = P(z(l), 336), OFe(t, Fw(c.b));
 						}, L(VW, "ComponentGroupModelOrderGraphPlacer", 1278), q(383, 24, {
 							3: 1,
 							35: 1,
@@ -51944,20 +51325,16 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						var lQ;
 						L(VW, "ModelOrderComponentGroup", 565), q(1276, 2069, {}, kt), Q.Cf = function(e, t) {
 							var n, i, a, o, s, c, l, u, d, f, p;
-							if (e.gc() == 1) {
-								f = P(e.Xb(0), 36), f != t && (t.a.c.length = 0, vtt(t, f, 0, 0), Jj(t, f), AEe(t.d, f.d), t.f.a = f.f.a, t.f.b = f.f.b);
-								return;
+							if (e.gc() == 1) f = P(e.Xb(0), 36), f != t && (t.a.c.length = 0, vtt(t, f, 0, 0), Jj(t, f), AEe(t.d, f.d), t.f.a = f.f.a, t.f.b = f.f.b);
+							else if (e.dc()) t.a.c.length = 0, t.f.a = 0, t.f.b = 0;
+							else {
+								for (this.Hf(e, t), a = P(e.Xb(0), 36), t.a.c.length = 0, Jj(t, a), u = 0, p = 0, s = e.Jc(); s.Ob();) o = P(s.Pb(), 36), d = o.f, u = r.Math.max(u, d.a), p += d.a * d.b;
+								if (u = r.Math.max(u, r.Math.sqrt(p) * O(N(K(t, (vV(), j0))))), i = O(N(K(t, J2))), this.Gf(e, t, u, i), jh(Vx(K(a, N0)))) {
+									for (n = new Dt(), blt(n, e, i), l = e.Jc(); l.Ob();) c = P(l.Pb(), 36), lS(Ky(c.c), n.e);
+									lS(Ky(t.f), n.a);
+								}
+								OFe(t, e);
 							}
-							if (e.dc()) {
-								t.a.c.length = 0, t.f.a = 0, t.f.b = 0;
-								return;
-							}
-							for (this.Hf(e, t), a = P(e.Xb(0), 36), t.a.c.length = 0, Jj(t, a), u = 0, p = 0, s = e.Jc(); s.Ob();) o = P(s.Pb(), 36), d = o.f, u = r.Math.max(u, d.a), p += d.a * d.b;
-							if (u = r.Math.max(u, r.Math.sqrt(p) * O(N(K(t, (vV(), j0))))), i = O(N(K(t, J2))), this.Gf(e, t, u, i), jh(Vx(K(a, N0)))) {
-								for (n = new Dt(), blt(n, e, i), l = e.Jc(); l.Ob();) c = P(l.Pb(), 36), lS(Ky(c.c), n.e);
-								lS(Ky(t.f), n.a);
-							}
-							OFe(t, e);
 						}, Q.Gf = function(e, t, n, i) {
 							var a, o, s, c, l, u, d = 0, f = 0;
 							for (c = 0, a = i, s = e.Jc(); s.Ob();) o = P(s.Pb(), 36), u = o.f, d + u.a > n && (d = 0, f += c + i, c = 0), l = o.c, Nz(o, d + l.a, f + l.b), Ky(l), a = r.Math.max(a, d + u.a), c = r.Math.max(c, u.b), d += u.a + i;
@@ -51984,13 +51361,13 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, L(VW, "SimpleRowGraphPlacer/1", 1277);
 						var fSt;
 						q(1246, 1, LU, Mt), Q.Lb = function(e) {
-							var t;
-							return t = P(K(P(e, 250).b, (vV(), m2)), 79), !!t && t.b != 0;
+							var t = P(K(P(e, 250).b, (vV(), m2)), 79);
+							return !!t && t.b != 0;
 						}, Q.Fb = function(e) {
 							return this === e;
 						}, Q.Mb = function(e) {
-							var t;
-							return t = P(K(P(e, 250).b, (vV(), m2)), 79), !!t && t.b != 0;
+							var t = P(K(P(e, 250).b, (vV(), m2)), 79);
+							return !!t && t.b != 0;
 						}, L(GW, "CompoundGraphPostprocessor/1", 1246), q(1245, 1, KW, oae), Q.If = function(e, t) {
 							zJe(this, P(e, 36), t);
 						}, L(GW, "CompoundGraphPreprocessor", 1245), q(444, 1, { 444: 1 }, cGe), Q.c = !1, L(GW, "CompoundGraphPreprocessor/ExternalPort", 444), q(250, 1, { 250: 1 }, AS), Q.Ib = function() {
@@ -52222,8 +51599,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, L(qW, "LPort/1/1", 1275), q(365, 1, rH, ym), Q.Ic = function(e) {
 							qD(this, e);
 						}, Q.Jc = function() {
-							var e;
-							return e = new E(this.a.g), new xte(e);
+							return new xte(new E(this.a.g));
 						}, L(qW, "LPort/2", 365), q(763, 1, UV, xte), Q.Nb = function(e) {
 							pw(this, e);
 						}, Q.Pb = function() {
@@ -53322,8 +52698,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var k0, A0, j0, M0, N0, ZDt, P0, F0, I0, L0, R0, QDt, $Dt, eOt, z0, tOt, B0, V0, H0, U0, W0, G0, K0, q0, nOt, J0, Y0, rOt, iOt, aOt, oOt, X0, Z0, Q0, $0, sOt, e2, cOt, lOt, t2, n2, r2, i2, a2, uOt, dOt, fOt, o2, s2, pOt, c2, l2, mOt, u2, hOt, gOt, _Ot, d2, f2, p2, vOt, yOt, m2, bOt, xOt, h2, g2, SOt, COt, wOt, _2, v2, y2, b2, x2, TOt, S2, EOt, DOt, C2, w2, OOt, T2, E2, kOt, D2, O2, k2, A2, j2, M2, N2, P2, F2, AOt, jOt, MOt, I2, NOt, POt, FOt, IOt, LOt, L2, R2, z2, B2, ROt, V2, zOt, H2, BOt, U2, VOt, W2, HOt, G2, UOt, WOt, K2, q2, GOt, J2, Y2, X2, Z2, Q2, $2, e4, t4, n4, r4, i4, a4, o4, s4, c4, l4, u4, KOt, qOt, JOt, YOt, XOt, d4, ZOt, QOt, $Ot, ekt, f4, tkt, nkt, rkt, ikt, p4, m4;
 						L(fG, "LayeredOptions", 983), q(984, 1, {}, ka), Q.uf = function() {
-							var e;
-							return e = new Qie(), e;
+							return new Qie();
 						}, Q.vf = function(e) {}, L(fG, "LayeredOptions/LayeredFactory", 984), q(1346, 1, {}), Q.a = 0;
 						var akt;
 						L(AK, "ElkSpacings/AbstractSpacingsBuilder", 1346), q(779, 1346, {}, VGe);
@@ -53480,16 +52855,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.If = function(e, t) {
 							Mrt(this, P(e, 36), t);
 						}, Q.rg = function(e, t) {
-							var n, r, i, a, o, s, c, l, u, d;
-							for (o = 0; o < this.d.b; o++) {
+							for (var n, r, i, a, o = 0, s, c, l, u, d; o < this.d.b; o++) {
 								for (s = null, n = new Fa(), c = yH, d = P(VF(this.d, o), 22).Jc(); d.Ob();) u = P(d.Pb(), 9), a = j(K(this.a, (vV(), R0))) === j((bM(), _1)), s ? (l = a ? CR(n, u, t, e) : QL(n, u, e), c < l && (s = u, c = l)) : (s = u, c = a ? CR(n, u, t, e) : QL(n, u, e));
 								for (i = new JC(Qb(mP(s).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), P(VF(this.d, o), 22).Gc(r.d.i) && Hb(this.c, r);
 							}
 						};
 						var mAt;
 						L(MK, "SCCModelOrderCycleBreaker", 781), q(1359, 781, jK, cfe), Q.rg = function(e, t) {
-							var n, r, i, a, o, s, c, l, u, d, p, m;
-							for (o = 0; o < this.d.b; o++) if (!(P(VF(this.d, o), 22).gc() <= 1)) {
+							for (var n, r, i, a, o = 0, s, c, l, u, d, p, m; o < this.d.b; o++) if (!(P(VF(this.d, o), 22).gc() <= 1)) {
 								for (c = null, s = null, d = MV, u = yH, a = j(K(this.a, (vV(), R0))) === j((bM(), _1)), n = new Fa(), m = P(VF(this.d, o), 22).Jc(); m.Ob();) p = P(m.Pb(), 9), !c || !s ? (c = p, d = a ? CR(n, p, t, e) : QL(n, p, e), s = p, u = d) : (l = a ? CR(n, p, t, e) : QL(n, p, e), d > l && (c = p, d = l), u < l && (s = p, u = l));
 								if (j(K(c, V0)) === j(K(this.a, QDt))) for (i = new JC(Qb(fP(c).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), P(VF(this.d, o), 22).Gc(r.c.i) && Hb(this.c, r);
 								else if (j(K(s, V0)) === j(K(this.a, $Dt))) for (i = new JC(Qb(mP(s).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), P(VF(this.d, o), 22).Gc(r.c.i) && Hb(this.c, r);
@@ -53497,8 +52870,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 								else for (i = new JC(Qb(mP(s).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), P(VF(this.d, o), 22).Gc(r.d.i) && Hb(this.c, r);
 							}
 						}, L(MK, "SCCNodeTypeCycleBreaker", 1359), q(1358, 781, jK, sfe), Q.rg = function(e, t) {
-							var n, r, i, a, o, s, c, l, u, d, p, m;
-							for (o = 0; o < this.d.b; o++) if (!(P(VF(this.d, o), 22).gc() <= 1)) {
+							for (var n, r, i, a, o = 0, s, c, l, u, d, p, m; o < this.d.b; o++) if (!(P(VF(this.d, o), 22).gc() <= 1)) {
 								for (c = null, s = null, d = MV, u = yH, a = j(K(this.a, (vV(), R0))) === j((bM(), _1)), n = new Fa(), m = P(VF(this.d, o), 22).Jc(); m.Ob();) p = P(m.Pb(), 9), !c || !s ? (c = p, d = a ? CR(n, p, t, e) : QL(n, p, e), s = p, u = d) : (l = a ? CR(n, p, t, e) : QL(n, p, e), d > l && (c = p, d = l), u < l && (s = p, u = l));
 								if (SD(new JC(Qb(fP(c).a.Jc(), new f()))) > SD(new JC(Qb(mP(s).a.Jc(), new f())))) for (i = new JC(Qb(fP(c).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), P(VF(this.d, o), 22).Gc(r.c.i) && Hb(this.c, r);
 								else for (i = new JC(Qb(mP(s).a.Jc(), new f())); AR(i);) r = P(iO(i), 17), P(VF(this.d, o), 22).Gc(r.d.i) && Hb(this.c, r);
@@ -53760,8 +53132,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							for (yot(this, i, n ? t - 1 : t + 1), DT(), Tb(i, this.b), a = 0, s = new E(i); s.a < s.c.c.length;) o = P(z(s), 9), e[t][a++] = o;
 							return !1;
 						}, Q.kg = function(e, t) {
-							var n = t ? 0 : r.Math.max(0, e.length - 1), i = lO(e[n]), a, o, s, c;
-							for (c = new E(i); c.a < c.c.c.length;) o = P(z(c), 9), W(o, (Y(), x0), IC(this.a));
+							for (var n = t ? 0 : r.Math.max(0, e.length - 1), i = lO(e[n]), a, o, s, c = new E(i); c.a < c.c.c.length;) o = P(z(c), 9), W(o, (Y(), x0), IC(this.a));
 							for (DT(), Tb(i, this.b), a = 0, s = new E(i); s.a < s.c.c.length;) o = P(z(s), 9), e[n][a++] = o, W(o, (Y(), x0), a);
 							return !1;
 						}, L(PK, "MedianHeuristic", 1847), q(1848, 1, NU, Oa), Q.Le = function(e, t) {
@@ -54040,7 +53411,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							var r, i = t == n, a;
 							return r = this.a.a[n.p] == t, i || r ? (a = e, this.a.c, $T(), i && (a = Fit(this, t, !0)), !isNaN(a) && !isFinite(a) && r && (a = Fit(this, n, !1)), a) : e;
 						}, Q.wg = function() {
-							for (var e, t, n, r, i; this.d.b != 0;) i = P(iOe(this.d), 577), r = Bnt(this, i), r.a && (e = r.a, n = jh(this.a.f[this.a.g[i.b.p].p]), !(!n && !$D(e) && e.c.i.c == e.d.i.c) && (t = q6e(this, i), t || Mfe(this.e, i)));
+							for (var e, t, n, r, i; this.d.b != 0;) i = P(iOe(this.d), 577), r = Bnt(this, i), r.a && (e = r.a, n = jh(this.a.f[this.a.g[i.b.p].p]), (n || $D(e) || e.c.i.c != e.d.i.c) && (t = q6e(this, i), t || Mfe(this.e, i)));
 							for (; this.e.a.c.length != 0;) q6e(this, P(aUe(this.e), 577));
 						}, L(zK, "ThresholdStrategy/SimpleThresholdStrategy", 1799), q(636, 1, {
 							636: 1,
@@ -54124,7 +53495,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return new vC(null, new RE(P(e, 116).j, 16));
 						}, L(VK, "OrthogonalRoutingGenerator/lambda$1$Type", 1672), q(661, 1, {}), L(HK, "BaseRoutingDirectionStrategy", 661), q(1852, 661, {}, vae), Q.xg = function(e, t, n) {
 							var i, a, o, s, c, l, u, d, f, p, m, h, g;
-							if (!(e.r && !e.q)) for (d = t + e.o * n, u = new E(e.n); u.a < u.c.c.length;) for (l = P(z(u), 12), f = MM(U(k(w6, 1), X, 8, 0, [
+							if (!e.r || e.q) for (d = t + e.o * n, u = new E(e.n); u.a < u.c.c.length;) for (l = P(z(u), 12), f = MM(U(k(w6, 1), X, 8, 0, [
 								l.i.n,
 								l.n,
 								l.a
@@ -54141,7 +53512,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return oV(), p5;
 						}, L(HK, "NorthToSouthRoutingStrategy", 1852), q(1853, 661, {}, yae), Q.xg = function(e, t, n) {
 							var i, a, o, s, c, l, u, d, f, p, m, h, g;
-							if (!(e.r && !e.q)) for (d = t - e.o * n, u = new E(e.n); u.a < u.c.c.length;) for (l = P(z(u), 12), f = MM(U(k(w6, 1), X, 8, 0, [
+							if (!e.r || e.q) for (d = t - e.o * n, u = new E(e.n); u.a < u.c.c.length;) for (l = P(z(u), 12), f = MM(U(k(w6, 1), X, 8, 0, [
 								l.i.n,
 								l.n,
 								l.a
@@ -54158,7 +53529,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return oV(), A5;
 						}, L(HK, "SouthToNorthRoutingStrategy", 1853), q(1851, 661, {}, bae), Q.xg = function(e, t, n) {
 							var i, a, o, s, c, l, u, d, f, p, m, h, g;
-							if (!(e.r && !e.q)) for (d = t + e.o * n, u = new E(e.n); u.a < u.c.c.length;) for (l = P(z(u), 12), f = MM(U(k(w6, 1), X, 8, 0, [
+							if (!e.r || e.q) for (d = t + e.o * n, u = new E(e.n); u.a < u.c.c.length;) for (l = P(z(u), 12), f = MM(U(k(w6, 1), X, 8, 0, [
 								l.i.n,
 								l.n,
 								l.a
@@ -54305,8 +53676,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						q(236, 1, rH, xm), Q.Ic = function(e) {
 							qD(this, e);
 						}, Q.Jc = function() {
-							var e;
-							return e = kF(this.a.d, 0), new Sm(e);
+							return new Sm(kF(this.a.d, 0));
 						}, L(XK, "TNode/2", 236), q(334, 1, UV, Sm), Q.Nb = function(e) {
 							pw(this, e);
 						}, Q.Pb = function() {
@@ -54448,8 +53818,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var oMt, sMt, cMt, E3, lMt, uMt, dMt, fMt, pMt, mMt, hMt, gMt, _Mt, vMt, yMt, bMt, xMt, SMt, D3, O3, CMt, wMt, TMt, EMt, DMt, OMt, kMt, AMt, jMt, k3, MMt;
 						L($K, "MrTreeOptions", 991), q(992, 1, {}, Qo), Q.uf = function() {
-							var e;
-							return e = new g_e(), e;
+							return new g_e();
 						}, Q.vf = function(e) {}, L($K, "MrTreeOptions/MrtreeFactory", 992), q(353, 24, {
 							3: 1,
 							35: 1,
@@ -54698,8 +54067,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var TNt, ENt, DNt, ONt, kNt, ANt, jNt, MNt, NNt, F3, PNt, FNt, I3, INt, LNt, RNt, zNt, L3, BNt, VNt;
 						L(sq, "RadialOptions", 993), q(994, 1, {}, js), Q.uf = function() {
-							var e;
-							return e = new dce(), e;
+							return new dce();
 						}, Q.vf = function(e) {}, L(sq, "RadialOptions/RadialFactory", 994), q(354, 24, {
 							3: 1,
 							35: 1,
@@ -54756,17 +54124,17 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 								++o;
 							}
 							else w = !0;
-							if (!w) {
+							if (w) {
+								for (n = (lT(this.a), xw(this.a, (QP(), R3), P(J(e, eFt), 188)), xw(this.a, z3, P(J(e, qPt), 188)), xw(this.a, $Nt, P(J(e, ZPt), 188)), Lfe(this.a, (te = new Qw(), cC(te, R3, (SL(), iPt)), cC(te, z3, rPt), jh(Vx(J(e, WPt))) && cC(te, R3, aPt), jh(Vx(J(e, IPt))) && cC(te, R3, nPt), te)), WB(this.a, e)), u = 1 / n.c.length, ee = 0, h = new E(n); h.a < h.c.c.length;) {
+									if (m = P(z(h), 43), t.Zg()) return;
+									m.If(e, t.dh(u)), ++ee;
+								}
+								for (_ = 0, g = 0, y = new Yb(b); y.e != y.i.gc();) v = P(MF(y), 26), _ = r.Math.max(_, v.i + v.g), g = r.Math.max(g, v.j + v.f);
+								k2e(e, new A(O(N(J(e, (Oz(), H3)))), O(N(J(e, V3)))), new A(_, g)), GBe(b, f), l || sV(e, O(N(J(e, H3))) + (f.b + f.c), O(N(J(e, V3))) + (f.d + f.a), !1, !0), jh(Vx(J(e, UPt))) || eE((i = new hm((S_(), new Eh(e))), i)), t.Ug();
+							} else {
 								for (p = b.i, c = new Yb(b); c.e != c.i.gc();) s = P(MF(c), 26), BF(s, (xV(), o8), G(p)), --p;
 								prt(e, new _h()), t.Ug();
-								return;
 							}
-							for (n = (lT(this.a), xw(this.a, (QP(), R3), P(J(e, eFt), 188)), xw(this.a, z3, P(J(e, qPt), 188)), xw(this.a, $Nt, P(J(e, ZPt), 188)), Lfe(this.a, (te = new Qw(), cC(te, R3, (SL(), iPt)), cC(te, z3, rPt), jh(Vx(J(e, WPt))) && cC(te, R3, aPt), jh(Vx(J(e, IPt))) && cC(te, R3, nPt), te)), WB(this.a, e)), u = 1 / n.c.length, ee = 0, h = new E(n); h.a < h.c.c.length;) {
-								if (m = P(z(h), 43), t.Zg()) return;
-								m.If(e, t.dh(u)), ++ee;
-							}
-							for (_ = 0, g = 0, y = new Yb(b); y.e != y.i.gc();) v = P(MF(y), 26), _ = r.Math.max(_, v.i + v.g), g = r.Math.max(g, v.j + v.f);
-							k2e(e, new A(O(N(J(e, (Oz(), H3)))), O(N(J(e, V3)))), new A(_, g)), GBe(b, f), l || sV(e, O(N(J(e, H3))) + (f.b + f.c), O(N(J(e, V3))) + (f.d + f.a), !1, !0), jh(Vx(J(e, UPt))) || eE((i = new hm((S_(), new Eh(e))), i)), t.Ug();
 						}, L(Lmt, "RectPackingLayoutProvider", 1088), q(1480, 1, KW, Ls), Q.If = function(e, t) {
 							Eit(P(e, 26), t);
 						}, L(mq, "InteractiveNodeReorderer", 1480), q(1481, 1, NU, Rs), Q.Le = function(e, t) {
@@ -54821,8 +54189,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var q3, PPt, FPt, J3, IPt, LPt, Y3, RPt, zPt, BPt, VPt, HPt, UPt, WPt, GPt, KPt, qPt, X3, JPt, YPt, Z3, XPt, ZPt, QPt, $Pt, eFt, tFt;
 						L(hq, "RectPackingOptions", 999), q(TH, 1, {}, Us), Q.uf = function() {
-							var e;
-							return e = new fce(), e;
+							return new fce();
 						}, Q.vf = function(e) {}, L(hq, "RectPackingOptions/RectpackingFactory", TH), q(1673, 1, {}, Nbe), Q.a = 0, Q.c = !1, L(vq, "AreaApproximation", 1673);
 						var nFt = mC(vq, "BestCandidateFilter");
 						q(664, 1, { 524: 1 }, Ws), Q.Gg = function(e, t, n) {
@@ -54998,8 +54365,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var RFt, zFt, BFt, VFt, HFt, UFt, WFt, GFt, KFt, qFt, JFt, s6;
 						L(Cq, "SporeCompactionOptions", 997), q(998, 1, {}, tc), Q.uf = function() {
-							var e;
-							return e = new Uae(), e;
+							return new Uae();
 						}, Q.vf = function(e) {}, L(Cq, "SporeCompactionOptions/SporeCompactionFactory", 998), q(849, 1, cW, Tf), Q.tf = function(e) {
 							xP(e, new GL(fg(dg(pg(og(ug(cg(lg(new Rc(), Tq), ""), "Underlying Layout Algorithm"), "A layout algorithm that is applied to the graph before it is compacted. If this is null, nothing is applied before compaction."), (KL(), S6)), FX), _P((DF(), p6))))), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), Oq), "structure"), "Structure Extraction Strategy"), "This option defines what kind of triangulation or other partitioning of the plane is applied to the vertices."), lIt), v6), _It), _P(p6)))), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), tht), kq), "Tree Construction Strategy"), "Whether a minimum spanning tree or a maximum spanning tree should be constructed."), sIt), v6), bIt), _P(p6)))), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), nht), kq), "Cost Function for Spanning Tree"), "The cost function is used in the creation of the spanning tree."), aIt), v6), IFt), _P(p6)))), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), Eq), kq), "Root node for spanning tree construction"), "The identifier of the node that is preferred as the root of the spanning tree. If this is null, the first node is chosen."), null), S6), FX), _P(p6)))), aD(e, Eq, Dq, tIt), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), Dq), kq), "Root selection for spanning tree"), "This sets the method used to select a root node for the construction of a spanning tree"), rIt), v6), kFt), _P(p6)))), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), rht), npt), Zmt), "This option defines how the compaction is applied."), XFt), v6), CFt), _P(p6)))), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), iht), npt), "Orthogonal Compaction"), "Restricts the translation of nodes to orthogonal directions in the compaction phase."), (ax(), !1)), g6), EX), _P(p6)))), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), aht), sht), "Upper limit for iterations of overlap removal"), null), G(64)), b6), jX), _P(p6)))), xP(e, new GL(fg(dg(pg(sg(og(ug(cg(lg(new Rc(), oht), sht), "Whether to run a supplementary scanline overlap check."), null), !0), g6), EX), _P(p6)))), btt((new Ef(), e)), Nit((new wf(), e));
 						};
@@ -55009,8 +54375,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var dIt, fIt, pIt, mIt, hIt, gIt;
 						L(Cq, "SporeOverlapRemovalOptions", 995), q(996, 1, {}, nc), Q.uf = function() {
-							var e;
-							return e = new lce(), e;
+							return new lce();
 						}, Q.vf = function(e) {}, L(Cq, "SporeOverlapRemovalOptions/SporeOverlapFactory", 996), q(528, 24, {
 							3: 1,
 							35: 1,
@@ -55307,8 +54672,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var HIt, UIt, WIt, GIt, KIt, qIt, JIt, YIt, XIt, ZIt, QIt, $It;
 						L(zq, "BoxLayouterOptions", 976), q(977, 1, {}, zc), Q.uf = function() {
-							var e;
-							return e = new Hc(), e;
+							return new Hc();
 						}, Q.vf = function(e) {}, L(zq, "BoxLayouterOptions/BoxFactory", 977), q(299, 24, {
 							3: 1,
 							35: 1,
@@ -55368,8 +54732,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var BRt, VRt, HRt, URt, WRt, GRt, j8;
 						L(zq, "FixedLayouterOptions", 974), q(975, 1, {}, Bc), Q.uf = function() {
-							var e;
-							return e = new Gc(), e;
+							return new Gc();
 						}, Q.vf = function(e) {}, L(zq, "FixedLayouterOptions/FixedFactory", 975), q(347, 24, {
 							3: 1,
 							35: 1,
@@ -55424,8 +54787,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						};
 						var azt, ozt, szt, czt, lzt;
 						L(zq, "RandomLayouterOptions", 978), q(979, 1, {}, Vc), Q.uf = function() {
-							var e;
-							return e = new el(), e;
+							return new el();
 						}, Q.vf = function(e) {}, L(zq, "RandomLayouterOptions/RandomFactory", 979), q(300, 24, {
 							3: 1,
 							35: 1,
@@ -55473,8 +54835,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							var t, n = O(N(J(e, (xV(), f8)))), r, i, a, o;
 							return t = n / O(N(J(e, d8))), r = _rt(e), a = P(J(e, e8), 104), i = O(N(jF(u8))), gE(e) && (i = O(N(J(gE(e), u8)))), o = Vb(new A(n, t), r), lS(o, new A(-(a.b + a.c) - i, -(a.d + a.a) - i));
 						}, EA(zq, "TopdownSizeApproximator/3", 972, X5, null, null), q(973, 288, Yq, PCe), Q.Sg = function(e) {
-							var t, n, i, a, o, s, c, l, u, d;
-							for (s = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)); s.e != s.i.gc();) o = P(MF(s), 26), J(o, (xV(), g8)) != null && (!o.a && (o.a = new F(f7, o, 10, 11)), o.a) && (!o.a && (o.a = new F(f7, o, 10, 11)), o.a).i > 0 ? (n = P(J(o, g8), 522), d = n.Sg(o), u = P(J(o, e8), 104), sb(o, r.Math.max(o.g, d.a + u.b + u.c), r.Math.max(o.f, d.b + u.d + u.a))) : (!o.a && (o.a = new F(f7, o, 10, 11)), o.a).i != 0 && sb(o, O(N(J(o, f8))), O(N(J(o, f8))) / O(N(J(o, d8))));
+							for (var t, n, i, a, o, s = new Yb((!e.a && (e.a = new F(f7, e, 10, 11)), e.a)), c, l, u, d; s.e != s.i.gc();) o = P(MF(s), 26), J(o, (xV(), g8)) != null && (!o.a && (o.a = new F(f7, o, 10, 11)), o.a) && (!o.a && (o.a = new F(f7, o, 10, 11)), o.a).i > 0 ? (n = P(J(o, g8), 522), d = n.Sg(o), u = P(J(o, e8), 104), sb(o, r.Math.max(o.g, d.a + u.b + u.c), r.Math.max(o.f, d.b + u.d + u.a))) : (!o.a && (o.a = new F(f7, o, 10, 11)), o.a).i != 0 && sb(o, O(N(J(o, f8))), O(N(J(o, f8))) / O(N(J(o, d8))));
 							t = P(J(e, (xV(), s8)), 144), l = P(YT(t.f), 214);
 							try {
 								l.kf(e, new Jc()), ATe(t.f, l);
@@ -55671,11 +55032,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							throw this.c && this.a.b != null ? this.a.b = null : this.b && this.a.a != null && (this.a.a = null), D(new Km());
 						}, Q.b = !1, Q.c = !1, L(AK, "Pair/1", 980), q(1079, 214, $U, el), Q.kf = function(e, t) {
 							var n, r, i, a, o;
-							if (t.Tg("Random Layout", 1), (!e.a && (e.a = new F(f7, e, 10, 11)), e.a).i == 0) {
-								t.Ug();
-								return;
-							}
-							a = P(J(e, (IKe(), czt)), 15), i = a && a.a != 0 ? new BD(a.a) : new yP(), n = Mh(N(J(e, azt))), o = Mh(N(J(e, lzt))), r = P(J(e, ozt), 104), Gst(e, i, n, o, r), t.Ug();
+							t.Tg("Random Layout", 1), (!e.a && (e.a = new F(f7, e, 10, 11)), e.a).i == 0 || (a = P(J(e, (IKe(), czt)), 15), i = a && a.a != 0 ? new BD(a.a) : new yP(), n = Mh(N(J(e, azt))), o = Mh(N(J(e, lzt))), r = P(J(e, ozt), 104), Gst(e, i, n, o, r)), t.Ug();
 						}, L(AK, "RandomLayoutProvider", 1079), q(240, 1, { 240: 1 }, IS), Q.Fb = function(e) {
 							return oT(this.a, P(e, 240).a) && oT(this.b, P(e, 240).b) && oT(this.c, P(e, 240).c);
 						}, Q.Hb = function() {
@@ -55715,8 +55072,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.a = null, L(Xq, "ElkGraphAdapters/ElkGraphAdapter", 260), q(631, 551, { 187: 1 }, Coe), L(Xq, "ElkGraphAdapters/ElkLabelAdapter", 631), q(552, 551, { 685: 1 }, hx), Q.Pf = function() {
 							return ZYe(this);
 						}, Q.Tf = function() {
-							var e;
-							return e = P(J(this.f, (xV(), K6)), 140), !e && (e = new ch()), e;
+							var e = P(J(this.f, (xV(), K6)), 140);
+							return !e && (e = new ch()), e;
 						}, Q.Vf = function() {
 							return QYe(this);
 						}, Q.Xf = function(e) {
@@ -55780,8 +55137,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.wh = function() {
 							throw D(new Jm());
 						}, Q.xh = function(e) {
-							var t;
-							return t = nI(P(Hk(this.Ah(), this.Ch()), 19)), this.Mh().Qh(this, t.n, t.f, e);
+							var t = nI(P(Hk(this.Ah(), this.Ch()), 19));
+							return this.Mh().Qh(this, t.n, t.f, e);
 						}, Q.yh = function(e, t) {
 							throw D(new Jm());
 						}, Q.zh = function(e, t, n) {
@@ -55821,13 +55178,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Oh = function(e, t, n, r) {
 							return zF(this, e, t, r);
 						}, Q.Ph = function(e, t, n) {
-							var r;
-							return r = P(Hk(this.Ah(), t), 69), r.uk().xk(this, this.ei(), t - this.gi(), e, n);
+							return P(Hk(this.Ah(), t), 69).uk().xk(this, this.ei(), t - this.gi(), e, n);
 						}, Q.Qh = function(e, t, n, r) {
 							return JT(this, e, t, r);
 						}, Q.Rh = function(e, t, n) {
-							var r;
-							return r = P(Hk(this.Ah(), t), 69), r.uk().yk(this, this.ei(), t - this.gi(), e, n);
+							return P(Hk(this.Ah(), t), 69).uk().yk(this, this.ei(), t - this.gi(), e, n);
 						}, Q.Sh = function() {
 							return !!this.wh() && !!this.wh().Nk();
 						}, Q.Th = function(e) {
@@ -56394,22 +55749,14 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return _ct(this, e);
 						}, Q.$h = function(e, t) {
 							var n;
-							if (e === 0) {
-								!this.Ab && (this.Ab = new F(A7, this, 0, 3)), HB(this.Ab), !this.Ab && (this.Ab = new F(A7, this, 0, 3)), jw(this.Ab, P(t, 18));
-								return;
-							}
-							SP(this, e - Aw(this.fi()), Hk((n = P(Uj(this, 16), 29), n || this.fi()), e), t);
+							e === 0 ? (!this.Ab && (this.Ab = new F(A7, this, 0, 3)), HB(this.Ab), !this.Ab && (this.Ab = new F(A7, this, 0, 3)), jw(this.Ab, P(t, 18))) : SP(this, e - Aw(this.fi()), Hk((n = P(Uj(this, 16), 29), n || this.fi()), e), t);
 						}, Q.ai = function(e) {
 							fF(this, 128, e);
 						}, Q.fi = function() {
 							return TV(), RBt;
 						}, Q.hi = function(e) {
 							var t;
-							if (e === 0) {
-								!this.Ab && (this.Ab = new F(A7, this, 0, 3)), HB(this.Ab);
-								return;
-							}
-							PN(this, e - Aw(this.fi()), Hk((t = P(Uj(this, 16), 29), t || this.fi()), e));
+							e === 0 ? (!this.Ab && (this.Ab = new F(A7, this, 0, 3)), HB(this.Ab)) : PN(this, e - Aw(this.fi()), Hk((t = P(Uj(this, 16), 29), t || this.fi()), e));
 						}, Q.mi = function() {
 							this.Bb |= 1;
 						}, Q.ni = function(e) {
@@ -56932,19 +56279,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Th = function(e) {
 							return e == 9 ? !!dE(this) : xHe(this, e);
 						}, Q.$h = function(e, t) {
-							if (e === 9) {
-								f5e(this, P(t, 26));
-								return;
-							}
-							v6e(this, e, t);
+							e === 9 ? f5e(this, P(t, 26)) : v6e(this, e, t);
 						}, Q.fi = function() {
 							return pV(), Yzt;
 						}, Q.hi = function(e) {
-							if (e === 9) {
-								f5e(this, null);
-								return;
-							}
-							wJe(this, e);
+							e === 9 ? f5e(this, null) : wJe(this, e);
 						}, Q.Ib = function() {
 							return Bet(this);
 						}, L(oJ, "ElkPortImpl", 193);
@@ -57477,8 +56816,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.lj = function(e) {
 							return uKe(this, e);
 						}, Q.mj = function() {
-							var e, t, n;
-							for (e = 0; e < this.i; ++e) t = P(this.g[e], 373), n = t.hj(), n != null && t.ej() != -1 && P(n, 94).uh(t);
+							for (var e = 0, t, n; e < this.i; ++e) t = P(this.g[e], 373), n = t.hj(), n != null && t.ej() != -1 && P(n, 94).uh(t);
 						}, Q.$i = function(e) {
 							return V(pBt, LV, 373, e, 0, 1);
 						}, L($q, "NotificationChainImpl", 252), q(1486, 93, agt), Q.rh = function() {
@@ -57538,7 +56876,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.hj = function() {
 							return this.a.hj();
 						}, L($q, "NotifyingListImpl/1", 1157), q(950, 67, IJ, Vge), Q.Gc = function(e) {
-							return this.i > 10 ? ((!this.b || this.c.j != this.a) && (this.b = new _C(this), this.a = this.j), Gg(this.b, e)) : JI(this, e);
+							return this.i > 10 ? (this.b && this.c.j == this.a || (this.b = new _C(this), this.a = this.j), Gg(this.b, e)) : JI(this, e);
 						}, Q.Wi = function() {
 							return !0;
 						}, Q.a = 0, L(wJ, "AbstractEList/1", 950), q(306, 99, rU, mS), L(wJ, "AbstractEList/BasicIndexOutOfBoundsException", 306), q(42, 1, UV, Yb), Q.Nb = function(e) {
@@ -57676,8 +57014,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							var n = YKe(this), r = n[e];
 							return vb(n, e, VM(this, t)), IF(this, n), r;
 						}, Q.gc = function() {
-							var e;
-							return e = P(Uj(this.a, 4), 129), e == null ? 0 : e.length;
+							var e = P(Uj(this.a, 4), 129);
+							return e == null ? 0 : e.length;
 						}, Q.Nc = function() {
 							var e = P(Uj(this.a, 4), 129), t, n = e == null ? 0 : e.length;
 							return t = V(fBt, YJ, 415, n, 0, 1), n > 0 && oB(e, 0, t, 0, n), t;
@@ -58519,8 +57857,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Gk = function() {
 							return this.t;
 						}, Q.Hk = function() {
-							var e;
-							return e = this.t, e > 1 || e == -1;
+							var e = this.t;
+							return e > 1 || e == -1;
 						}, Q.Qi = function() {
 							return !!(this.Bb & 512);
 						}, Q.Wk = function(e, t) {
@@ -59303,11 +58641,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.bd = function(e) {
 							return YF(this, e);
 						}, Q.Lj = function(e, t) {
-							var n;
-							return n = P(e, 52), this.kl() ? this.il() ? n.Oh(this.e, this.hl(), this.gl(), t) : n.Oh(this.e, LP(n.Ah(), nI(P(this.Jk(), 19))), null, t) : n.Oh(this.e, -1 - this.Jj(), null, t);
+							var n = P(e, 52);
+							return this.kl() ? this.il() ? n.Oh(this.e, this.hl(), this.gl(), t) : n.Oh(this.e, LP(n.Ah(), nI(P(this.Jk(), 19))), null, t) : n.Oh(this.e, -1 - this.Jj(), null, t);
 						}, Q.Mj = function(e, t) {
-							var n;
-							return n = P(e, 52), this.kl() ? this.il() ? n.Qh(this.e, this.hl(), this.gl(), t) : n.Qh(this.e, LP(n.Ah(), nI(P(this.Jk(), 19))), null, t) : n.Qh(this.e, -1 - this.Jj(), null, t);
+							var n = P(e, 52);
+							return this.kl() ? this.il() ? n.Qh(this.e, this.hl(), this.gl(), t) : n.Qh(this.e, LP(n.Ah(), nI(P(this.Jk(), 19))), null, t) : n.Qh(this.e, -1 - this.Jj(), null, t);
 						}, Q.$k = function() {
 							return !1;
 						}, Q.ml = function() {
@@ -59364,8 +58702,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							var e;
 							HB(this), nb(this.e) ? (e = this.b, this.b = !1, Fj(this.e, new nO(this.e, 2, this.c, e, !1))) : this.b = !1;
 						}, Q.b = !1, L(ZJ, "EObjectContainmentEList/Unsettable", 544), q(1131, 544, cY, USe), Q.Ri = function(e, t) {
-							var n, r;
-							return n = P(YN(this, e, t), 87), nb(this.e) && $m(this, new WO(this.a, 7, (TV(), IBt), G(t), (r = n.c, M(r, 88) ? P(r, 29) : e9), e)), n;
+							var n = P(YN(this, e, t), 87), r;
+							return nb(this.e) && $m(this, new WO(this.a, 7, (TV(), IBt), G(t), (r = n.c, M(r, 88) ? P(r, 29) : e9), e)), n;
 						}, Q.Sj = function(e, t) {
 							return OKe(this, P(e, 87), t);
 						}, Q.Tj = function(e, t) {
@@ -59580,11 +58918,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 							return -1;
 						}, Q.Lj = function(e, t) {
-							var n;
-							return n = P(e, 52), this.kl() ? this.il() ? n.Oh(this.b, nI(P(Hk(KT(this.b), this.Jj()), 19)).n, P(Hk(KT(this.b), this.Jj()).Fk(), 29).ik(), t) : n.Oh(this.b, LP(n.Ah(), nI(P(Hk(KT(this.b), this.Jj()), 19))), null, t) : n.Oh(this.b, -1 - this.Jj(), null, t);
+							var n = P(e, 52);
+							return this.kl() ? this.il() ? n.Oh(this.b, nI(P(Hk(KT(this.b), this.Jj()), 19)).n, P(Hk(KT(this.b), this.Jj()).Fk(), 29).ik(), t) : n.Oh(this.b, LP(n.Ah(), nI(P(Hk(KT(this.b), this.Jj()), 19))), null, t) : n.Oh(this.b, -1 - this.Jj(), null, t);
 						}, Q.Mj = function(e, t) {
-							var n;
-							return n = P(e, 52), this.kl() ? this.il() ? n.Qh(this.b, nI(P(Hk(KT(this.b), this.Jj()), 19)).n, P(Hk(KT(this.b), this.Jj()).Fk(), 29).ik(), t) : n.Qh(this.b, LP(n.Ah(), nI(P(Hk(KT(this.b), this.Jj()), 19))), null, t) : n.Qh(this.b, -1 - this.Jj(), null, t);
+							var n = P(e, 52);
+							return this.kl() ? this.il() ? n.Qh(this.b, nI(P(Hk(KT(this.b), this.Jj()), 19)).n, P(Hk(KT(this.b), this.Jj()).Fk(), 29).ik(), t) : n.Qh(this.b, LP(n.Ah(), nI(P(Hk(KT(this.b), this.Jj()), 19))), null, t) : n.Qh(this.b, -1 - this.Jj(), null, t);
 						}, Q.$k = function() {
 							var e, t = Hk(KT(this.b), this.Jj());
 							return M(t, 103) ? (e = P(t, 19), (e.Bb & rJ) != 0) : !1;
@@ -59619,11 +58957,11 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.pj = function(e) {
 							ope(this, P(e, 29));
 						}, Q.vj = function(e) {
-							var t, n;
-							return t = P(H(jD(this.a), e), 87), n = t.c, M(n, 88) ? P(n, 29) : (TV(), e9);
+							var t = P(H(jD(this.a), e), 87).c;
+							return M(t, 88) ? P(t, 29) : (TV(), e9);
 						}, Q.Aj = function(e) {
-							var t, n;
-							return t = P(_z(jD(this.a), e), 87), n = t.c, M(n, 88) ? P(n, 29) : (TV(), e9);
+							var t = P(_z(jD(this.a), e), 87).c;
+							return M(t, 88) ? P(t, 29) : (TV(), e9);
 						}, Q.Bj = function(e, t) {
 							return TYe(this, e, P(t, 29));
 						}, Q.Ji = function() {
@@ -59637,8 +58975,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.sj = function(e) {
 							return jWe(this, e);
 						}, Q.tj = function(e) {
-							var t, n;
-							for (n = e.Jc(); n.Ob();) if (t = n.Pb(), !jWe(this, t)) return !1;
+							for (var t, n = e.Jc(); n.Ob();) if (t = n.Pb(), !jWe(this, t)) return !1;
 							return !0;
 						}, Q.uj = function(e) {
 							var t, n, r;
@@ -60059,8 +59396,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							}
 							PN(this, e - Aw((TV(), X7)), Hk((t = P(Uj(this, 16), 29), t || X7), e));
 						}, Q.Ib = function() {
-							var e;
-							return e = this.c, e ?? this.zb;
+							return this.c ?? this.zb;
 						}, Q.b = null, Q.c = null, Q.d = 0, L(iJ, "EEnumLiteralImpl", 568);
 						var qBt = mC(iJ, "EFactoryImpl/InternalEDateTimeFormat");
 						q(485, 1, { 2079: 1 }, Em), L(iJ, "EFactoryImpl/1ClientInternalEDateTimeFormat", 485), q(248, 118, {
@@ -60496,11 +59832,9 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.pj = function(e) {
 							spe(this, P(e, 143));
 						}, Q.vj = function(e) {
-							var t, n;
-							return t = P(H(gk(this.a), e), 87), n = t.c, n || (TV(), $7);
+							return P(H(gk(this.a), e), 87).c || (TV(), $7);
 						}, Q.Aj = function(e) {
-							var t, n;
-							return t = P(_z(gk(this.a), e), 87), n = t.c, n || (TV(), $7);
+							return P(_z(gk(this.a), e), 87).c || (TV(), $7);
 						}, Q.Bj = function(e, t) {
 							return xqe(this, e, P(t, 143));
 						}, Q.Ji = function() {
@@ -60514,8 +59848,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.sj = function(e) {
 							return RWe(this, e);
 						}, Q.tj = function(e) {
-							var t, n;
-							for (n = e.Jc(); n.Ob();) if (t = n.Pb(), !RWe(this, t)) return !1;
+							for (var t, n = e.Jc(); n.Ob();) if (t = n.Pb(), !RWe(this, t)) return !1;
 							return !0;
 						}, Q.uj = function(e) {
 							var t, n, r;
@@ -60582,8 +59915,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.gc = function() {
 							return gk(this.a.a).i;
 						}, L(iJ, "EOperationImpl/1/1", 1331), q(1332, 544, cY, WSe), Q.Ri = function(e, t) {
-							var n, r;
-							return n = P(YN(this, e, t), 87), nb(this.e) && $m(this, new WO(this.a, 7, (TV(), BBt), G(t), (r = n.c, r || $7), e)), n;
+							var n = P(YN(this, e, t), 87), r;
+							return nb(this.e) && $m(this, new WO(this.a, 7, (TV(), BBt), G(t), (r = n.c, r || $7), e)), n;
 						}, Q.Sj = function(e, t) {
 							return yWe(this, P(e, 87), t);
 						}, Q.Tj = function(e, t) {
@@ -60891,8 +60224,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.sk = function() {
 							return nI(this);
 						}, Q.Zk = function() {
-							var e;
-							return e = nI(this), !!e && (e.Bb & rJ) != 0;
+							var e = nI(this);
+							return !!e && (e.Bb & rJ) != 0;
 						}, Q.$k = function() {
 							return (this.Bb & rJ) != 0;
 						}, Q._k = function() {
@@ -61080,8 +60413,8 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, L(iJ, "EStructuralFeatureImpl/InternalSettingDelegateSingleContainer", 771), q(1306, 771, {}, Pbe), Q._k = function() {
 							return !0;
 						}, L(iJ, "EStructuralFeatureImpl/InternalSettingDelegateSingleContainerResolving", 1306), q(560, 499, {}), Q.wk = function(e, t, n, r, i) {
-							var a;
-							return a = t.ii(n), a == null ? this.b : j(a) === j(d9) ? null : a;
+							var a = t.ii(n);
+							return a == null ? this.b : j(a) === j(d9) ? null : a;
 						}, Q.zk = function(e, t, n) {
 							var r = t.ii(n);
 							return r != null && (j(r) === j(d9) || !MN(r, this.b));
@@ -61328,8 +60661,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 						}, Q.Gc = function(e) {
 							return dw(this.a, e);
 						}, Q.Jc = function() {
-							var e;
-							return e = new Mj(new am(this.a).a), new Om(e);
+							return new Om(new Mj(new am(this.a).a));
 						}, Q.Kc = function(e) {
 							return mPe(this, e);
 						}, Q.gc = function() {
@@ -61775,7 +61107,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return Ttt(this, e, t);
 						}, Q.ad = function(e, t) {
 							var n, r, i, a, o, s, c, l = new Jk(t.gc()), u;
-							for (i = t.Jc(); i.Ob();) if (r = P(i.Pb(), 75), a = r.Jk(), pz(this.e, a)) (!a.Qi() || !ED(this, a, r.kd()) && !JI(l, r)) && RO(l, r);
+							for (i = t.Jc(); i.Ob();) if (r = P(i.Pb(), 75), a = r.Jk(), pz(this.e, a)) a.Qi() && (ED(this, a, r.kd()) || JI(l, r)) || RO(l, r);
 							else {
 								for (u = uz(this.e.Ah(), a), n = P(this.g, 122), o = !0, s = 0; s < this.i; ++s) if (c = n[s], u.$l(c.Jk())) {
 									P(JF(this, s, r), 75), o = !1;
@@ -61786,7 +61118,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return GVe(this, e, l);
 						}, Q.Fc = function(e) {
 							var t, n, r, i, a, o, s, c = new Jk(e.gc()), l;
-							for (r = e.Jc(); r.Ob();) if (n = P(r.Pb(), 75), i = n.Jk(), pz(this.e, i)) (!i.Qi() || !ED(this, i, n.kd()) && !JI(c, n)) && RO(c, n);
+							for (r = e.Jc(); r.Ob();) if (n = P(r.Pb(), 75), i = n.Jk(), pz(this.e, i)) i.Qi() && (ED(this, i, n.kd()) || JI(c, n)) || RO(c, n);
 							else {
 								for (l = uz(this.e.Ah(), i), t = P(this.g, 122), a = !0, o = 0; o < this.i; ++o) if (s = t[o], l.$l(s.Jk())) {
 									P(JF(this, o, n), 75), a = !1;
@@ -62881,7 +62213,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 											if ((i = uI(this.a)) < 0) break;
 											if (n > n * 16) throw D(new Vh(DV((xb(), Qgt))));
 											n = n * 16 + i;
-										} while (!0);
+										} while (1);
 										if (this.a != 125) throw D(new Vh(DV((xb(), $gt))));
 										if (n > qY) throw D(new Vh(DV((xb(), e_t))));
 										e = n;
@@ -62930,7 +62262,7 @@ var kp = new (/* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
 							return n;
 						}, Q.cm = function(e) {
 							var t, n, r, i, a, o, s, c, l, u, d, f;
-							for (this.b = 1, _V(this), t = null, this.c == 0 && this.a == 94 ? (_V(this), e ? u = (CV(), CV(), ++W9, new YE(5)) : (t = (CV(), CV(), ++W9, new YE(4)), hz(t, 0, qY), u = (++W9, new YE(4)))) : u = (CV(), CV(), ++W9, new YE(4)), i = !0; (f = this.c) != 1 && !(f == 0 && this.a == 93 && !i);) {
+							for (this.b = 1, _V(this), t = null, this.c == 0 && this.a == 94 ? (_V(this), e ? u = (CV(), CV(), ++W9, new YE(5)) : (t = (CV(), CV(), ++W9, new YE(4)), hz(t, 0, qY), u = (++W9, new YE(4)))) : u = (CV(), CV(), ++W9, new YE(4)), i = !0; (f = this.c) != 1 && (f != 0 || this.a != 93 || i);) {
 								if (i = !1, n = this.a, r = !1, f == 10) switch (n) {
 									case 100:
 									case 68:
@@ -63578,11 +62910,7 @@ async function jp(e, t, n = {}) {
 	let l = [];
 	for (let t of e) {
 		let e = c.get(t.id), n = t.parentId ? c.get(t.parentId) : void 0;
-		if (!n) {
-			l.push(e);
-			continue;
-		}
-		(n.children ??= []).push(e), delete n.width, delete n.height;
+		n ? ((n.children ??= []).push(e), delete n.width, delete n.height) : l.push(e);
 	}
 	let u = [], d = /* @__PURE__ */ new Set(), f = (e) => {
 		let t = o.get(e);
@@ -63624,7 +62952,7 @@ async function jp(e, t, n = {}) {
 	}), m = /* @__PURE__ */ new Map(), h = /* @__PURE__ */ new Map(), g = /* @__PURE__ */ new Map(), _ = (e, t, n) => {
 		for (let r of e ?? []) {
 			let e = r.sections?.[0];
-			!e || d.has(r.id) || g.set(r.id, [
+			e && !d.has(r.id) && g.set(r.id, [
 				e.startPoint,
 				...e.bendPoints ?? [],
 				e.endPoint
@@ -63653,8 +62981,7 @@ async function jp(e, t, n = {}) {
 		routes: g
 	};
 }
-//#endregion
-//#region src/use-measured-nodes.ts
+// src/use-measured-nodes.ts
 function Mp(e) {
 	let [t, n] = (0, m.useState)(/* @__PURE__ */ new Map()), r = (0, m.useMemo)(() => new Set(e.map((e) => e.id)), [e]);
 	(0, m.useEffect)(() => {
@@ -63679,8 +63006,7 @@ function Mp(e) {
 		onNodesChange: i
 	};
 }
-//#endregion
-//#region src/use-scene-transition.ts
+// src/use-scene-transition.ts
 function Np(e, t) {
 	let [n, r] = (0, m.useState)({
 		nodes: [],
@@ -63736,11 +63062,7 @@ function Np(e, t) {
 		let re = (e) => {
 			if (!T) return;
 			let t = Math.min(1, (e - ne) / C);
-			if (t >= 1) {
-				te();
-				return;
-			}
-			w(ee(t)), s.current && n.flow.setViewport(be(b, x, t)), c.current = requestAnimationFrame(re);
+			t >= 1 ? te() : (w(ee(t)), s.current && n.flow.setViewport(be(b, x, t)), c.current = requestAnimationFrame(re));
 		};
 		return c.current = requestAnimationFrame(re), () => {
 			T = !1, c.current !== void 0 && cancelAnimationFrame(c.current), o.current = !1;
@@ -63786,14 +63108,12 @@ function Np(e, t) {
 		}
 	};
 }
-//#endregion
-//#region src/palette.ts
+// src/palette.ts
 function Pp(e, t) {
 	let n = e[t];
 	return n ? n.dark ? `light-dark(${n.light}, ${n.dark})` : n.light : "transparent";
 }
-//#endregion
-//#region src/telemetry.ts
+// src/telemetry.ts
 var Fp = "streamlit-graph-canvas", Ip = 5e3, pee = 512;
 function Lp(e) {
 	return typeof e == "number" ? Number.isInteger(e) ? { intValue: e } : { doubleValue: e } : typeof e == "boolean" ? { boolValue: e } : { stringValue: e };
@@ -63933,8 +63253,7 @@ function mee(e, t) {
 function Up(e, t = {}) {
 	return e ? new Hp(e, t) : null;
 }
-//#endregion
-//#region src/sprite-location.ts
+// src/sprite-location.ts
 var Wp = /^[0-9a-f]{64}$/, Gp = [
 	"height",
 	"pageId",
@@ -63971,8 +63290,7 @@ function Yp(e, t) {
 		logicalHeight: e.height / e.resolution
 	};
 }
-//#endregion
-//#region src/index.tsx
+// src/index.tsx
 var Xp = {
 	top: go.Top,
 	right: go.Right,
@@ -64140,7 +63458,7 @@ var _ee = (0, m.memo)(({ data: e, selected: t }) => /* @__PURE__ */ (0, S.jsxs)(
 				borderRadius: e.style.radius
 			},
 			onKeyDown: (t) => {
-				!e.disabled && (t.key === "Enter" || t.key === " ") && (t.preventDefault(), e.onKeyboardActivate(t));
+				e.disabled || t.key !== "Enter" && t.key !== " " || (t.preventDefault(), e.onKeyboardActivate(t));
 			},
 			children: [
 				/* @__PURE__ */ (0, S.jsx)("svg", {
@@ -64831,5 +64149,4 @@ function nm(e, t) {
 		markerEnd: e === "target" || e === "both" ? n : void 0
 	};
 }
-//#endregion
 export { Mee as default };
