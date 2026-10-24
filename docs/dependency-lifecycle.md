@@ -39,7 +39,7 @@ define a user-facing minimum unless they ship or run in user environments.
 | Minimum | exact supported direct minimums; coherent coupled stacks | Ubuntu and Windows; Chromium transports set | yes |
 | Latest supported | exact approved direct endpoints | Ubuntu and Windows on oldest and newest Python versions; Chromium transports set | yes |
 | Security | `pip-audit`, `npm audit`, dependency review, CodeQL | Ubuntu | yes |
-| Latest tested | stable candidates at least seven days old; no automatic promotion | Ubuntu, frontend, and Chromium | advisory |
+| Latest tested | aged stable candidates with approved baseline fallback; no automatic promotion | Ubuntu, frontend, and Chromium | advisory |
 | Forward | prerelease Python and runtime scenarios | scheduled Ubuntu | advisory |
 | Browser beta | locked app and selected contrib in Chrome Beta | scheduled Ubuntu | advisory |
 

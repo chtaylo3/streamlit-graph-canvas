@@ -5,6 +5,12 @@ the project uses semantic versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep advisory candidate probes running when an approved security update is
+  younger than the cooldown, and record package decisions and full probe outcomes
+  without promoting support endpoints.
+
 ### Security
 
 - Require Streamlit 1.66.1 or newer, the first release compatible with Pillow 13.

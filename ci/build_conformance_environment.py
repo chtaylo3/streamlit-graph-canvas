@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
 import json
 import re
@@ -75,6 +76,31 @@ def main() -> None:
     parser.add_argument("--forward-scenario", choices=("streamlit", "pillow"))
     parser.add_argument("--root", type=Path, default=Path(__file__).parents[1])
     args = parser.parse_args()
+    args.selections = []
+    args.stage = "setup"
+    evidence = {
+        "status": "failed",
+        "tested_at": dt.datetime.now(dt.UTC).isoformat(),
+        "support_promoted": False,
+    }
+    try:
+        build_environment(args)
+        evidence["status"] = "prepared"
+    except (Exception, SystemExit) as error:
+        evidence["error"] = str(error)
+        raise
+    finally:
+        if args.dependency_lane == "latest-tested" and args.output is not None:
+            prior = json.loads(args.output.read_text()) if args.output.exists() else {}
+            evidence.update(stage=args.stage, selections=args.selections)
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(json.dumps({**prior, **evidence}, indent=2) + "\n")
+
+
+def build_environment(args: argparse.Namespace) -> None:
+    if args.output is not None:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.unlink(missing_ok=True)
     if args.dependency_lane != "locked" and args.constraints is not None:
         raise SystemExit("minimum/latest lanes must resolve fresh without constraints")
 
@@ -118,12 +144,17 @@ def main() -> None:
     if args.constraints is not None:
         install.extend(["--constraints", str(args.constraints.resolve())])
     install.extend(map(str, wheels))
+    args.stage = "baseline-installation"
     subprocess.run(install, check=True)
     candidate_requested = []
     if args.dependency_lane == "latest-tested":
         from .run_compatibility import python_specs
 
-        candidate_requested = python_specs(policy, "latest-tested")
+        args.stage = "candidate-selection"
+        candidate_requested = python_specs(
+            policy, "latest-tested", selections=args.selections
+        )
+        args.stage = "candidate-installation"
         subprocess.run(
             [
                 "uv",
@@ -158,6 +189,7 @@ def main() -> None:
             ],
             check=True,
         )
+    args.stage = "dependency-validation"
     dependency_check = subprocess.run(
         ["uv", "pip", "check", "--python", str(python)], check=False
     )
