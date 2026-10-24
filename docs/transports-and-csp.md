@@ -210,7 +210,7 @@ warm_atlas(
 Warming covers every theme and device-scale bucket by default, because both are
 part of tile identity. Only rasterizing transports are packed.
 
-Pillow `>=12.3,<13` is the supported internal beta rasterizer range and is
+Pillow `>=13.0,<14` is the supported internal beta rasterizer range and is
 available through `streamlit-graph-canvas[atlas]`. Raster and static sprite
 processing fail closed at runtime outside that range, including when the
 installed version is malformed. Every tile content key includes the normalized

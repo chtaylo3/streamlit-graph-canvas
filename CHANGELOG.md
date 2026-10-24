@@ -5,6 +5,13 @@ the project uses semantic versioning.
 
 ## [Unreleased]
 
+### Security
+
+- Require Streamlit 1.66.1 or newer, the first release compatible with Pillow 13.
+- Require Pillow 13.0.0 or newer within the 13.x series for atlas and static
+  sprite processing. Advance the rasterizer cache revision to isolate output
+  from the previous Pillow support range.
+
 ## [0.1.0rc2] - 2026-09-11
 
 ### Added

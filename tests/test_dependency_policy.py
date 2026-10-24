@@ -61,16 +61,16 @@ def test_pillow_policy_controls_runtime_guard_and_cache_revision() -> None:
 
 def test_minimum_python_stack_is_exact_and_complete() -> None:
     assert set(python_specs(POLICY, "minimum")) == {
-        "streamlit==1.62.0",
+        "streamlit==1.66.1",
         "packaging==26.0",
-        "Pillow==12.3.0",
+        "Pillow==13.0.0",
         "networkx==3.6.1",
     }
 
 
 def test_python_forward_scenarios_are_isolated() -> None:
-    assert python_specs(POLICY, "forward", "pillow") == ["Pillow>=13.0.0a0"]
-    assert python_specs(POLICY, "forward", "streamlit") == ["streamlit>=1.62.0"]
+    assert python_specs(POLICY, "forward", "pillow") == ["Pillow>=14.0.0a0"]
+    assert python_specs(POLICY, "forward", "streamlit") == ["streamlit>=1.66.1"]
     assert python_specs(POLICY, "forward", "supported") == []
 
 

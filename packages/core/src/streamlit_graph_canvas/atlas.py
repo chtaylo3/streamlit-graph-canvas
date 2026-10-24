@@ -153,8 +153,8 @@ def resolution_bucket(value: float) -> float:
     return 2.0
 
 
-PILLOW_SUPPORTED = SpecifierSet(">=12.3.0,<13")
-ATLAS_RASTERIZER_REVISION = 1
+PILLOW_SUPPORTED = SpecifierSet(">=13.0.0,<14")
+ATLAS_RASTERIZER_REVISION = 2
 
 
 def pillow_rasterizer_version(*, subject: str = "ATLAS") -> str:

@@ -80,9 +80,18 @@ normalization for fixtures evaluated under that version. Page and tile IDs
 intentionally change between Pillow versions: the normalized version and
 explicit normalizer or rasterizer revisions are mandatory cache-key inputs,
 preventing stale cross-version reuse. Runtime rejects
-versions outside `>=12.3,<13`, and the policy verifier keeps that guard, package
+versions outside `>=13.0,<14`, and the policy verifier keeps that guard, package
 metadata, and revision synchronized. Minimum and latest-supported lanes exercise
-the guard on Windows and Linux; the advisory forward lane probes Pillow 13.
+the guard on Windows and Linux; the advisory forward lane probes Pillow 14.
+Pillow 13 requires Streamlit 1.66.1 or later because earlier hosts constrain
+Pillow to versions below 13. This migration raises both approved Streamlit
+endpoints and the package minimum, raises the Pillow minimum to 13.0.0, and
+advances the atlas rasterizer revision to 2. The migration probe compared
+18 rectangle, circle, and text fixtures across light/dark palettes and scale
+buckets 1, 1.5, and 2: decoded pixels and encoded PNG bytes matched Pillow
+12.3.0 on Linux. This fixture comparison does not guarantee identical output
+for every image or platform; versioned cache identities remain mandatory.
+
 Each Python compatibility artifact records the resolved environment and either
 the accepted rasterizer identity or the guard rejection diagnostic, including
 when the advisory test process exits unsuccessfully.
