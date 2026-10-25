@@ -54,7 +54,15 @@ def test_candidate_failures_are_advisory_and_supported_matrix_stays_blocking():
         for step in candidate["jobs"]["latest-tested"]["steps"]
         if step.get("id") == "probe"
     )
-    assert probe["continue-on-error"] is True
+    assert not probe.get("continue-on-error", False)
+    assert candidate["jobs"]["latest-tested"]["continue-on-error"] is True
+    reporting = next(
+        step
+        for step in candidate["jobs"]["latest-tested"]["steps"]
+        if "report_candidate_outcome.py" in step.get("run", "")
+    )
+    assert reporting["if"] == "always()"
+    assert reporting["env"]["OUTCOME"] == "${{ steps.probe.outcome }}"
     assert candidate["permissions"] == {"contents": "read"}
     ci = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
     for name in [

@@ -67,7 +67,9 @@ def test_supported_and_candidate_lanes_are_independent(monkeypatch) -> None:
         "npm": {"runtime": {"sample": {**entry, "supported": "^1.0.0"}}, "build": {}},
     }
     before = copy.deepcopy(policy)
-    monkeypatch.setattr("ci.run_compatibility.candidate_version", lambda *args: "2.0.0")
+    monkeypatch.setattr(
+        "ci.run_compatibility.candidate_version", lambda *args, **kwargs: "2.0.0"
+    )
     assert python_specs(policy, "latest-supported") == ["sample==1.2.0"]
     assert python_specs(policy, "latest-tested") == ["sample==2.0.0"]
     assert npm_specs(policy, "latest-supported", "all") == ["sample@1.2.0"]

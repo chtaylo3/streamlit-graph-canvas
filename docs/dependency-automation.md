@@ -18,10 +18,10 @@ not automatically rejected or promoted.
 | Minimum | Exact approved direct minimums | Blocking |
 | Latest supported | Exact approved direct upper endpoints | Blocking |
 | Locked | Versions in the committed lockfiles | Blocking |
-| Latest tested | Stable candidates released at least seven days ago | Advisory |
+| Latest tested | Aged stable candidates, retaining approved baselines during cooldown | Advisory |
 
-Runtime dependency latest-supported endpoints come from the dependency set approved in
-PR #27. Future promotion requires a reviewed policy change. Raising the minimum
+The dependency policy records explicitly approved runtime latest-supported
+endpoints. Future promotion requires a reviewed policy change. Raising the minimum
 is a separate decision because it drops older versions from the support interval.
 Updating the lockfile does not itself promote either endpoint.
 
@@ -29,14 +29,21 @@ The candidate workflow runs weekly, on relevant PRs, and manually. It evaluates
 Python, frontend, and installed-wheel Chromium stacks. Reports record selected
 versions, resolved inventories where installation succeeds, timestamps, and the
 actual outcome. Failures remain visible in the step summary and artifacts without
-failing the supported build. A candidate that cannot install or build has failed
-that stage; it has not passed browser validation. Existing prerelease and browser
+failing the supported build. Advisory jobs use job-level `continue-on-error`,
+so a failed probe remains a failed check while its workflow is nonblocking;
+these checks must not be added to the required supported checks.
+`candidate-outcome.json` records the entire probe as `passed`, `failed`, or
+`not_tested`, including wheel builds, environment setup, and browser execution.
+Stage artifacts record partial selections and errors even when installation
+fails. The job summary lists each selected package and its cooldown decision.
+A candidate that cannot install or build has failed that stage; it has not
+passed browser validation. Existing prerelease and browser
 beta probes remain separate advisory workflows.
 
 `latest_supported` pins direct dependencies, not every transitive dependency.
 Only the locked lane guarantees the full committed resolution. Candidate release
-age selection applies to direct dependencies; package-manager resolution can
-still introduce newer transitive dependencies.
+age selection applies to exploratory direct dependency upgrades; package-manager
+resolution can still introduce newer transitive dependencies.
 
 ## Internal JavaScript tools
 
@@ -70,7 +77,14 @@ All four Dependabot entries have `cooldown.default-days: 7`, retaining weekly
 schedules and dependency groups. The cooldown measures release age rather than
 PR age. Weekly checks can add up to another scheduling interval after eligibility.
 Security updates bypass Dependabot's cooldown. Candidate surveillance still uses
-its seven-day filter; security PRs receive normal locked CI immediately.
+its seven-day filter for exploratory upgrades; security PRs receive normal
+locked CI immediately. An explicitly approved baseline is retained if no aged
+stable release at or above it exists. Python uses the approved latest-supported
+endpoint, while frontend runtime dependencies and tools use their locked
+versions. The fallback never selects a lower, prerelease, future, yanked, or
+deprecated release. Artifacts record the baseline release date, cooldown
+eligibility date, selected version, and `approved_baseline_retained` reason.
+This exception does not approve a new version or bypass candidate test failures.
 
 The preparation command handles existing npm runtime dependency updates that fit
 the approved installation ranges and existing internal JavaScript tool updates.

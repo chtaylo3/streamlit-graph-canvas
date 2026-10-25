@@ -23,6 +23,7 @@ jobs:
   latest-tested:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -40,25 +41,31 @@ jobs:
           node-version: 24
           package-manager-cache: false
       - run: uv sync --locked
-      - name: Evaluate stable candidates at least seven days old
+      - name: Evaluate aged candidates or retain approved baselines
         id: probe
-        continue-on-error: true
         env:
           SURFACE: ${{ matrix.surface }}
         run: |
           if [ "$SURFACE" = python ]; then
+            echo "stage=python-probe" >> "$GITHUB_OUTPUT"
             uv run python ci/run_compatibility.py python --lane latest-tested --python 3.12 --venv "$RUNNER_TEMP/candidate-python" --output candidate.json
           elif [ "$SURFACE" = frontend ]; then
+            echo "stage=frontend-probe" >> "$GITHUB_OUTPUT"
             uv run python ci/run_compatibility.py frontend --lane latest-tested --output candidate.json
           else
+            echo "stage=frontend-probe" >> "$GITHUB_OUTPUT"
             uv run python ci/run_compatibility.py frontend --lane latest-tested --output-tree "$RUNNER_TEMP/candidate-core" --output candidate.json
+            echo "stage=wheel-build" >> "$GITHUB_OUTPUT"
             uv build "$RUNNER_TEMP/candidate-core" --out-dir candidate-wheels
             uv build --package streamlit-graph-canvas-contrib --out-dir candidate-wheels
             uv build tests/e2e/fixtures/javascript-renderer --out-dir candidate-wheels
+            echo "stage=python-environment" >> "$GITHUB_OUTPUT"
             uv run python -m ci.build_conformance_environment --set transports --dependency-lane latest-tested --wheelhouse candidate-wheels --venv "$RUNNER_TEMP/candidate-browser" --output candidate-browser.json
+            echo "stage=browser-tools" >> "$GITHUB_OUTPUT"
             cd tests/e2e
             npm ci
             npx playwright install --with-deps chromium
+            echo "stage=browser-tests" >> "$GITHUB_OUTPUT"
             CI=true SGC_CONTRIB_SET=transports SGC_CSP_PROXY=true SGC_CONFORMANCE_PYTHON="$RUNNER_TEMP/candidate-browser/bin/python" npm test
           fi
       - if: always()
@@ -66,9 +73,10 @@ jobs:
         env:
           OUTCOME: ${{ steps.probe.outcome }}
           SURFACE: ${{ matrix.surface }}
-        run: |
-          echo "### Latest tested: $SURFACE — $OUTCOME (advisory)" >> "$GITHUB_STEP_SUMMARY"
-          echo "See candidate.json for requested/resolved versions. Passing does not promote latest_supported; failures do not fail supported CI." >> "$GITHUB_STEP_SUMMARY"
+          STAGE: ${{ steps.probe.outputs.stage }}
+        run: >-
+          python ci/report_candidate_outcome.py
+          --surface "$SURFACE" --outcome "$OUTCOME" --stage "$STAGE"
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

@@ -19,13 +19,20 @@ else:
     from generate_frontend_licenses import generate
 
 
-def candidate_version(ecosystem: str, name: str, minimum: str) -> str:
+def candidate_version(
+    ecosystem: str,
+    name: str,
+    minimum: str,
+    *,
+    baseline: str | None = None,
+    selections: list[dict[str, Any]] | None = None,
+) -> str:
     # Supported lanes run before uv sync and must require only the standard library.
     if __package__:
         from .candidate_versions import candidate_version as resolve
     else:
         from candidate_versions import candidate_version as resolve
-    return resolve(ecosystem, name, minimum)
+    return resolve(ecosystem, name, minimum, baseline=baseline, selections=selections)
 
 
 def load_policy(root: Path) -> dict[str, Any]:
@@ -61,7 +68,13 @@ def pillow_runtime_probe(python: Path) -> dict[str, str | int]:
     return {"status": "accepted", **json.loads(result.stdout)}
 
 
-def python_specs(policy: dict[str, Any], lane: str, scenario: str = "all") -> list[str]:
+def python_specs(
+    policy: dict[str, Any],
+    lane: str,
+    scenario: str = "all",
+    *,
+    selections: list[dict[str, Any]] | None = None,
+) -> list[str]:
     specs = []
     for name, entry in policy["python"].items():
         if lane == "minimum":
@@ -69,9 +82,14 @@ def python_specs(policy: dict[str, Any], lane: str, scenario: str = "all") -> li
         elif lane == "latest-supported":
             specs.append(f"{name}=={entry['latest_supported']}")
         elif lane == "latest-tested":
-            specs.append(
-                f"{name}=={candidate_version('python', name, entry['minimum'])}"
+            selected = candidate_version(
+                "python",
+                name,
+                entry["minimum"],
+                baseline=entry["latest_supported"],
+                selections=selections,
             )
+            specs.append(f"{name}=={selected}")
         elif "forward" in entry and scenario in {"all", name.casefold()}:
             specs.append(entry["forward"])
     return specs
@@ -85,6 +103,7 @@ def python_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
                 f"refusing to replace non-virtual-environment path: {venv}"
             )
         shutil.rmtree(venv)
+    args.stage = "environment-creation"
     run(["uv", "venv", str(venv), "--python", args.python])
     python = venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     command = [
@@ -109,11 +128,16 @@ def python_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
         ),
     ]
     args.output.write_text(json.dumps({"requested": command}) + "\n")
+    args.stage = "baseline-installation"
     run(command)
     if args.lane in {"forward", "latest-tested"}:
-        forward = python_specs(policy, args.lane, args.scenario)
+        args.stage = "candidate-selection"
+        forward = python_specs(
+            policy, args.lane, args.scenario, selections=args.selections
+        )
         if forward:
             args.output.write_text(json.dumps({"requested": forward}) + "\n")
+            args.stage = "candidate-installation"
             run(
                 [
                     "uv",
@@ -128,9 +152,11 @@ def python_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
                     *forward,
                 ]
             )
+    args.stage = "dependency-validation"
     dependency_check = subprocess.run(
         ["uv", "pip", "check", "--python", str(python)], check=False
     )
+    args.stage = "python-tests"
     tests = subprocess.run(
         [str(python), "-m", "pytest", "packages/core/tests", "packages/contrib/tests"],
         cwd=root,
@@ -172,6 +198,7 @@ def npm_specs(
     *,
     package: dict | None = None,
     lock: dict | None = None,
+    selections: list[dict[str, Any]] | None = None,
 ) -> list[str]:
     groups = policy["npm"]
     entries = groups["runtime"]
@@ -197,7 +224,12 @@ def npm_specs(
         elif lane == "latest-supported":
             value = entry["latest_supported"]
         elif lane == "latest-tested":
-            value = candidate_version("npm", name, entry["minimum"])
+            baseline = entry["latest_supported"]
+            if lock is not None:
+                baseline = lock["packages"]["node_modules/" + name]["version"]
+            value = candidate_version(
+                "npm", name, entry["minimum"], baseline=baseline, selections=selections
+            )
         else:
             value = entry.get("forward", entry["supported"])
         specs.append(f"{name}@{value}")
@@ -207,7 +239,9 @@ def npm_specs(
                 continue
             value = lock["packages"]["node_modules/" + name]["version"]
             if lane == "latest-tested":
-                value = candidate_version("npm", name, value)
+                value = candidate_version(
+                    "npm", name, value, baseline=value, selections=selections
+                )
             elif lane == "forward":
                 value = declaration
             specs.append(f"{name}@{value}")
@@ -227,10 +261,16 @@ def frontend_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
         package = json.loads(package_path.read_text(encoding="utf-8"))
         lock = json.loads((workspace / "package-lock.json").read_text(encoding="utf-8"))
         (workspace / "package-lock.json").unlink(missing_ok=True)
+        args.stage = "candidate-selection"
         selected = {
             spec.rsplit("@", 1)[0]: spec.rsplit("@", 1)[1]
             for spec in npm_specs(
-                policy, args.lane, args.scenario, package=package, lock=lock
+                policy,
+                args.lane,
+                args.scenario,
+                package=package,
+                lock=lock,
+                selections=args.selections,
             )
         }
         for group in ("dependencies", "devDependencies"):
@@ -239,7 +279,9 @@ def frontend_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
                     package[group][name] = selected[name]
         package_path.write_text(json.dumps(package, indent=2) + "\n", encoding="utf-8")
         args.output.write_text(json.dumps({"requested": selected}) + "\n")
+        args.stage = "candidate-installation"
         run(["npm", "install", "--legacy-peer-deps"], cwd=workspace)
+        args.stage = "dependency-validation"
         inventory_result = subprocess.run(
             ["npm", "ls", "--all", "--json"],
             cwd=workspace,
@@ -257,8 +299,11 @@ def frontend_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
                 "resolved frontend dependency tree is invalid:\n"
                 + inventory_result.stdout
             )
+        args.stage = "frontend-tests"
         run(["npm", "test"], cwd=workspace)
+        args.stage = "frontend-build"
         run(["npm", "run", "build"], cwd=workspace)
+        args.stage = "artifact-generation"
         license_document, license_inventory = generate(args.root, frontend=workspace)
         (workspace / "build/third-party-licenses.json").write_bytes(license_inventory)
         staged_package: str | None = None
@@ -333,6 +378,8 @@ def main() -> None:
     )
     args = parser.parse_args()
     policy = load_policy(args.root)
+    args.selections = []
+    args.stage = "setup"
     evidence = {
         "lane": args.lane,
         "status": "failed",
@@ -351,6 +398,7 @@ def main() -> None:
         evidence["error"] = str(error)
         raise
     finally:
+        evidence.update(stage=args.stage, selections=args.selections)
         prior = json.loads(args.output.read_text()) if args.output.exists() else {}
         args.output.write_text(json.dumps({**prior, **evidence}, indent=2) + "\n")
 
