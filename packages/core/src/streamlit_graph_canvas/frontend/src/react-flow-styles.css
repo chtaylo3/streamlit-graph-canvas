@@ -1,0 +1,4 @@
+/* Give both upstream majors the same precedence below application rules.
+   V13's own xyflow layer nests inside this layer; v12 is layered at import. */
+@layer xyflow, sgc;
+@import "@xyflow/react/dist/style.css" layer(xyflow);

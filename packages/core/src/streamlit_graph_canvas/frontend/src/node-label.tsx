@@ -232,9 +232,9 @@ export function LabelContainer({
               overflowWrap: "anywhere",
               whiteSpace: "pre-wrap",
               font: "14px/1.4 system-ui",
-              color: "#111",
-              background: "#fff",
-              border: "1px solid #777",
+              color: "var(--st-text-color)",
+              background: "var(--st-background-color)",
+              border: "1px solid var(--st-border-color)",
               borderRadius: 6,
               padding: 8,
               boxShadow: "0 2px 8px #0004",
@@ -289,7 +289,9 @@ export function LabelContainer({
               </>
             )}
           </div>,
-          document.body,
+          // Keep theme variables and CSS scope across the Component v2 shadow
+          // boundary while positioning outside the transformed flow viewport.
+          ref.current?.closest(".sgc-root") ?? document.body,
         )}
     </div>
   );

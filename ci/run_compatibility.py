@@ -202,6 +202,9 @@ def npm_specs(
 ) -> list[str]:
     groups = policy["npm"]
     entries = groups["runtime"]
+    stable_react = scenario == "react-flow-stable"
+    if stable_react and lane != "forward":
+        raise ValueError("react-flow-stable requires the forward lane")
     if scenario == "react-flow":
         names = {
             "react",
@@ -230,19 +233,25 @@ def npm_specs(
             value = candidate_version(
                 "npm", name, entry["minimum"], baseline=baseline, selections=selections
             )
+        elif stable_react:
+            value = (
+                entry["forward"]
+                if name == "@xyflow/react"
+                else entry["latest_supported"]
+            )
         else:
             value = entry.get("forward", entry["supported"])
         specs.append(f"{name}@{value}")
     if package is not None and lock is not None:
         for name, declaration in sorted(package.get("devDependencies", {}).items()):
-            if scenario != "all" and name not in names:
+            if scenario not in {"all", "react-flow-stable"} and name not in names:
                 continue
             value = lock["packages"]["node_modules/" + name]["version"]
             if lane == "latest-tested":
                 value = candidate_version(
                     "npm", name, value, baseline=value, selections=selections
                 )
-            elif lane == "forward":
+            elif lane == "forward" and not stable_react:
                 value = declaration
             specs.append(f"{name}@{value}")
     return specs
@@ -294,7 +303,9 @@ def frontend_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
             json.dumps({"requested": selected, "npm_ls": inventory_result.stdout})
             + "\n"
         )
-        if inventory_result.returncode and args.lane != "forward":
+        if inventory_result.returncode and (
+            args.lane != "forward" or args.scenario == "react-flow-stable"
+        ):
             raise SystemExit(
                 "resolved frontend dependency tree is invalid:\n"
                 + inventory_result.stdout
@@ -366,7 +377,9 @@ def main() -> None:
         required=True,
     )
     frontend.add_argument(
-        "--scenario", choices=("all", "react-flow", "elk", "component"), default="all"
+        "--scenario",
+        choices=("all", "react-flow", "react-flow-stable", "elk", "component"),
+        default="all",
     )
     frontend.add_argument("--output", type=Path, required=True)
     frontend.add_argument(

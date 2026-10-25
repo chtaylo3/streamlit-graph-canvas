@@ -311,7 +311,7 @@ if st.session_state.wide_topology:
         )
         for index in range(80)
     )
-edges = [Edge("api-worker", "api", "worker", "calls", "out", "in")]
+edges = [Edge("api-worker", "api", "worker", "calls", "out", "in", label="Calls")]
 if len(nodes) == 3:
     edges.append(Edge("worker-cache", "worker", "cache", "calls", "out", "in"))
 if st.session_state.wide_topology:

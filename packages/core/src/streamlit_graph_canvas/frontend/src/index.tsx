@@ -29,7 +29,7 @@ import {
   type NodeProps,
   type Viewport,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import "./react-flow-styles.css";
 import React, {
   memo,
   useCallback,
@@ -69,6 +69,13 @@ import {
 } from "./child-groups";
 import { layoutGraph, type LayoutSize } from "./layout";
 import { useMeasuredNodes } from "./use-measured-nodes";
+import {
+  controlsFitViewOptions,
+  fitPadding,
+  flowDefaults,
+} from "./react-flow-compat";
+import "./react-flow-compat.css";
+import { observeHostTheme } from "./host-theme";
 import { useSceneTransition } from "./use-scene-transition";
 import { tone, type Palette } from "./palette";
 import { createTelemetry, type BrowserTelemetry } from "./telemetry";
@@ -1394,6 +1401,7 @@ function CanvasContents({
   const measured = useMeasuredNodes(searchedNodes);
   return (
     <ReactFlow
+      {...flowDefaults}
       nodes={measured.nodes}
       onNodesChange={measured.onNodesChange}
       edges={animated.scene.edges}
@@ -1478,7 +1486,7 @@ function CanvasContents({
               void flow.fitView({
                 nodes: ids.map((id) => ({ id })),
                 duration: 250,
-                padding: 0.25,
+                padding: fitPadding.search,
                 minZoom: 0.08,
                 maxZoom: 1.5,
               });
@@ -1501,7 +1509,7 @@ function CanvasContents({
         </Panel>
       )}
       <Background gap={22} size={1} />
-      <Controls />
+      <Controls fitViewOptions={controlsFitViewOptions} />
       <MiniMap pannable zoomable />
     </ReactFlow>
   );
@@ -1629,12 +1637,14 @@ function Canvas(props: {
   );
 
   useEffect(() => {
-    const media = matchMedia("(prefers-color-scheme: dark)");
-    const update = () => {
-      const theme = media.matches ? "dark" : "light";
-      if (theme !== props.data.state.atlasTheme) {
+    return observeHostTheme(props.host, (theme) => {
+      if (theme !== props.data.state.atlasTheme)
         props.setStateValue("atlas_theme", theme);
-      }
+    });
+  }, [props.host, props.data.state.atlasTheme]);
+
+  useEffect(() => {
+    const update = () => {
       const resolution =
         devicePixelRatio <= 1 ? 1 : devicePixelRatio <= 1.5 ? 1.5 : 2;
       if (resolution !== props.data.state.atlasResolution) {
@@ -1642,9 +1652,9 @@ function Canvas(props: {
       }
     };
     update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, [props.data.state.atlasResolution, props.data.state.atlasTheme]);
+    globalThis.addEventListener("resize", update);
+    return () => globalThis.removeEventListener("resize", update);
+  }, [props.data.state.atlasResolution]);
 
   useEffect(() => {
     const update = () => setRuntimeRevision((value) => value + 1);

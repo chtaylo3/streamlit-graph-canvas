@@ -1,0 +1,28 @@
+@layer sgc {
+  /* Shared v12/v13 public variables: follow the Streamlit host even when its
+   selected theme differs from the OS. Keep rules scoped to this canvas. */
+  .sgc-root > .react-flow {
+    color-scheme: inherit;
+    --xy-edge-label-color: var(--st-text-color);
+    --xy-edge-label-background-color: var(--st-background-color);
+    --xy-background-color: var(--st-background-color);
+    --xy-background-pattern-dots-color: var(--st-border-color);
+    --xy-controls-button-background-color: var(--st-background-color);
+    --xy-controls-button-background-color-hover: var(
+      --st-secondary-background-color
+    );
+    --xy-controls-button-color: var(--st-text-color);
+    --xy-controls-button-color-hover: var(--st-text-color);
+    --xy-controls-button-border-color: var(--st-border-color);
+    --xy-minimap-background-color: var(--st-background-color);
+    --xy-minimap-mask-background-color: color-mix(
+      in srgb,
+      var(--st-secondary-background-color) 60%,
+      transparent
+    );
+    --xy-minimap-node-background-color: var(--st-border-color);
+    --xy-handle-background-color: var(--st-text-color);
+    --xy-handle-border-color: var(--st-background-color);
+    --xy-attribution-background-color: var(--st-background-color);
+  }
+}
