@@ -11,9 +11,9 @@
     "test:features": "playwright test --config playwright.budget.config.ts && playwright test --config playwright.search.config.ts && playwright test --config playwright.label.config.ts"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.13.0",
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.64.1",
-    "@types/node": "^24.13.4",
+    "@types/node": "^24.19.2",
     "typescript": "^7.0.2"
   }
 }
