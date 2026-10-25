@@ -13,7 +13,7 @@ use a wheel built from this checkout for those features.
 
 ## Install and run
 
-Python 3.12–3.14 and Streamlit 1.62 or later are supported by the compatibility
+Python 3.12–3.15 and Streamlit 1.66.1 or later are supported by the compatibility
 matrix. Install a published prerelease with
 `pip install --pre streamlit-graph-canvas`, or use the checkout for the current
 development API:

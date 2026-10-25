@@ -18,6 +18,9 @@ the project uses semantic versioning.
 
 ### Changed
 
+- Support Python 3.15 alongside 3.12–3.14, with blocking Linux/Windows and
+  installed-wheel browser coverage. Keep Python 3.12 as the minimum and move
+  advisory interpreter surveillance to Python 3.16.
 - Update the locked React/React DOM stack to 19.3.1, React type declarations
   to 19.3.0, and React Flow to 12.12.0. Promote the tested runtime upper
   endpoints while retaining the existing installation ranges and minimums.

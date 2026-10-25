@@ -91,6 +91,37 @@ jobs:
         env:
           CI: "true"
           SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-release-conformance/bin/python
+      - name: Retain minimum-Python browser evidence
+        if: always()
+        run: |
+          mkdir -p release-browser-3.12
+          for directory in test-results playwright-report artifacts; do
+            if [ -d "tests/e2e/$directory" ]; then
+              mv "tests/e2e/$directory" release-browser-3.12/
+            fi
+          done
+      - name: Install the same publishable wheels on Python 3.15
+        run: >-
+          uv run python -m ci.build_conformance_environment
+          --set transports --python 3.15
+          --wheelhouse conformance-wheelhouse
+          --constraints locked-constraints.txt
+          --venv "${{ runner.temp }}/sgc-release-conformance-3.15"
+          --output release-conformance-3.15.json
+      - name: Test publishable wheels on Python 3.15 with CSP
+        run: npm test
+        working-directory: tests/e2e
+        env:
+          CI: "true"
+          SGC_CONTRIB_SET: transports
+          SGC_CSP_PROXY: "true"
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-release-conformance-3.15/bin/python
+      - name: Test canvas features on Python 3.15
+        run: npm run test:features
+        working-directory: tests/e2e
+        env:
+          CI: "true"
+          SGC_CONFORMANCE_PYTHON: ${{ runner.temp }}/sgc-release-conformance-3.15/bin/python
       - run: >-
           uv run python ci/stage_release_bundle.py dist release-bundle
           --repository "${GITHUB_REPOSITORY}"
@@ -104,6 +135,8 @@ jobs:
           name: release-evidence-${{ github.run_id }}-${{ github.sha }}-${{ github.ref_name }}
           path: |
             release-conformance.json
+            release-conformance-3.15.json
+            release-browser-3.12/
             tests/e2e/test-results/
             tests/e2e/playwright-report/
             tests/e2e/artifacts/

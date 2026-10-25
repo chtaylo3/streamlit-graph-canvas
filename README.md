@@ -194,7 +194,7 @@ artifacts.
 
 ## Development
 
-The supported Python compatibility lanes cover Python 3.12 through 3.14. uv is
+The supported Python compatibility lanes cover Python 3.12 through 3.15. uv is
 used for Python development, and Node.js 24.x is the supported frontend build
 toolchain.
 

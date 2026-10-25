@@ -4,6 +4,7 @@ import json
 import tomllib
 from pathlib import Path
 
+import pytest
 import yaml
 from packaging.specifiers import SpecifierSet
 from streamlit_graph_canvas.atlas import (
@@ -24,6 +25,93 @@ POLICY = tomllib.loads((ROOT / "ci/dependency-policy.toml").read_text(encoding="
 
 def test_dependency_policy_matches_project_files() -> None:
     assert verify(ROOT) == []
+
+
+@pytest.mark.parametrize(
+    ("relative", "old", "new", "error"),
+    [
+        (
+            ".github/workflows/ci.yml",
+            'python-version: ["3.12", "3.13", "3.14", "3.15"]',
+            'python-version: ["3.12", "3.13", "3.14"]',
+            "blocking Python test matrix",
+        ),
+        *[
+            (
+                f"packages/{distribution}/pyproject.toml",
+                '    "Programming Language :: Python :: 3.15",\n',
+                "",
+                f"{distribution} Python classifiers",
+            )
+            for distribution in ("core", "contrib")
+        ],
+        (
+            ".github/workflows/prerelease-compatibility.yml",
+            'python-version: "3.16"',
+            'python-version: "3.15"',
+            "forward Python scenario",
+        ),
+    ],
+)
+def test_python_support_rejects_metadata_and_matrix_drift(
+    monkeypatch, relative, old, new, error
+) -> None:
+    original_read = Path.read_text
+    target = ROOT / relative
+    assert old in original_read(target)
+
+    def read(path, *args, **kwargs):
+        text = original_read(path, *args, **kwargs)
+        return text.replace(old, new) if path == target else text
+
+    monkeypatch.setattr(Path, "read_text", read)
+    assert any(error in message for message in verify(ROOT))
+
+
+def test_supported_python_endpoints_reach_the_actual_wheel_environments() -> None:
+    jobs = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())["jobs"]
+    endpoints = {
+        POLICY["toolchains"]["python_min"],
+        POLICY["toolchains"]["python_locked"][-1],
+    }
+    conformance = jobs["chromium-conformance"]
+    assert set(conformance["strategy"]["matrix"]["python-version"]) == endpoints
+    compatibility = jobs["python-compatibility"]["strategy"]["matrix"]["include"]
+    for version in endpoints:
+        for platform in ("ubuntu-latest", "windows-latest"):
+            assert {
+                "os": platform,
+                "lane": "latest-supported",
+                "python-version": version,
+            } in compatibility
+    for name in ("chromium-conformance", "chromium-compatibility"):
+        job = jobs[name]
+        assert not job.get("continue-on-error", False)
+        environment = next(
+            step["run"]
+            for step in job["steps"]
+            if "ci.build_conformance_environment" in step.get("run", "")
+        )
+        assert '--python "${{ matrix.python-version }}"' in environment
+    release = yaml.safe_load((ROOT / ".github/workflows/release.yml").read_text())
+    steps = release["jobs"]["build-and-verify"]["steps"]
+    install = next(
+        step["run"] for step in steps if "--python 3.15" in step.get("run", "")
+    )
+    assert "--wheelhouse conformance-wheelhouse" in install
+    assert "--constraints locked-constraints.txt" in install
+    stage = next(
+        i
+        for i, step in enumerate(steps)
+        if "ci/stage_release_bundle.py" in step.get("run", "")
+    )
+    for command in ("npm test", "npm run test:features"):
+        assert any(
+            step.get("run") == command
+            and "sgc-release-conformance-3.15/bin/python"
+            in step.get("env", {}).get("SGC_CONFORMANCE_PYTHON", "")
+            for step in steps[:stage]
+        )
 
 
 def test_every_declared_fixture_set_is_built_and_scheduled() -> None:

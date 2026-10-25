@@ -82,9 +82,9 @@ closed or are not accepted by the public API.
 
 ## Compatibility policy
 
-- Python 3.12, 3.13, and 3.14 are tested on Windows and Linux; newer Python
+- Python 3.12, 3.13, 3.14, and 3.15 are tested on Windows and Linux; newer Python
   versions remain advisory until promoted.
-- Streamlit 1.62 is the minimum; CI tests the minimum and the current locked
+- Streamlit 1.66.1 is the minimum; CI tests the minimum and the current locked
   version. A scheduled lane tests the newest prerelease without blocking normal
   development.
 - The clean-wheel browser gate uses pinned Chromium on Ubuntu and tests

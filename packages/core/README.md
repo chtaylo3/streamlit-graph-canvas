@@ -43,7 +43,7 @@ package submodules are implementation details. See the project documentation
 for the static-sprite quick start, wire protocol, CSP, dependency, and beta
 compatibility contracts.
 
-The compatibility matrix tests Python 3.12 through 3.14. Node.js 24.x is used
+The compatibility matrix tests Python 3.12 through 3.15. Node.js 24.x is used
 to build the packaged frontend and is not required when running an installed
 wheel.
 
