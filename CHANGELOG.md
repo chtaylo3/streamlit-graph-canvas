@@ -5,6 +5,12 @@ the project uses semantic versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- Update the locked React/React DOM stack to 19.3.1, React type declarations
+  to 19.3.0, and React Flow to 12.12.0. Promote the tested runtime upper
+  endpoints while retaining the existing installation ranges and minimums.
+
 ### Fixed
 
 - Keep advisory candidate probes running when an approved security update is

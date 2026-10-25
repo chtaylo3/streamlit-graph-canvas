@@ -7,7 +7,7 @@ to the locked dependency graph, by
 The project selects the EPL-2.0 option for elkjs. Bundled dependencies are
 redistributed without source modifications by this project.
 
-## @xyflow/react 12.11.6
+## @xyflow/react 12.12.0
 
 Declared license: `MIT`
 
@@ -35,7 +35,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @xyflow/system 0.0.82
+## @xyflow/system 0.0.83
 
 Declared license: `MIT`
 
@@ -542,7 +542,7 @@ in the Eclipse Public License, v. 2.0 are satisfied: GNU General Public License 
 > You may add additional accurate notices of copyright ownership.
 ```
 
-## react 19.2.8
+## react 19.3.1
 
 Declared license: `MIT`
 
@@ -570,7 +570,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## react-dom 19.2.8
+## react-dom 19.3.1
 
 Declared license: `MIT`
 
@@ -598,7 +598,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## scheduler 0.27.0
+## scheduler 0.28.0
 
 Declared license: `MIT`
 
