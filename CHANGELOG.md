@@ -7,6 +7,8 @@ the project uses semantic versioning.
 
 ### Maintenance
 
+- Run full CI on pull requests and pushes to main, avoiding duplicate runs
+  for feature-branch pushes while retaining manual runs.
 - Refresh pinned GitHub Actions and the corresponding reviewed artifact-download
   and App-token allowlists without changing publisher permissions or commands.
 
