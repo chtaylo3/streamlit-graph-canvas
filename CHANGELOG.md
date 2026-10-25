@@ -5,6 +5,11 @@ the project uses semantic versioning.
 
 ## [Unreleased]
 
+### Maintenance
+
+- Refresh pinned GitHub Actions and the corresponding reviewed artifact-download
+  and App-token allowlists without changing publisher permissions or commands.
+
 ### Changed
 
 - Update the locked React/React DOM stack to 19.3.1, React type declarations

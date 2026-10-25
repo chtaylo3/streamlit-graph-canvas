@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
 
-from ci.verify_workflow_security import verify_workflows
+from ci.verify_workflow_security import APP_TOKEN, DOWNLOAD, verify_workflows
 
 ROOT = Path(__file__).parents[1]
 
@@ -16,6 +17,24 @@ def write_workflow(directory: Path, body: str) -> None:
 
 def test_repository_workflows_keep_publication_fail_closed() -> None:
     assert verify_workflows(ROOT / ".github/workflows") == []
+
+
+@pytest.mark.parametrize(
+    ("workflow", "approved", "message"),
+    [
+        ("dependency-publish.yml", APP_TOKEN, "App action differs from allowlist"),
+        ("release.yml", DOWNLOAD, "privileged actions differ from the allowlist"),
+    ],
+)
+def test_privileged_action_updates_still_require_exact_reviewed_pins(
+    tmp_path: Path, workflow: str, approved: str, message: str
+) -> None:
+    directory = tmp_path / "workflows"
+    shutil.copytree(ROOT / ".github/workflows", directory)
+    path = directory / workflow
+    unreviewed = approved.split("@", 1)[0] + "@" + "0" * 40
+    path.write_text(path.read_text().replace(approved, unreviewed))
+    assert any(message in error for error in verify_workflows(directory))
 
 
 @pytest.mark.parametrize(

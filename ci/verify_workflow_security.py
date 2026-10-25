@@ -9,13 +9,13 @@ from typing import Any
 
 import yaml
 
-DOWNLOAD = "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"
+DOWNLOAD = "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333"
 ATTEST = "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8"
 PUBLISH = "pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33"
 DIGEST = "cd release-bundle && sha256sum --check SHA256SUMS"
 PUBLISH_COMMAND = re.compile(r"(?:^|\s)uv\s+publish(?:\s|$)")
 RUNNER_CONTEXT = re.compile(r"\$\{\{[^}]*\brunner\.")
-APP_TOKEN = "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1"
+APP_TOKEN = "actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510"
 
 
 def _verify_dependency_publisher(workflow: dict[str, Any], errors: list[str]) -> None:
