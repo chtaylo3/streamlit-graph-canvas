@@ -34,8 +34,8 @@ define a user-facing minimum unless they ship or run in user environments.
 
 | Lane | Resolution | Platforms | Required |
 | --- | --- | --- | --- |
-| Locked | exact `uv.lock` and npm locks | Ubuntu and Windows, Python 3.12–3.14; Node 24.x | yes |
-| Release artifact | exact wheel bytes later passed to `uv publish` | Ubuntu and Chromium | yes |
+| Locked | exact `uv.lock` and npm locks | Ubuntu and Windows, Python 3.12–3.15; Node 24.x | yes |
+| Release artifact | exact wheel bytes later passed to `uv publish` | Ubuntu and Chromium on Python 3.12 and 3.15 | yes |
 | Minimum | exact supported direct minimums; coherent coupled stacks | Ubuntu and Windows; Chromium transports set | yes |
 | Latest supported | exact approved direct endpoints | Ubuntu and Windows on oldest and newest Python versions; Chromium transports set | yes |
 | Security | `pip-audit`, `npm audit`, dependency review, CodeQL | Ubuntu | yes |
@@ -57,6 +57,28 @@ traces, screenshots, video, Streamlit logs, and JUnit output. The Chromium
 static sprites, packed atlas delivery, the shared cache path, and CSP checks.
 Cache sharing and eviction are separately exercised with deterministic Python
 tests.
+
+Python 3.15 joins the blocking supported matrix; Python 3.12 remains the minimum
+and the development/build default. The oldest and newest supported interpreters
+run all installed-wheel contrib sets and canvas feature contracts. Latest-supported
+dependency and browser checks also exercise Python 3.15. Release verification tests
+the same publishable wheels on both endpoints before staging the bundle.
+Supported interpreter jobs reject prerelease interpreters. Python 3.16 is the
+advisory forward target; free-threaded builds are outside this support claim.
+
+Browser jobs preserve the Python 3.12 check names required by the `Protect main`
+ruleset. Additional interpreter jobs use distinct versioned names. Treat required
+check names as an integration contract when expanding a matrix: verify the emitted
+contexts against repository rules before calling a PR merge-ready.
+
+The Python 3.15 lock refresh changes only pandas 3.0.5 to 3.0.6, PyArrow
+25.0.1 to 26.0.0, and MarkupSafe 3.0.3 to 3.0.4. Their prior locked versions
+lack CPython 3.15 wheels. Upstream documents the support additions in the
+[pandas maintenance notes](https://pandas.pydata.org/docs/whatsnew/v3.0.6.html),
+[Arrow 26 release notes](https://arrow.apache.org/blog/2026/10/08/26.0.0-release/),
+and [MarkupSafe changelog](https://markupsafe.palletsprojects.com/en/stable/changes/).
+Application contracts are exercised against the locked stack and fresh approved
+direct endpoints; these transitive changes do not raise public dependency minimums.
 
 ## Dependency-specific behavioral contracts
 

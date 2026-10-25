@@ -1,7 +1,7 @@
 [toolchains]
 python_min = "3.12"
-python_locked = ["3.12", "3.13", "3.14"]
-python_forward = "3.15"
+python_locked = ["3.12", "3.13", "3.14", "3.15"]
+python_forward = "3.16"
 node_locked = "24"
 node_supported = ">=24 <25"
 node_forward = "26"

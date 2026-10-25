@@ -10,6 +10,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
+import yaml
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
@@ -338,9 +339,22 @@ def verify(root: Path) -> list[str]:
             errors.append(f"Python {name} is absent from uv.lock")
 
     ci = (root / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    for version in policy["toolchains"]["python_locked"]:
-        if f'"{version}"' not in ci:
-            errors.append(f"locked Python {version} is absent from CI")
+    supported_python = policy["toolchains"]["python_locked"]
+    python_matrix = yaml.safe_load(ci)["jobs"]["python"]["strategy"]["matrix"]
+    if set(python_matrix["python-version"]) != set(supported_python):
+        errors.append("blocking Python test matrix differs from policy python_locked")
+    classifier_prefix = "Programming Language :: Python :: "
+    for distribution in ("core", "contrib"):
+        metadata = _load(root / f"packages/{distribution}/pyproject.toml")["project"]
+        classifiers = {
+            item.removeprefix(classifier_prefix)
+            for item in metadata["classifiers"]
+            if item.startswith(classifier_prefix)
+        }
+        if classifiers != set(supported_python):
+            errors.append(f"{distribution} Python classifiers differ from policy")
+        if metadata["requires-python"] != f">={python_min}":
+            errors.append(f"{distribution} requires-python differs from python_min")
     node = policy["toolchains"]["node_locked"]
     if not re.search(rf"node-version:\s*[\"']?{re.escape(node)}", ci):
         errors.append(f"locked Node {node} is absent from CI")
@@ -373,6 +387,15 @@ def verify(root: Path) -> list[str]:
     prerelease = (root / ".github/workflows/prerelease-compatibility.yml").read_text(
         encoding="utf-8"
     )
+    forward_python = yaml.safe_load(prerelease)["jobs"]["python-forward"]["strategy"][
+        "matrix"
+    ]["include"]
+    if not any(
+        item["python-version"] == policy["toolchains"]["python_forward"]
+        and item["scenario"] == "supported"
+        for item in forward_python
+    ):
+        errors.append("forward Python scenario differs from policy python_forward")
     for scenario in (
         "python-forward",
         "scenario: pillow",
