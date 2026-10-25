@@ -65,6 +65,24 @@ multi-edges, controlled selection, keyboard activation, viewport restoration,
 zoom bounds, reruns and topology changes, theme styling, cleanup without duplicate
 handlers, accessibility, and style containment.
 
+React Flow v12 remains officially supported. V13 is experimental: the measurement
+callback accepts both v12 change arrays and iterable v13 changesets, retaining
+only dimensions for nodes in the current scene. Compatibility probes do not
+promote v13 or widen the declared v12 dependency range. Test v13 with stable React
+separately from the forward lane's React canary stack to distinguish their results.
+The callback uses the exported `OnNodesChange` type. Fit and search navigation use
+explicit percentage padding because v12 interprets numeric padding as a ratio,
+while the v13 prerelease interprets it as pixels.
+
+The license generator has one reviewed exception for the missing LICENSE in
+`react-compiler-runtime@1.0.0`: it includes the MIT notice from the exact React
+commit recorded by npm, after verifying that the published runtime source matches
+that commit. The exception requires the exact version, public npm tarball URL,
+tarball integrity, and MIT declaration, verifies the vendored notice's SHA-256,
+and records its immutable upstream URL in the generated license artifacts.
+Other missing licenses still fail generation; no license is downloaded during
+builds. A license included in the installed package takes precedence.
+
 ELK updates must preserve deterministic layered direction, non-overlap,
 handling of parallel edges, self-loops, cycles, and disconnected graphs, finite
 coordinates, and

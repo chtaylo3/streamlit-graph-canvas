@@ -17,6 +17,20 @@ LICENSE_NAMES = (
     "COPYING",
 )
 
+# npm's 1.0.0 tarball omits LICENSE. Its src/index.ts exactly matches this
+# npm gitHead and explicitly refers to the repository-root MIT license.
+COMPILER_RUNTIME_SOURCE = (
+    "https://raw.githubusercontent.com/facebook/react/"
+    "5c15c1cd3442f28044217703b5625f98c40042ee/LICENSE"
+)
+COMPILER_RUNTIME_INTEGRITY = (
+    "sha512-rRfjYv66HlG8896yPUDONgKzG5BxZD1nV9U6rkm+7VCuvQc903C4MjcoZR4zPw53I"
+    "KSOX9wMQVpA1IAbRtzQ7w=="
+)
+COMPILER_RUNTIME_LICENSE_SHA256 = (
+    "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+)
+
 
 def _bundled_packages(
     lock: dict[str, Any], bundle: dict[str, Any]
@@ -42,11 +56,35 @@ def _bundled_packages(
     return sorted(selected, key=lambda item: item[0].casefold())
 
 
-def _license_file(package_dir: Path) -> Path:
+def _license_file(
+    package_dir: Path,
+    *,
+    root: Path,
+    package: dict[str, Any],
+    locked: dict[str, Any],
+) -> tuple[Path, str | None]:
     for name in LICENSE_NAMES:
         candidate = package_dir / name
         if candidate.is_file():
-            return candidate
+            return candidate, None
+    if (
+        package.get("name") == "react-compiler-runtime"
+        and package.get("version") == locked.get("version") == "1.0.0"
+        and package.get("license") == "MIT"
+        and locked.get("integrity") == COMPILER_RUNTIME_INTEGRITY
+        and locked.get("resolved")
+        == "https://registry.npmjs.org/react-compiler-runtime/-/"
+        "react-compiler-runtime-1.0.0.tgz"
+    ):
+        reviewed = root / "ci/frontend-licenses/react-compiler-runtime-1.0.0.LICENSE"
+        if not reviewed.is_file() or (
+            hashlib.sha256(reviewed.read_bytes()).hexdigest()
+            != COMPILER_RUNTIME_LICENSE_SHA256
+        ):
+            raise SystemExit(
+                "Reviewed react-compiler-runtime license is missing or changed"
+            )
+        return reviewed, COMPILER_RUNTIME_SOURCE
     raise SystemExit(f"No license text found for {package_dir.name!r}")
 
 
@@ -72,7 +110,9 @@ def generate(root: Path, *, frontend: Path | None = None) -> tuple[bytes, bytes]
         package_json = json.loads(
             (package_dir / "package.json").read_text(encoding="utf-8")
         )
-        license_path = _license_file(package_dir)
+        license_path, license_source = _license_file(
+            package_dir, root=root, package=package_json, locked=metadata
+        )
         license_text = license_path.read_text(encoding="utf-8").strip()
         declared = str(package_json.get("license") or metadata.get("license") or "")
         if not declared:
@@ -89,6 +129,8 @@ def generate(root: Path, *, frontend: Path | None = None) -> tuple[bytes, bytes]
                 "license_sha256": digest,
             }
         )
+        if license_source:
+            inventory[-1]["license_source"] = license_source
         sections.extend(
             [
                 "",
@@ -96,6 +138,7 @@ def generate(root: Path, *, frontend: Path | None = None) -> tuple[bytes, bytes]
                 "",
                 f"Declared license: `{declared}`",
                 "",
+                *([f"License source: {license_source}", ""] if license_source else []),
                 "```text",
                 license_text,
                 "```",

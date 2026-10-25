@@ -69,6 +69,7 @@ import {
 } from "./child-groups";
 import { layoutGraph, type LayoutSize } from "./layout";
 import { useMeasuredNodes } from "./use-measured-nodes";
+import { fitViewPadding } from "./viewport";
 import { useSceneTransition } from "./use-scene-transition";
 import { tone, type Palette } from "./palette";
 import { createTelemetry, type BrowserTelemetry } from "./telemetry";
@@ -1478,7 +1479,7 @@ function CanvasContents({
               void flow.fitView({
                 nodes: ids.map((id) => ({ id })),
                 duration: 250,
-                padding: 0.25,
+                padding: fitViewPadding(0.25),
                 minZoom: 0.08,
                 maxZoom: 1.5,
               });
