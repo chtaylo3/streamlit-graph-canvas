@@ -6,7 +6,7 @@
       "license_sha256": "afdbdf326065131fd5b3dc06457b77a241bba5c6714c856c0e978d254469b045",
       "name": "@xyflow/react",
       "selected_license": "MIT",
-      "version": "12.11.6"
+      "version": "12.12.0"
     },
     {
       "declared_license": "MIT",
@@ -14,7 +14,7 @@
       "license_sha256": "afdbdf326065131fd5b3dc06457b77a241bba5c6714c856c0e978d254469b045",
       "name": "@xyflow/system",
       "selected_license": "MIT",
-      "version": "0.0.82"
+      "version": "0.0.83"
     },
     {
       "declared_license": "MIT",
@@ -110,7 +110,7 @@
       "license_sha256": "cf9b17822d1fcd4ff32ccbe14183386fb3adf6f2ff92dc184130823f7fc28173",
       "name": "react",
       "selected_license": "MIT",
-      "version": "19.2.8"
+      "version": "19.3.1"
     },
     {
       "declared_license": "MIT",
@@ -118,7 +118,7 @@
       "license_sha256": "cf9b17822d1fcd4ff32ccbe14183386fb3adf6f2ff92dc184130823f7fc28173",
       "name": "react-dom",
       "selected_license": "MIT",
-      "version": "19.2.8"
+      "version": "19.3.1"
     },
     {
       "declared_license": "MIT",
@@ -126,7 +126,7 @@
       "license_sha256": "cf9b17822d1fcd4ff32ccbe14183386fb3adf6f2ff92dc184130823f7fc28173",
       "name": "scheduler",
       "selected_license": "MIT",
-      "version": "0.27.0"
+      "version": "0.28.0"
     },
     {
       "declared_license": "MIT",

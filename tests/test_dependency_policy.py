@@ -95,11 +95,11 @@ def test_latest_supported_uses_approved_exact_versions() -> None:
         POLICY, "latest-supported", "react-flow", package=PACKAGE, lock=LOCK
     )
     assert set(latest) == {
-        "react@19.2.8",
-        "react-dom@19.2.8",
-        "@types/react@19.2.18",
-        "@types/react-dom@19.2.7",
-        "@xyflow/react@12.11.6",
+        "react@19.3.1",
+        "react-dom@19.3.1",
+        "@types/react@19.3.0",
+        "@types/react-dom@19.3.0",
+        "@xyflow/react@12.12.0",
     }
 
 

@@ -3,11 +3,11 @@
   "packages": [
     {
       "name": "@xyflow/react",
-      "version": "12.11.6"
+      "version": "12.12.0"
     },
     {
       "name": "@xyflow/system",
-      "version": "0.0.82"
+      "version": "0.0.83"
     },
     {
       "name": "classcat",
@@ -55,15 +55,15 @@
     },
     {
       "name": "react",
-      "version": "19.2.8"
+      "version": "19.3.1"
     },
     {
       "name": "react-dom",
-      "version": "19.2.8"
+      "version": "19.3.1"
     },
     {
       "name": "scheduler",
-      "version": "0.27.0"
+      "version": "0.28.0"
     },
     {
       "name": "use-sync-external-store",
