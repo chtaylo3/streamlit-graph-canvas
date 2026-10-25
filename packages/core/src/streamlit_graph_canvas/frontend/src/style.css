@@ -1,5 +1,6 @@
+@layer sgc {
 :host { display: block; width: 100%; height: 100%; }
-.sgc-root { color-scheme: light dark; position: relative; isolation: isolate; width: 100%; height: 100%; min-height: 320px; border: 1px solid var(--st-border-color); border-radius: 12px; overflow: hidden; background: var(--st-background-color); }
+.sgc-root { color-scheme: inherit; position: relative; isolation: isolate; width: 100%; height: 100%; min-height: 320px; border: 1px solid var(--st-border-color); border-radius: 12px; overflow: hidden; background: var(--st-background-color); }
 .sgc-root > .react-flow { position: relative; width: 100%; height: 100%; min-height: 320px; }
 .sgc-node-container { position: relative; width: 100%; height: 100%; overflow: visible; }
 .sgc-node { position: relative; z-index: 1; box-sizing: border-box; width: 100%; height: 100%; padding: 12px; display: flex; flex-direction: column; justify-content: center; background: var(--st-secondary-background-color); border: 2px solid var(--st-border-color); border-radius: 12px; color: var(--st-text-color); box-shadow: 0 3px 12px rgba(15, 23, 42, .08); }
@@ -51,3 +52,7 @@
 .sgc-node-label > span { display:block; white-space:pre; overflow:hidden; }
 .sgc-label-reveal { position:absolute; bottom:2px; left:6px; z-index:4; padding:0 4px; line-height:14px; border:0; border-radius:3px; background:var(--st-background-color,white); color:var(--st-text-color,black); cursor:pointer; }
 .sgc-label-reveal:focus-visible { outline:2px solid var(--st-primary-color); }
+
+.sgc-full-label button { background: var(--st-secondary-background-color); color: var(--st-text-color); border: 1px solid var(--st-border-color); border-radius: 4px; padding: 3px 6px; }
+.sgc-full-label button:focus-visible { outline: 2px solid var(--st-primary-color); outline-offset: 2px; }
+}

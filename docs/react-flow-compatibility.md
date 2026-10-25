@@ -14,8 +14,27 @@ differences. They use public APIs shared by both versions:
 - Initial fit, search, and toolbar fit use explicit percentage padding. Numeric
   padding has different semantics between v12 and v13.
 - Selected-edge elevation has an explicit default preserving v12 behavior.
-- Controls, minimap, handles, and background use Streamlit host theme variables,
+- Controls, edge labels, minimap, handles, and background use Streamlit host theme variables,
   independent of the operating system's theme or upstream CSS layer defaults.
+
+`react-flow-styles.css` imports either upstream stylesheet into the `xyflow`
+layer and orders application rules in the higher `sgc` layer. V13's own layer
+nests inside that upstream layer. Late upstream rules therefore cannot override
+application focus or theme rules simply through selector specificity or load order.
+The canvas and React Flow root inherit the host's computed color scheme.
+
+Host observation lives in `host-theme.ts`, outside the React Flow adapter: the
+same resolved host theme drives palette rendering and atlas/sprite requests.
+Observers cross the Component v2 shadow boundary, coalesce updates, exclude
+animated canvas internals, and disconnect on teardown. Full-label portals stay
+inside the canvas shadow root, outside the transformed viewport, so host variables
+and focus styles apply to overlays too.
+
+The `react-flow-stable` forward scenario varies only React Flow while fixing
+stable supported companions and locked tools, and rejects invalid dependency
+trees. The read-only experimental PR workflow runs transports/CSP, multi-canvas,
+and the shared feature suites. Its results remain advisory; the existing canary
+probe and v12 support policy are unchanged.
 
 Keep layout, search, label rendering, transitions, and server-authoritative state
 shared. Do not wrap every React Flow export or introduce runtime version parsing.
@@ -61,3 +80,5 @@ each candidate; keep committed production assets on the supported v12 build.
 
 The validation backlog and architecture decision are tracked in
 [issue #66](https://github.com/chtaylo3/streamlit-graph-canvas/issues/66).
+The [assessment and implementation plans](react-flow-v13-implementation-plan.md)
+describe which changes need compatibility handling and which need regression tests.

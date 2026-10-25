@@ -14,6 +14,65 @@ from ci.report_candidate_outcome import build_report
 NOW = dt.datetime(2026, 10, 24, 20, tzinfo=dt.UTC)
 
 
+def test_react_flow_probe_keeps_stable_companions_and_locked_tools():
+    from pathlib import Path
+
+    root = Path(__file__).parents[1]
+    frontend = root / "packages/core/src/streamlit_graph_canvas/frontend"
+    package = json.loads((frontend / "package.json").read_text())
+    lock = json.loads((frontend / "package-lock.json").read_text())
+    policy = run_compatibility.load_policy(root)
+    specs = run_compatibility.npm_specs(
+        policy, "forward", "react-flow-stable", package=package, lock=lock
+    )
+    selected = dict(spec.rsplit("@", 1) for spec in specs)
+    assert (
+        selected["@xyflow/react"]
+        == policy["npm"]["runtime"]["@xyflow/react"]["forward"]
+    )
+    for name in ("react", "react-dom", "elkjs", "@streamlit/component-v2-lib"):
+        assert selected[name] == policy["npm"]["runtime"][name]["latest_supported"]
+    for name in package["devDependencies"]:
+        assert selected[name] == lock["packages"]["node_modules/" + name]["version"]
+    assert any(
+        "canary" in spec
+        for spec in run_compatibility.npm_specs(policy, "forward", "react-flow")
+    )
+    with pytest.raises(ValueError, match="requires the forward lane"):
+        run_compatibility.npm_specs(policy, "minimum", "react-flow-stable")
+
+
+def test_stable_react_probe_rejects_invalid_peers_before_tests_or_build(
+    tmp_path, monkeypatch
+):
+    from pathlib import Path
+    from types import SimpleNamespace
+
+    root = Path(__file__).parents[1]
+    calls = []
+    monkeypatch.setattr(
+        run_compatibility, "run", lambda command, **kwargs: calls.append(command)
+    )
+    monkeypatch.setattr(
+        run_compatibility.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=1, stdout="invalid peer tree"
+        ),
+    )
+    args = SimpleNamespace(
+        root=root,
+        lane="forward",
+        scenario="react-flow-stable",
+        selections=[],
+        output=tmp_path / "report.json",
+    )
+    with pytest.raises(SystemExit, match="dependency tree is invalid"):
+        run_compatibility.frontend_lane(args, run_compatibility.load_policy(root))
+    assert args.stage == "dependency-validation"
+    assert calls == [["npm", "install", "--legacy-peer-deps"]]
+
+
 def test_fresh_approved_baseline_does_not_block_or_downgrade_candidates():
     releases = {
         "1.0.0": "2026-09-01T00:00:00Z",

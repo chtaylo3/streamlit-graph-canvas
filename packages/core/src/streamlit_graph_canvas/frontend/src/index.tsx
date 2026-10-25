@@ -29,7 +29,7 @@ import {
   type NodeProps,
   type Viewport,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import "./react-flow-styles.css";
 import React, {
   memo,
   useCallback,
@@ -75,6 +75,7 @@ import {
   flowDefaults,
 } from "./react-flow-compat";
 import "./react-flow-compat.css";
+import { observeHostTheme } from "./host-theme";
 import { useSceneTransition } from "./use-scene-transition";
 import { tone, type Palette } from "./palette";
 import { createTelemetry, type BrowserTelemetry } from "./telemetry";
@@ -1636,12 +1637,14 @@ function Canvas(props: {
   );
 
   useEffect(() => {
-    const media = matchMedia("(prefers-color-scheme: dark)");
-    const update = () => {
-      const theme = media.matches ? "dark" : "light";
-      if (theme !== props.data.state.atlasTheme) {
+    return observeHostTheme(props.host, (theme) => {
+      if (theme !== props.data.state.atlasTheme)
         props.setStateValue("atlas_theme", theme);
-      }
+    });
+  }, [props.host, props.data.state.atlasTheme]);
+
+  useEffect(() => {
+    const update = () => {
       const resolution =
         devicePixelRatio <= 1 ? 1 : devicePixelRatio <= 1.5 ? 1.5 : 2;
       if (resolution !== props.data.state.atlasResolution) {
@@ -1649,9 +1652,9 @@ function Canvas(props: {
       }
     };
     update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, [props.data.state.atlasResolution, props.data.state.atlasTheme]);
+    globalThis.addEventListener("resize", update);
+    return () => globalThis.removeEventListener("resize", update);
+  }, [props.data.state.atlasResolution]);
 
   useEffect(() => {
     const update = () => setRuntimeRevision((value) => value + 1);

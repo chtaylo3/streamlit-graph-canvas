@@ -121,3 +121,34 @@ test("toolbar Fit View retains supported spacing after zooming", async ({
     )
     .toBeLessThan(0.003);
 });
+
+test("default wheel, pinch and double-click zoom remain available", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await openGallery(page);
+  const flow = page.locator(".react-flow");
+  const zoom = () =>
+    flow
+      .locator(".react-flow__viewport")
+      .evaluate((e) => new DOMMatrixReadOnly(getComputedStyle(e).transform).a);
+  for (const gesture of ["wheel", "pinch", "double-click"]) {
+    await flow.locator(".react-flow__controls-fitview").click();
+    await waitForGalleryStable(page);
+    const before = await zoom();
+    const box = await flow.boundingBox();
+    await page.mouse.move(box!.x + box!.width - 30, box!.y + box!.height / 2);
+    if (gesture === "double-click")
+      await page.mouse.dblclick(
+        box!.x + box!.width - 30,
+        box!.y + box!.height / 2,
+      );
+    else {
+      if (gesture === "pinch") await page.keyboard.down("Control");
+      await page.mouse.wheel(0, -120);
+      if (gesture === "pinch") await page.keyboard.up("Control");
+    }
+    await expect.poll(zoom).toBeGreaterThan(before + 0.05);
+    expect(await zoom()).toBeLessThanOrEqual(2.5);
+  }
+});

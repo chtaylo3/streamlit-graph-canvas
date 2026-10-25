@@ -77,6 +77,12 @@ while the v13 prerelease interprets it as pixels.
 Keep input normalization and explicit compatibility defaults in the shared module.
 The [React Flow compatibility boundary](react-flow-compatibility.md) documents its
 contract and the criteria for switching to separate build-selected version adapters.
+The advisory `react-flow-stable` scenario selects the experimental React Flow
+target with approved stable companions and locked tools, rejecting invalid peer
+trees. Its PR workflow runs the same installed-wheel/browser contracts separately
+from React-canary surveillance. Actual Streamlit theme selection, CSS layers,
+nested geometry, gesture defaults, interrupted updates, and teardown/remount are
+covered by shared regressions; future measurement proposals remain watch items.
 
 The license generator has one reviewed exception for the missing LICENSE in
 `react-compiler-runtime@1.0.0`: it includes the MIT notice from the exact React
