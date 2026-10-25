@@ -69,7 +69,12 @@ import {
 } from "./child-groups";
 import { layoutGraph, type LayoutSize } from "./layout";
 import { useMeasuredNodes } from "./use-measured-nodes";
-import { fitViewPadding } from "./viewport";
+import {
+  controlsFitViewOptions,
+  fitPadding,
+  flowDefaults,
+} from "./react-flow-compat";
+import "./react-flow-compat.css";
 import { useSceneTransition } from "./use-scene-transition";
 import { tone, type Palette } from "./palette";
 import { createTelemetry, type BrowserTelemetry } from "./telemetry";
@@ -1395,6 +1400,7 @@ function CanvasContents({
   const measured = useMeasuredNodes(searchedNodes);
   return (
     <ReactFlow
+      {...flowDefaults}
       nodes={measured.nodes}
       onNodesChange={measured.onNodesChange}
       edges={animated.scene.edges}
@@ -1479,7 +1485,7 @@ function CanvasContents({
               void flow.fitView({
                 nodes: ids.map((id) => ({ id })),
                 duration: 250,
-                padding: fitViewPadding(0.25),
+                padding: fitPadding.search,
                 minZoom: 0.08,
                 maxZoom: 1.5,
               });
@@ -1502,7 +1508,7 @@ function CanvasContents({
         </Panel>
       )}
       <Background gap={22} size={1} />
-      <Controls />
+      <Controls fitViewOptions={controlsFitViewOptions} />
       <MiniMap pannable zoomable />
     </ReactFlow>
   );

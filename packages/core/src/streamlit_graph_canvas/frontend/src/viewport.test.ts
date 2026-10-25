@@ -1,6 +1,6 @@
 import { getViewportForBounds } from "@xyflow/react";
 import { describe, expect, it } from "vitest";
-import { fitViewPadding } from "./viewport";
+import { controlsFitViewOptions, fitPadding } from "./react-flow-compat";
 
 describe("viewport padding across React Flow versions", () => {
   it("keeps the initial fit clear of controls at the supported zoom", () => {
@@ -10,7 +10,7 @@ describe("viewport padding across React Flow versions", () => {
       620,
       0.08,
       2.5,
-      fitViewPadding(0.12),
+      fitPadding.initial,
     );
     expect(viewport.zoom).toBeCloseTo(1.26);
     expect(viewport.x).toBeCloseTo(21.88);
@@ -25,7 +25,7 @@ describe("viewport padding across React Flow versions", () => {
       1000,
       0.08,
       1.5,
-      fitViewPadding(0.25),
+      fitPadding.search,
     );
     expect(viewport.zoom).toBeCloseTo(0.8, 2);
     expect(viewport.x).toBeCloseTo(viewport.y);
@@ -37,8 +37,23 @@ describe("viewport padding across React Flow versions", () => {
         1000,
         0.08,
         1.5,
-        fitViewPadding(0.25),
+        fitPadding.search,
       ).zoom,
     ).toBe(1.5);
+  });
+
+  it("preserves the v12 toolbar fit instead of inheriting new upstream defaults", () => {
+    const viewport = getViewportForBounds(
+      { x: 0, y: 0, width: 1000, height: 1000 },
+      1000,
+      1000,
+      0.08,
+      2.5,
+      controlsFitViewOptions.padding,
+    );
+    expect(viewport.zoom).toBeCloseTo(1 / 1.1, 2);
+    expect(viewport.x).toBeCloseTo(viewport.y);
+    expect(viewport.x).toBeGreaterThanOrEqual(44);
+    expect(viewport.x).toBeLessThanOrEqual(46);
   });
 });

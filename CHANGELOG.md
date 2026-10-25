@@ -7,6 +7,8 @@ the project uses semantic versioning.
 
 ### Maintenance
 
+- Centralize React Flow compatibility defaults and measurement normalization,
+  with documented criteria for introducing separate version adapters.
 - Run full CI on pull requests and pushes to main, avoiding duplicate runs
   for feature-branch pushes while retaining manual runs.
 - Refresh pinned GitHub Actions and the corresponding reviewed artifact-download
@@ -22,8 +24,10 @@ the project uses semantic versioning.
 
 - Accept iterable React Flow v13 measurement changesets alongside supported v12
   change arrays. V13 remains experimental and does not change supported ranges.
-- Preserve fit and search viewport padding across React Flow versions using
+- Preserve initial fit, search, and toolbar viewport padding across React Flow versions using
   explicit percentages; numeric padding changes meaning in the v13 prerelease.
+- Follow Streamlit host theme colors for React Flow controls, minimap, handles,
+  and background, and preserve v12 edge stacking when selecting a node.
 - Include a verified, pinned upstream MIT notice for the missing LICENSE in
   `react-compiler-runtime@1.0.0` during experimental artifact generation.
 - Keep advisory candidate probes running when an approved security update is

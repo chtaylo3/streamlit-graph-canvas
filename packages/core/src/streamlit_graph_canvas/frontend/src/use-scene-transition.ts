@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fitViewPadding } from "./viewport";
+import { fitPadding } from "./react-flow-compat";
 import { getNodesBounds, getViewportForBounds, type ReactFlowInstance, type Viewport } from "@xyflow/react";
 import { absoluteNodes, budgetTransitionOrigin, center, interpolateViewport, prepareTransition, stabilizeContext, translateScene, type Scene } from "./transition";
 
@@ -50,7 +50,7 @@ export function useSceneTransition(target:Scene, options:{
       const height=element?.clientHeight||settings.host.clientHeight||600;
       const flat=absoluteNodes(destination.nodes);
       if (flat.length) {
-        toViewport=getViewportForBounds(getNodesBounds(flat),width,height,0.08,2.5,fitViewPadding(0.12));
+        toViewport=getViewportForBounds(getNodesBounds(flat),width,height,0.08,2.5,fitPadding.initial);
 
       }
     }

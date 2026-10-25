@@ -3,9 +3,23 @@ import * as xyflow from "@xyflow/react";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   pruneMeasurements,
-  retainMeasurements,
+  retainMeasurements as retainNormalizedMeasurements,
   useMeasuredNodes,
 } from "./use-measured-nodes";
+import { snapshotMeasurements } from "./react-flow-compat";
+
+// Run both upstream containers through the same app-owned measurement contract.
+function retainMeasurements(
+  previous: Parameters<typeof retainNormalizedMeasurements>[0],
+  changes: Iterable<NodeChange>,
+  liveIds: ReadonlySet<string>,
+) {
+  return retainNormalizedMeasurements(
+    previous,
+    snapshotMeasurements(changes),
+    liveIds,
+  );
+}
 
 type CustomNode = Node<{ label: string }, "custom">;
 

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Node, NodeChange, OnNodesChange } from "@xyflow/react";
+import type { Node, OnNodesChange } from "@xyflow/react";
+import {
+  snapshotMeasurements,
+  type Dimensions,
+  type MeasurementUpdate,
+} from "./react-flow-compat";
 
-type Measurements = Map<string, { width: number; height: number }>;
+type Measurements = Map<string, Dimensions>;
 
 /** Deleted node IDs must not reuse cached dimensions if they reappear later. */
 export function pruneMeasurements(
@@ -13,19 +18,14 @@ export function pruneMeasurements(
 }
 
 /** Only measurements belong to React Flow; the server owns other node state. */
-export function retainMeasurements<N extends Node>(
+export function retainMeasurements(
   previous: Measurements,
-  changes: Iterable<NodeChange<N>>,
+  changes: Iterable<MeasurementUpdate>,
   ids: ReadonlySet<string>,
 ): Measurements {
   let next = previous;
   for (const change of changes) {
-    if (
-      change.type !== "dimensions" ||
-      !change.dimensions ||
-      !ids.has(change.id)
-    )
-      continue;
+    if (!ids.has(change.id)) continue;
     const before = next.get(change.id);
     if (
       before?.width === change.dimensions.width &&
@@ -43,7 +43,7 @@ export function retainMeasurements<N extends Node>(
  */
 export function useMeasuredNodes<N extends Node>(nodes: N[]) {
   const [measurements, setMeasurements] = useState(
-    new Map<string, { width: number; height: number }>(),
+    new Map<string, Dimensions>(),
   );
   const ids = useMemo(() => new Set(nodes.map((node) => node.id)), [nodes]);
 
@@ -52,10 +52,8 @@ export function useMeasuredNodes<N extends Node>(nodes: N[]) {
   }, [ids]);
 
   const onNodesChange = useCallback<OnNodesChange<N>>(
-    // v12 passes an array; experimental v13 passes an iterable NodeChangeset.
     (changes) => {
-      // Snapshot before queuing: React may replay the state updater.
-      const snapshot = [...changes];
+      const snapshot = snapshotMeasurements(changes);
       setMeasurements((previous) =>
         retainMeasurements(previous, snapshot, ids),
       );

@@ -70,9 +70,13 @@ callback accepts both v12 change arrays and iterable v13 changesets, retaining
 only dimensions for nodes in the current scene. Compatibility probes do not
 promote v13 or widen the declared v12 dependency range. Test v13 with stable React
 separately from the forward lane's React canary stack to distinguish their results.
-The callback uses the exported `OnNodesChange` type. Fit and search navigation use
+The callback uses the exported `OnNodesChange` type. Initial fit, search, and toolbar fitting use
 explicit percentage padding because v12 interprets numeric padding as a ratio,
 while the v13 prerelease interprets it as pixels.
+
+Keep input normalization and explicit compatibility defaults in the shared module.
+The [React Flow compatibility boundary](react-flow-compatibility.md) documents its
+contract and the criteria for switching to separate build-selected version adapters.
 
 The license generator has one reviewed exception for the missing LICENSE in
 `react-compiler-runtime@1.0.0`: it includes the MIT notice from the exact React

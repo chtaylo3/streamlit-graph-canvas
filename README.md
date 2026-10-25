@@ -178,6 +178,7 @@ artifacts.
 - [Conformance testing](docs/conformance-testing.md)
 - [Dependency lifecycle](docs/dependency-lifecycle.md)
 - [Dependency PR automation and supported versus tested versions](docs/dependency-automation.md)
+- [React Flow compatibility boundary and adapter transition criteria](docs/react-flow-compatibility.md)
 - [Build and release process](docs/release-process.md)
 - [Release activation](docs/release-activation.md)
 - [Long-term design](docs/generalized-node-canvas-design.md)
