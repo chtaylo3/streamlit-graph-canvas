@@ -252,6 +252,9 @@ jobs:
           retention-days: 30
 
   chromium-conformance:
+    # Keep the Python 3.12 check contexts required by Protect main.
+    name: >-
+      chromium-conformance (${{ matrix.python-version == '3.12' && matrix.contrib-set || format('{0}, {1}', matrix.python-version, matrix.contrib-set) }})
     needs: wheels
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -338,6 +341,9 @@ jobs:
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
 
   chromium-compatibility:
+    # New matrix dimensions must not rename existing required checks.
+    name: >-
+      chromium-compatibility (${{ matrix.python-version == '3.12' && matrix.lane || format('{0}, {1}', matrix.lane, matrix.python-version) }})
     runs-on: ubuntu-latest
     timeout-minutes: 35
     strategy:

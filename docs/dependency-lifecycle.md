@@ -66,6 +66,11 @@ the same publishable wheels on both endpoints before staging the bundle.
 Supported interpreter jobs reject prerelease interpreters. Python 3.16 is the
 advisory forward target; free-threaded builds are outside this support claim.
 
+Browser jobs preserve the Python 3.12 check names required by the `Protect main`
+ruleset. Additional interpreter jobs use distinct versioned names. Treat required
+check names as an integration contract when expanding a matrix: verify the emitted
+contexts against repository rules before calling a PR merge-ready.
+
 The Python 3.15 lock refresh changes only pandas 3.0.5 to 3.0.6, PyArrow
 25.0.1 to 26.0.0, and MarkupSafe 3.0.3 to 3.0.4. Their prior locked versions
 lack CPython 3.15 wheels. Upstream documents the support additions in the
