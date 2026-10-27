@@ -430,12 +430,19 @@ test("CSP frame-ancestors allows self and blocks a different origin @csp-framing
   });
   await expect(page.frameLocator("#same").getByRole("heading", { name: "Graph Canvas Conformance" })).toBeVisible({ timeout: 20_000 });
   await page.goto("https://localhost:8514/__csp_frame_host");
+  // Wait for Chromium's own refusal before asserting absence; otherwise the
+  // count check could pass before the cross-origin frame even started loading.
+  const refusal = page.waitForEvent("console", {
+    predicate: message => message.text().includes("frame-ancestors"),
+    timeout: 20_000,
+  });
   await page.evaluate(() => {
     const frame = document.createElement("iframe");
     frame.id = "blocked";
     frame.src = "https://127.0.0.1:8514/";
     document.body.append(frame);
   });
+  await refusal;
   await expect(page.frameLocator("#blocked").getByRole("heading", { name: "Graph Canvas Conformance" })).toHaveCount(0);
 });
 

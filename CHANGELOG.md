@@ -5,6 +5,14 @@ the project uses semantic versioning.
 
 ## [Unreleased]
 
+### Maintenance
+
+- Measure Python branch coverage and enforce frontend line and branch coverage
+  floors in CI, with happy-dom and Testing Library available for DOM tests.
+- Give the search, label, and budget feature suites the shared browser-failure
+  sentinel, server-log teardown checks, retries, and failure artifacts, and
+  replace wall-clock sleeps and unsettled reads with deterministic waits.
+
 ## [0.1.0rc3] - 2026-10-27
 
 ### Maintenance

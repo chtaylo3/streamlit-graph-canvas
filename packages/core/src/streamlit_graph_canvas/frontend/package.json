@@ -9,6 +9,7 @@
     "build": "npm run format:check && tsc --noEmit && vite build",
     "dev": "vite build --watch",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "format": "prettier --write src/child-groups.ts src/index.tsx src/node-label.tsx src/node-search.tsx src/use-node-search.ts src/search-model.ts src/telemetry.ts src/react-flow-compat.ts src/react-flow-compat.test.ts src/react-flow-compat.css src/react-flow-styles.css src/host-theme.ts src/host-theme.test.ts",
     "format:check": "prettier --check src/child-groups.ts src/index.tsx src/node-label.tsx src/node-search.tsx src/use-node-search.ts src/search-model.ts src/telemetry.ts src/react-flow-compat.ts src/react-flow-compat.test.ts src/react-flow-compat.css src/react-flow-styles.css src/host-theme.ts src/host-theme.test.ts"
   },
@@ -20,9 +21,13 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "@vitest/coverage-v8": "^5.0.5",
+    "happy-dom": "^21.0.1",
     "prettier": "3.9.10",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",

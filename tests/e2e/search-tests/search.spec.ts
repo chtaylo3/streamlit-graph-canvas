@@ -1,5 +1,4 @@
-import { test, expect } from "@playwright/test";
-import { waitForGalleryStable } from "../tests/harness";
+import { test, expect, waitForGalleryStable } from "../tests/harness";
 test("typing previews locally, Apply reorders, Clear restores, callbacks are explicit",async({page})=>{
   await page.goto('/');await waitForGalleryStable(page);
   const positions=()=>page.locator('.react-flow__node').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>[n.getAttribute('data-id'),(n as HTMLElement).style.transform])));
@@ -11,6 +10,8 @@ test("typing previews locally, Apply reorders, Clear restores, callbacks are exp
   await input.fill(target);
   await expect(page.locator('.sgc-search-match')).toHaveCount(1);
   await expect(page.locator('.sgc-search-match')).toHaveAttribute('data-id',target);
+  // Settle first so a late, unexpected rerun cannot slip past the read.
+  await waitForGalleryStable(page);
   expect(await positions()).toEqual(before);
   expect(await runs()).toEqual(initialRuns);
   expect(await page.locator('.react-flow__node[data-id="'+(['alpha','beta','gamma'].find(n=>n!==target))+'"]').evaluate(n=>(n as HTMLElement).style.opacity)).toBe('0.25');
@@ -21,7 +22,7 @@ test("typing previews locally, Apply reorders, Clear restores, callbacks are exp
   const applied=await positions();expect(applied[target]).not.toEqual(before[target]);
   const x=await page.locator('.react-flow__node').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>[n.getAttribute('data-id'),new DOMMatrix((n as HTMLElement).style.transform).m41])));
   for(const id of ['alpha','beta','gamma'].filter(n=>n!==target))expect(x[target]).toBeLessThan(x[id]);
-  await input.fill('beta');expect(await positions()).toEqual(applied);
+  await input.fill('beta');await waitForGalleryStable(page);expect(await positions()).toEqual(applied);
   await page.getByRole('button',{name:'Clear search'}).click();await waitForGalleryStable(page);
   expect(await positions()).toEqual(before);
   await page.getByText('Filter criteria',{exact:true}).click();
@@ -35,7 +36,7 @@ test("typing previews locally, Apply reorders, Clear restores, callbacks are exp
   await input.fill('gamma');
   await expect(page.getByText(/This callback reruns Streamlit/)).toBeVisible();
   const beforeSend=await runs();
-  await input.fill('beta');expect(await runs()).toEqual(beforeSend);
+  await input.fill('beta');await waitForGalleryStable(page);expect(await runs()).toEqual(beforeSend);
   await page.getByRole('button',{name:'Send filters to app'}).click();
   await expect(page.getByText('Sent: 1',{exact:true})).toBeVisible();
   await expect(page.getByText('Requested: beta',{exact:true})).toBeVisible();

@@ -148,6 +148,20 @@ risk = "low"
 [npm.build.vitest]
 risk = "medium"
 
+[npm.build."@vitest/coverage-v8"]
+risk = "low"
+coupling = "vitest"
+
+[npm.build."happy-dom"]
+risk = "medium"
+
+[npm.build."@testing-library/react"]
+risk = "medium"
+coupling = "react,react-dom,@types/react,@types/react-dom"
+
+[npm.build."@testing-library/dom"]
+risk = "low"
+
 [npm.test."@playwright/test"]
 risk = "high"
 

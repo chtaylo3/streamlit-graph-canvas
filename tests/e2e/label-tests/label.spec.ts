@@ -1,5 +1,4 @@
-import {test,expect} from '@playwright/test';
-import {waitForGalleryStable} from '../tests/harness';
+import {test,expect,waitForGalleryStable} from '../tests/harness';
 test('fixed label policies preserve full labels, search, and geometry',async({page,context})=>{
  await context.grantPermissions(['clipboard-read','clipboard-write']);
  await page.goto('/');await waitForGalleryStable(page);
@@ -24,7 +23,7 @@ test('fixed label policies preserve full labels, search, and geometry',async({pa
  await path.locator('.sgc-label-reveal').press('Escape');
  await expect(page.getByRole('dialog',{name:'Full node label'})).toHaveCount(0);
  await path.locator('.sgc-label-reveal').click();
- await page.getByRole('button',{name:'Close',exact:true}).click();
+ await page.getByRole('button',{name:'Close',exact:true}).click();await waitForGalleryStable(page);
  expect(await path.getAttribute('style')).toEqual(before);
  expect(await page.getByText(/^Runs: /).textContent()).toEqual(runs);
  await page.getByText('Find in this view',{exact:true}).click();
@@ -36,22 +35,25 @@ test('fixed label policies preserve full labels, search, and geometry',async({pa
 
 test('delayed reveal is limited to shortened names and cancels when leaving',async({page})=>{
  await page.goto('/');await waitForGalleryStable(page);
+ // Fake timers make the 1000 ms reveal delay exact: negative checks run after
+ // the delay has fully elapsed instead of racing a wall-clock sleep.
+ await page.clock.install();
  const node=page.getByTestId('rf__node-delayed');
  const name=node.locator('.sgc-node-label');
  await expect(node.locator('.sgc-label-reveal')).toHaveCount(0);
- await node.locator('.sgc-node-type').hover();await page.waitForTimeout(1150);
+ await node.locator('.sgc-node-type').hover();await page.clock.runFor(1150);
  await expect(page.getByRole('tooltip')).toHaveCount(0);
- await page.getByTestId('rf__node-short').locator('.sgc-node-label').hover();await page.waitForTimeout(1150);
+ await page.getByTestId('rf__node-short').locator('.sgc-node-label').hover();await page.clock.runFor(1150);
  await expect(page.getByRole('tooltip')).toHaveCount(0);
  const runs=await page.getByText(/^Runs: /).textContent();
- await name.hover();await page.waitForTimeout(250);
+ await name.hover();await page.clock.runFor(990);
  await expect(page.getByRole('tooltip')).toHaveCount(0);
- await page.mouse.move(0,0);await page.waitForTimeout(1150);
+ await page.mouse.move(0,0);await page.clock.runFor(1150);
  await expect(page.getByRole('tooltip')).toHaveCount(0);
- await name.hover();
+ await name.hover();await page.clock.runFor(1000);
  await expect(page.getByRole('tooltip')).toContainText('very/long/directory/another/long/file-name.csproj');
  await page.mouse.move(0,0);await expect(page.getByRole('tooltip')).toHaveCount(0);
- await page.getByTestId('rf__node-alias').locator('.sgc-node-label').hover();
+ await page.getByTestId('rf__node-alias').locator('.sgc-node-label').hover();await page.clock.runFor(1000);
  await expect(page.getByRole('tooltip')).toContainText('full/original/name.csproj');
  expect(await page.getByText(/^Runs: /).textContent()).toEqual(runs);
 });

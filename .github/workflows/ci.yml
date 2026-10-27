@@ -174,7 +174,7 @@ jobs:
       - run: python -m ci.check_renderer_javascript
         working-directory: ${{ github.workspace }}
       - run: npm ci
-      - run: npm test
+      - run: npm run test:coverage
       - run: npm audit --audit-level=high
       - run: python ci/generate_frontend_artifacts.py --check
         working-directory: ${{ github.workspace }}

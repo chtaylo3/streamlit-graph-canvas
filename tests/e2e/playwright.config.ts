@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
+import { defaultPython } from "./feature-config";
 
 function createEphemeralCertificate(repositoryRoot: string) {
   const repositoryId = createHash("sha256")
@@ -59,7 +60,7 @@ function createEphemeralCertificate(repositoryRoot: string) {
 }
 
 const root = path.resolve(import.meta.dirname, "../..");
-const python = process.env.SGC_CONFORMANCE_PYTHON ?? path.join(root, ".venv", "bin", "python");
+const python = process.env.SGC_CONFORMANCE_PYTHON ?? defaultPython(root);
 const contribSet = process.env.SGC_CONTRIB_SET ?? "stock";
 const cspProxy = process.env.SGC_CSP_PROXY === "true";
 const port = cspProxy ? 8514 : 8513;
