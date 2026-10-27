@@ -90,7 +90,7 @@ jobs:
           uv run pytest
           --cov=streamlit_graph_canvas
           --cov=streamlit_graph_canvas_contrib
-          --cov-fail-under=85
+          --cov-fail-under=88
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'
         run: uv run pip-audit --cache-dir "${{ runner.temp }}/pip-audit"
       - if: runner.os == 'Linux' && matrix.python-version == '3.12'

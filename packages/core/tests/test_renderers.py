@@ -1,3 +1,4 @@
+import hashlib
 import importlib.machinery
 import os
 import shutil
@@ -299,3 +300,105 @@ def test_module_ownership_accepts_a_record_owned_native_extension(
         )
         is None
     )
+
+
+_IDENTITY = "a" * 64
+
+
+def _javascript_asset(
+    package: Path, identity: str = _IDENTITY, *, name: str | None = None
+) -> tuple[str, str]:
+    """Write a content-addressed JavaScript asset; return (relative path, hash)."""
+    content = f'const buildIdentity = "{identity}";\nexport default {{}};\n'.encode()
+    digest = hashlib.sha256(content).hexdigest()
+    relative = name or f"renderer.{digest}.js"
+    (package / relative).write_bytes(content)
+    return relative, digest
+
+
+def _javascript_manifest(
+    asset: str, digest: str | None, identity: str = _IDENTITY
+) -> str:
+    assets = f'"{asset}" = "{digest}"\n' if digest is not None else ""
+    return f'''manifest_schema = 1
+distribution = "fake-renderer"
+version = "1.0.0"
+renderer_api = ">=1,<2"
+[[renderers]]
+kind = "example/fixture/badge"
+transports = ["javascript"]
+javascript = "{asset}"
+javascript_component = "fake-renderer.badge"
+javascript_entry = "{asset}"
+javascript_identity = "{identity}"
+[assets]
+{assets}'''
+
+
+def _manifest_error(tmp_path: Path, content: str) -> str:
+    dist = FakeDistribution(tmp_path, content)
+    with pytest.raises(ValidationError) as error:
+        parse_renderer_manifest(dist)  # type: ignore[arg-type]
+    return error.value.diagnostic.code
+
+
+@pytest.mark.parametrize("digest", ["ABC", "A" * 64, "0" * 63, "g" * 64])
+def test_malformed_asset_hashes_fail_closed(tmp_path: Path, digest: str) -> None:
+    content = manifest() + f'"asset.bin" = "{digest}"\n'
+    assert _manifest_error(tmp_path, content) == "SGC_MANIFEST_ASSET_HASH"
+
+
+def test_tampered_asset_bytes_fail_hash_verification(tmp_path: Path) -> None:
+    package = tmp_path / "fake_renderer"
+    package.mkdir()
+    (package / "asset.bin").write_bytes(b"reviewed")
+    reviewed = hashlib.sha256(b"reviewed").hexdigest()
+    (package / "asset.bin").write_bytes(b"tampered")
+    content = manifest() + f'"asset.bin" = "{reviewed}"\n'
+    assert _manifest_error(tmp_path, content) == "SGC_MANIFEST_ASSET_HASH"
+
+
+@pytest.mark.parametrize("make_directory", [False, True])
+def test_declared_assets_must_be_packaged_files(
+    tmp_path: Path, make_directory: bool
+) -> None:
+    if make_directory:
+        (tmp_path / "fake_renderer" / "asset.bin").mkdir(parents=True)
+    content = manifest() + f'"asset.bin" = "{"0" * 64}"\n'
+    assert _manifest_error(tmp_path, content) == "SGC_MANIFEST_ASSET_MISSING"
+
+
+def test_javascript_implementation_must_be_a_hashed_asset(tmp_path: Path) -> None:
+    package = tmp_path / "fake_renderer"
+    package.mkdir()
+    asset, _ = _javascript_asset(package)
+    content = _javascript_manifest(asset, digest=None)
+    assert _manifest_error(tmp_path, content) == "SGC_MANIFEST_ASSET_MISSING"
+
+
+def test_javascript_filename_must_carry_its_content_hash(tmp_path: Path) -> None:
+    package = tmp_path / "fake_renderer"
+    package.mkdir()
+    asset, digest = _javascript_asset(package, name=f"renderer.{'0' * 64}.js")
+    content = _javascript_manifest(asset, digest)
+    assert _manifest_error(tmp_path, content) == "SGC_RENDERER_CONTENT_ADDRESS"
+
+
+@pytest.mark.parametrize(
+    ("embedded", "declared"),
+    [
+        ("b" * 64, _IDENTITY),
+        (f'{_IDENTITY}";\nconst buildIdentity = "{_IDENTITY}', _IDENTITY),
+        (_IDENTITY, "A" * 64),
+        (_IDENTITY, "not-a-digest"),
+    ],
+    ids=["mismatch", "duplicate-embedded", "uppercase", "malformed"],
+)
+def test_javascript_embedded_identity_must_match_manifest(
+    tmp_path: Path, embedded: str, declared: str
+) -> None:
+    package = tmp_path / "fake_renderer"
+    package.mkdir()
+    asset, digest = _javascript_asset(package, embedded)
+    content = _javascript_manifest(asset, digest, declared)
+    assert _manifest_error(tmp_path, content) == "SGC_RENDERER_IDENTITY"

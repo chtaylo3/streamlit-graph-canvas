@@ -3,18 +3,22 @@ from pathlib import Path
 import pytest
 from streamlit_graph_canvas import (
     BadgeBinding,
+    BadgeContext,
     EdgeType,
     GraphData,
     GraphSchema,
     Node,
     NodeType,
     PaletteTone,
+    RectPrim,
     Region,
+    TextPrim,
     ValidationError,
     enable_renderers,
     serialize_graph,
 )
 from streamlit_graph_canvas_contrib import renderer_manifest
+from streamlit_graph_canvas_contrib.count_chip import renderer
 
 
 def test_static_renderer_manifest_is_packaged() -> None:
@@ -81,3 +85,28 @@ def test_stock_renderer_failure_is_a_stable_core_diagnostic() -> None:
     with pytest.raises(ValidationError) as error:
         serialize_graph(schema, graph, renderer_registry=registry)
     assert error.value.diagnostic.code == "SGC_RENDERER_EXECUTION"
+
+
+CONTEXT = BadgeContext(42, 22, frozenset({"accent", "on_accent"}))
+
+
+@pytest.mark.parametrize("data", [True, False, 1.0, "7", None])
+def test_count_chip_rejects_non_integer_data(data: object) -> None:
+    with pytest.raises(ValueError, match="integer"):
+        renderer.render(data, {}, CONTEXT)
+
+
+@pytest.mark.parametrize(
+    ("data", "options", "label"),
+    [(7, {}, "7"), (7, {"prefix": "+"}, "+7"), (-3, {"prefix": None}, "-3")],
+)
+def test_count_chip_label_and_geometry(
+    data: int, options: dict[str, object], label: str
+) -> None:
+    rect, text = renderer.render(data, options, CONTEXT)
+    assert isinstance(rect, RectPrim)
+    assert isinstance(text, TextPrim)
+    assert (rect.width, rect.height) == (42, 22)
+    assert rect.radius == 11
+    assert text.text == label
+    assert (rect.fill, text.fill) == ("accent", "on_accent")
