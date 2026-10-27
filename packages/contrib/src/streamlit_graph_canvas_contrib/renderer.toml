@@ -1,16 +1,16 @@
 manifest_schema = 1
 distribution = "streamlit-graph-canvas-contrib"
-version = "0.1.0rc2"
+version = "0.1.0rc3"
 renderer_api = ">=1,<2"
 
 [[renderers]]
 kind = "streamlit-graph-canvas/contrib/count-chip"
 python = "streamlit_graph_canvas_contrib.count_chip:renderer"
-javascript = "frontend/renderer-bootstrap.2336405d91efba504af52dd65115b287771bc946a0b4a9413e610dbf3cdc15b3.js"
+javascript = "frontend/renderer-bootstrap.6a8e29925b2b694b2976bb0266237ed1bd4934b83aeb00edc1d5b60959fd4c78.js"
 javascript_component = "streamlit-graph-canvas-contrib.renderer_bootstrap"
-javascript_entry = "renderer-bootstrap.2336405d91efba504af52dd65115b287771bc946a0b4a9413e610dbf3cdc15b3.js"
-javascript_identity = "2b3ec04249bd7235aeedb01acf385c7a5fcde390ca4b366086fa90411616918b"
+javascript_entry = "renderer-bootstrap.6a8e29925b2b694b2976bb0266237ed1bd4934b83aeb00edc1d5b60959fd4c78.js"
+javascript_identity = "9bf731bb6058f069b19a47fb061988d5d0940aced4abaf8b4eac864f5353b922"
 transports = ["prims", "javascript", "raster", "atlas"]
 
 [assets]
-"frontend/renderer-bootstrap.2336405d91efba504af52dd65115b287771bc946a0b4a9413e610dbf3cdc15b3.js" = "2336405d91efba504af52dd65115b287771bc946a0b4a9413e610dbf3cdc15b3"
+"frontend/renderer-bootstrap.6a8e29925b2b694b2976bb0266237ed1bd4934b83aeb00edc1d5b60959fd4c78.js" = "6a8e29925b2b694b2976bb0266237ed1bd4934b83aeb00edc1d5b60959fd4c78"

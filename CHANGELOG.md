@@ -5,6 +5,8 @@ the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.1.0rc3] - 2026-10-27
+
 ### Maintenance
 
 - Centralize React Flow compatibility defaults and measurement normalization,
@@ -15,6 +17,9 @@ the project uses semantic versioning.
   for feature-branch pushes while retaining manual runs.
 - Refresh pinned GitHub Actions and the corresponding reviewed artifact-download
   and App-token allowlists without changing publisher permissions or commands.
+- Approve the uv_build 0.13 series while retaining the pinned 0.12.6 offline
+  rebuild. Validate approved build-requirement updates independently during
+  dependency preparation and publication.
 
 ### Changed
 
