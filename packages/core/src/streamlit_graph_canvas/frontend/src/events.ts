@@ -59,3 +59,25 @@ export function appendPendingAction(
   }
   return pending;
 }
+
+export type ActionQueue = {
+  nextSeq: number;
+  pending: CanvasAction[];
+};
+
+/**
+ * Reconcile the browser action queue with Python's acknowledged sequence.
+ *
+ * Acknowledged actions are dropped, unacknowledged ones are kept for replay,
+ * and the sequence counter never moves backwards, so a stale or reordered
+ * acknowledgement can neither resurrect old actions nor reuse a number.
+ */
+export function reconcileActionQueue(
+  queue: ActionQueue,
+  acknowledgedSeq: number,
+): ActionQueue {
+  return {
+    nextSeq: Math.max(queue.nextSeq, acknowledgedSeq),
+    pending: queue.pending.filter((action) => action.seq > acknowledgedSeq),
+  };
+}

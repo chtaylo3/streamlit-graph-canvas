@@ -14,9 +14,11 @@ export default defineConfig({
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/**/*.d.ts"],
       reporter: ["text-summary", "text"],
+      // A ratchet just below current coverage; raise it as coverage grows.
+      // index.tsx is exercised by the Playwright suite rather than here.
       thresholds: {
-        lines: 50,
-        branches: 48,
+        lines: 60,
+        branches: 57,
       },
     },
   },
