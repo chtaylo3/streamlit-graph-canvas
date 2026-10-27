@@ -1,7 +1,7 @@
 const registrySymbol = Symbol.for("streamlit-graph-canvas.renderers.v1");
 const registrationEvent = "sgc-renderer-registered-v1";
 const namespace = "http://www.w3.org/2000/svg";
-const buildIdentity = "2b3ec04249bd7235aeedb01acf385c7a5fcde390ca4b366086fa90411616918b";
+const buildIdentity = "9bf731bb6058f069b19a47fb061988d5d0940aced4abaf8b4eac864f5353b922";
 
 function countChip({ target, data, options, palette, region }) {
   if (!Number.isSafeInteger(data)) {
@@ -30,7 +30,7 @@ const registrations = new Map([
   ["streamlit-graph-canvas/contrib/count-chip", {
     kind: "streamlit-graph-canvas/contrib/count-chip",
     rendererApi: 1,
-    version: "0.1.0rc2",
+    version: "0.1.0rc3",
     buildIdentity,
     render: countChip,
   }],
