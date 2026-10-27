@@ -93,6 +93,17 @@ preserves resolved lock entries, rebuilds affected frontend assets and licenses,
 and verifies a second generation matches. Python lock-only changes need no
 generated commit. Preparation cannot alter support endpoints.
 
+Build-backend requirement updates in the core and contrib `pyproject.toml` files
+are also eligible after a maintainer approves the range in
+`python_tooling.uv_build.supported`. A package may retain a narrower upper bound
+while the approved change is pending; its minimum and the pinned offline rebuild
+version must remain supported. Only stable numeric `>=minimum,<upper` ranges are
+accepted. Preparation and the publisher independently reject changes to the
+backend, sources, runtime dependencies, or any other manifest fields. Package
+manifests remain forbidden as generated artifact outputs. The `uv_build` offline
+rebuild pin stays at `0.12.6`; approving a wider installation range does not
+automatically change that pin.
+
 New dependencies, runtime versions outside the installation range, source edits,
 and workflow or release-allowlist changes require review.
 The workflow reports failure instead of guessing a policy change. Apply an

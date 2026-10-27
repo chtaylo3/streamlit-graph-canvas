@@ -11,6 +11,11 @@ import subprocess
 import tomllib
 from pathlib import Path
 
+if __package__:
+    from .build_requirements import BUILD_MANIFESTS, validate_build_manifest
+else:
+    from build_requirements import BUILD_MANIFESTS, validate_build_manifest
+
 FRONTEND = "packages/core/src/streamlit_graph_canvas/frontend"
 INPUTS = {
     "uv.lock",
@@ -153,9 +158,22 @@ def prepare(root: Path, base: str, head: str, output: Path) -> None:
         git(root, "show", f"{base}:ci/dependency-policy.toml").decode()
     )
     changed = set(git(root, "diff", "--name-only", base, head).decode().splitlines())
-    unknown = {p for p in changed if p not in INPUTS and not allowed_output(p)}
+    unknown = {
+        p
+        for p in changed
+        if p not in INPUTS | BUILD_MANIFESTS and not allowed_output(p)
+    }
     if unknown:
         raise ValueError(f"requires maintainer review: {sorted(unknown)}")
+    for name in sorted(changed & BUILD_MANIFESTS):
+        manifest = root / name
+        if manifest.is_symlink() or not manifest.is_file():
+            raise ValueError("expected ordinary build manifest")
+        original = tomllib.loads(git(root, "show", f"{base}:{name}").decode())
+        candidate = tomllib.loads(manifest.read_text(encoding="utf-8"))
+        validate_build_manifest(
+            original, candidate, policy["python_tooling"]["uv_build"]
+        )
     for directory in (FRONTEND, "tests/e2e"):
         if not any(p.startswith(directory + "/") for p in changed):
             continue
