@@ -104,6 +104,8 @@ def test_manifest_script_injection_requires_review() -> None:
         "/tmp/evil",
         ".github/workflows/ci.yml",
         "ci/dependency-policy.toml",
+        "packages/core/pyproject.toml",
+        "packages/contrib/pyproject.toml",
         f"{FRONTEND}/build/../../evil.js",
     ],
 )

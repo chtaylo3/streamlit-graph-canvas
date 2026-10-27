@@ -15,6 +15,11 @@ from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
 
+if __package__:
+    from .build_requirements import BUILD_MANIFESTS, build_requirement_allowed
+else:
+    from build_requirements import BUILD_MANIFESTS, build_requirement_allowed
+
 RISKS = {"critical", "high", "medium", "low"}
 
 
@@ -284,9 +289,24 @@ def verify(root: Path) -> list[str]:
             }
         }
     )
-    build_requirement = Requirement(core["build-system"]["requires"][0])
-    declared_tools[build_requirement.name] = str(build_requirement.specifier)
     for name, entry in policy["python_tooling"].items():
+        if name == "uv_build":
+            for manifest in sorted(BUILD_MANIFESTS):
+                build = _load(root / manifest).get("build-system", {})
+                requirements = build.get("requires", [])
+                if (
+                    build.get("build-backend") != "uv_build"
+                    or "backend-path" in build
+                    or not isinstance(requirements, list)
+                    or len(requirements) != 1
+                    or not isinstance(requirements[0], str)
+                    or not build_requirement_allowed(requirements[0], entry)
+                ):
+                    errors.append(
+                        f"Python tooling uv_build differs from dependency policy: "
+                        f"{manifest}"
+                    )
+            continue
         declared = declared_tools.get(name)
         if declared is None or SpecifierSet(declared) != SpecifierSet(
             entry["supported"]

@@ -16,6 +16,7 @@ import urllib.parse
 import zipfile
 from pathlib import Path
 
+from .build_requirements import BUILD_MANIFESTS, validate_build_manifest
 from .prepare_dependency_pr import (
     FRONTEND,
     INPUTS,
@@ -164,10 +165,34 @@ def verify_context(repo: str, run_id: int, attempt: int, bot: str) -> tuple[dict
     verify_commit_provenance(commits, allowed)
     files = api(f"repos/{repo}/pulls/{pr['number']}/files?per_page=100")
     if any(
-        f["filename"] not in INPUTS and not allowed_output(f["filename"]) for f in files
+        f["filename"] not in INPUTS | BUILD_MANIFESTS
+        and not allowed_output(f["filename"])
+        for f in files
     ):
         raise ValueError("PR changes trusted code or unsupported files")
+    verify_build_manifest_inputs(repo, pr, {f["filename"] for f in files})
     return run, pr
+
+
+def verify_build_manifest_inputs(repo: str, pr: dict, paths: set[str]) -> None:
+    """Independently validate build requirements before accepting any artifact."""
+    changed = paths & BUILD_MANIFESTS
+    if not changed:
+        return
+
+    def read_toml(path: str, sha: str) -> dict:
+        result = api(f"repos/{repo}/contents/{path}?ref={sha}")
+        if result.get("encoding") != "base64" or result.get("type") != "file":
+            raise ValueError("expected ordinary build manifest")
+        return tomllib.loads(base64.b64decode(result["content"]).decode())
+
+    policy = read_toml("ci/dependency-policy.toml", pr["base"]["sha"])
+    for path in sorted(changed):
+        validate_build_manifest(
+            read_toml(path, pr["base"]["sha"]),
+            read_toml(path, pr["head"]["sha"]),
+            policy["python_tooling"]["uv_build"],
+        )
 
 
 def verify_source_manifests(repo: str, pr: dict) -> None:

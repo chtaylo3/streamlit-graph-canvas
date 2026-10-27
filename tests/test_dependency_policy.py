@@ -27,6 +27,29 @@ def test_dependency_policy_matches_project_files() -> None:
     assert verify(ROOT) == []
 
 
+@pytest.mark.parametrize("package", ["core", "contrib"])
+@pytest.mark.parametrize(("upper", "allowed"), [("0.14", True), ("0.15", False)])
+def test_build_ranges_must_stay_within_approved_policy(
+    monkeypatch, package, upper, allowed
+) -> None:
+    original_read = Path.read_text
+    target = ROOT / f"packages/{package}/pyproject.toml"
+    current = tomllib.loads(original_read(target))["build-system"]["requires"][0]
+
+    def read(path, *args, **kwargs):
+        text = original_read(path, *args, **kwargs)
+        if path == target:
+            return text.replace(current, f"uv_build>=0.12.6,<{upper}")
+        return text
+
+    monkeypatch.setattr(Path, "read_text", read)
+    errors = verify(ROOT)
+    if allowed:
+        assert errors == []
+    else:
+        assert any("Python tooling uv_build" in error for error in errors)
+
+
 @pytest.mark.parametrize(
     ("relative", "old", "new", "error"),
     [

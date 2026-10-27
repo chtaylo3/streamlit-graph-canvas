@@ -49,7 +49,7 @@ risk = "critical"
 reason = "Pre-1.0 renderer API and manifest compatibility boundary"
 
 [python_tooling.uv_build]
-supported = ">=0.12.6,<0.13"
+supported = ">=0.12.6,<0.14"
 locked = "0.12.6"
 risk = "high"
 
