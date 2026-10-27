@@ -55,6 +55,7 @@ test('delayed reveal is limited to shortened names and cancels when leaving',asy
  await page.mouse.move(0,0);await expect(page.getByRole('tooltip')).toHaveCount(0);
  await page.getByTestId('rf__node-alias').locator('.sgc-node-label').hover();await page.clock.runFor(1000);
  await expect(page.getByRole('tooltip')).toContainText('full/original/name.csproj');
+ await waitForGalleryStable(page);
  expect(await page.getByText(/^Runs: /).textContent()).toEqual(runs);
 });
 

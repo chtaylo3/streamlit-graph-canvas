@@ -12,8 +12,9 @@ export function defaultPython(root: string) {
 
 /** Feature galleries use the same candidate-wheel interpreter as conformance. */
 export function featureConfig(
-  feature: "budget" | "search" | "label" | "compat",
+  feature: "budget" | "search" | "label" | "compat" | "interaction",
   port: number,
+  extraProjects: NonNullable<Parameters<typeof defineConfig>[0]["projects"]> = [],
 ) {
   const root = path.resolve(import.meta.dirname, "../..");
   const python = process.env.SGC_CONFORMANCE_PYTHON ?? defaultPython(root);
@@ -55,6 +56,9 @@ export function featureConfig(
       stdout: "pipe",
       stderr: "pipe",
     },
-    projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+    projects: [
+      { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+      ...extraProjects,
+    ],
   });
 }
