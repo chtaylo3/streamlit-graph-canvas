@@ -95,7 +95,7 @@ export function NodeSearchPanel({
         <div role="status" className="sgc-search-count">
           {result.valid
             ? result.active
-              ? `${ids.length} matches among ${result.scopeCount} ${query.includeContext ? "displayed" : "active"} nodes`
+              ? `${ids.length} match(es) among ${result.scopeCount} ${query.includeContext ? "displayed" : "active"} nodes`
               : `${result.scopeCount} ${query.includeContext ? "displayed" : "active"} nodes`
             : "Complete each filter with a valid value."}
         </div>

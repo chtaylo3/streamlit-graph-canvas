@@ -25,7 +25,8 @@ The version-specific build and publication procedures are documented in
    no-checkout `report-forward-failure` job receives `issues: write`.
 
 The tag workflow first proves that the immutable tag SHA is on `main` and that
-CI and CodeQL succeeded for that exact SHA. Its unprivileged job safely rebuilds
+CI, CodeQL, and visual regression succeeded for that exact SHA. Visual
+regression is not a required pull request check; it gates only releases. Its unprivileged job safely rebuilds
 sdists offline, tests the rebuilt wheels, and stages a run/SHA/tag-bound bundle
 with SBOMs and SHA-256 evidence. A separate no-environment OIDC job verifies and
 attests the publishable files. The final environment-protected OIDC job verifies

@@ -8,6 +8,7 @@
   "scripts": {
     "test": "playwright test",
     "test:update": "playwright test --update-snapshots",
+    "test:visual": "playwright test --config playwright.visual.config.ts",
     "test:features": "playwright test --config playwright.budget.config.ts && playwright test --config playwright.search.config.ts && playwright test --config playwright.label.config.ts && playwright test --config playwright.compat.config.ts && playwright test --config playwright.interaction.config.ts"
   },
   "devDependencies": {

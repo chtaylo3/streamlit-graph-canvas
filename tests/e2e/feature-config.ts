@@ -12,7 +12,7 @@ export function defaultPython(root: string) {
 
 /** Feature galleries use the same candidate-wheel interpreter as conformance. */
 export function featureConfig(
-  feature: "budget" | "search" | "label" | "compat" | "interaction",
+  feature: "budget" | "search" | "label" | "compat" | "interaction" | "visual",
   port: number,
   extraProjects: NonNullable<Parameters<typeof defineConfig>[0]["projects"]> = [],
 ) {
