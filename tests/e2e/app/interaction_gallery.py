@@ -74,9 +74,13 @@ if not hidden:
         st.session_state.actions += len(result.actions)
         st.text(f"Selected: {','.join(result.selected_node_ids) or '-'}")
         st.text(f"Actions: {st.session_state.actions}")
+        # Actions arrive on one rerun only; keep the last one so later reruns
+        # (selection sync, theme) don't remove the line mid-assertion.
         if result.actions:
             last = result.actions[-1]
-            st.text(
+            st.session_state.last_action = (
                 f"Last: {last.node_id} shift={last.modifiers.shift} "
                 f"meta={last.modifiers.meta} alt={last.modifiers.alt}"
             )
+        if "last_action" in st.session_state:
+            st.text(st.session_state.last_action)
