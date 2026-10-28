@@ -5,6 +5,29 @@ the project uses semantic versioning.
 
 ## [Unreleased]
 
+### Maintenance
+
+- Measure Python branch coverage and enforce frontend line and branch coverage
+  floors in CI, with happy-dom and Testing Library available for DOM tests.
+- Give the search, label, and budget feature suites the shared browser-failure
+  sentinel, server-log teardown checks, retries, and failure artifacts, and
+  replace wall-clock sleeps and unsettled reads with deterministic waits.
+- Assert previously unchecked fail-closed diagnostics for renderer asset
+  integrity, PNG decoding, graph and schema validation, palette CSS, JSON
+  budgets, and browser protocol state, with Hypothesis fuzzing of untrusted
+  browser input. Raise the Python coverage floor to 88%.
+- Extract action-queue reconciliation, the JavaScript badge, and managed React
+  roots into testable modules, and add component and hook tests for them, the
+  search panel, scene transitions, and node search.
+- Add an interaction feature suite covering selection modes and modifiers,
+  disabled nodes, user-visible validation errors, a full-budget graph, browser
+  telemetry, search-panel accessibility, Tab order, and a Pixel 7 project.
+
+### Fixed
+
+- Sanitize a non-string browser `atlas_theme` to the light theme instead of
+  raising `TypeError` while reconciling component state.
+
 ## [0.1.0rc3] - 2026-10-27
 
 ### Maintenance

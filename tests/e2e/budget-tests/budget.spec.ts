@@ -1,8 +1,6 @@
-import { test, expect } from "@playwright/test";
-import { waitForGalleryStable } from "../tests/harness";
+import { test, expect, waitForGalleryStable } from "../tests/harness";
 
 test("full membership survives partial expansion, budget changes, and collapse",async({page})=>{
-  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto("/");await waitForGalleryStable(page);
   const marker=page.locator('.sgc-group-marker');
   const host=page.locator('[data-sgc-status="ready"]');
@@ -21,5 +19,4 @@ test("full membership survives partial expansion, budget changes, and collapse",
   await marker.press("Enter");await waitForGalleryStable(page);
   await expect(host).toHaveAttribute("data-sgc-rendered-elements","3");
   await expect(marker).toHaveText("30");
-  expect(errors).toEqual([]);
 });

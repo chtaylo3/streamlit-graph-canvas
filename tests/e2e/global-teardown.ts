@@ -5,7 +5,10 @@ import type { FullConfig } from "@playwright/test";
 
 export default function globalTeardown(config: FullConfig) {
   try {
-    const logPath = path.resolve(import.meta.dirname, "artifacts", "server.log");
+    const logName = typeof config.metadata.serverLog === "string"
+      ? path.basename(config.metadata.serverLog)
+      : "server.log";
+    const logPath = path.resolve(import.meta.dirname, "artifacts", logName);
     if (!fs.existsSync(logPath)) throw new Error(`Streamlit server log is missing: ${logPath}`);
     const log = fs.readFileSync(logPath, "utf8");
     const fatalPatterns = [

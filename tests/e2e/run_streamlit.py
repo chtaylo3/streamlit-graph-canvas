@@ -1,7 +1,13 @@
-"""Run the conformance gallery while retaining complete server output."""
+"""Run an e2e gallery while retaining complete server output.
+
+The conformance gallery is the default. Feature suites select their gallery,
+port, and log file through ``SGC_E2E_APP``, ``SGC_E2E_PORT``, and
+``SGC_E2E_LOG`` so every suite gets the same server-log teardown checks.
+"""
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -10,17 +16,19 @@ root = Path(__file__).parents[2]
 e2e_dir = root / "tests" / "e2e"
 artifact_dir = e2e_dir / "artifacts"
 artifact_dir.mkdir(exist_ok=True)
+app_name = Path(os.environ.get("SGC_E2E_APP", "renderer_gallery.py")).name
 command = [
     sys.executable,
     "-m",
     "streamlit",
     "run",
-    str(e2e_dir / "app" / "renderer_gallery.py"),
+    str(e2e_dir / "app" / app_name),
     "--server.headless=true",
-    "--server.port=8513",
+    f"--server.port={int(os.environ.get('SGC_E2E_PORT', '8513'))}",
     "--browser.gatherUsageStats=false",
 ]
-with (artifact_dir / "server.log").open("w", encoding="utf-8") as log:
+log_name = Path(os.environ.get("SGC_E2E_LOG", "server.log")).name
+with (artifact_dir / log_name).open("w", encoding="utf-8") as log:
     process = subprocess.Popen(
         command,
         cwd=artifact_dir,

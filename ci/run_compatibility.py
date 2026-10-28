@@ -18,6 +18,10 @@ if __package__:
 else:
     from generate_frontend_licenses import generate
 
+# Lanes run `npm test`, not coverage. The provider pins its vitest peer exactly,
+# which invalidates the tree when a candidate nests its own vitest copy.
+COVERAGE_ONLY_PACKAGES = ("@vitest/coverage-v8",)
+
 
 def candidate_version(
     ecosystem: str,
@@ -268,6 +272,8 @@ def frontend_lane(args: argparse.Namespace, policy: dict[str, Any]) -> None:
         )
         package_path = workspace / "package.json"
         package = json.loads(package_path.read_text(encoding="utf-8"))
+        for name in COVERAGE_ONLY_PACKAGES:
+            package.get("devDependencies", {}).pop(name, None)
         lock = json.loads((workspace / "package-lock.json").read_text(encoding="utf-8"))
         (workspace / "package-lock.json").unlink(missing_ok=True)
         args.stage = "candidate-selection"

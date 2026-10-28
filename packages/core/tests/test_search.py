@@ -1,4 +1,6 @@
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from streamlit_graph_canvas import GraphData, Node, SearchField
 from streamlit_graph_canvas.search import parse_search_request
 
@@ -84,3 +86,57 @@ def test_search_options_validate_before_mount():
                     key="invalid",
                     **{name: value},
                 )
+
+
+_json = st.recursive(
+    st.none() | st.booleans() | st.integers() | st.floats() | st.text(max_size=20),
+    lambda children: (
+        st.lists(children, max_size=4)
+        | st.dictionaries(st.text(max_size=10), children, max_size=4)
+    ),
+    max_leaves=20,
+)
+_REQUEST_FIELDS = [
+    "query",
+    "criteria",
+    "matchMode",
+    "includeContext",
+    "matchingNodeIds",
+    "sequence",
+    "topologyRevision",
+    "presentationRevision",
+]
+
+
+@settings(max_examples=300, deadline=None)
+@given(
+    st.dictionaries(st.sampled_from(_REQUEST_FIELDS), _json, max_size=4),
+    st.lists(
+        st.fixed_dictionaries(
+            {},
+            optional={
+                "field": st.sampled_from(["high", "$label", "nope"]) | _json,
+                "operator": st.sampled_from(["eq", "gt", "contains", "known"]) | _json,
+                "value": _json,
+            },
+        ),
+        max_size=3,
+    ),
+)
+def test_untrusted_search_requests_never_raise(
+    overrides: dict[str, object], criteria: list[dict[str, object]]
+) -> None:
+    raw = {
+        "query": "requests",
+        "criteria": criteria,
+        "matchMode": "all",
+        "includeContext": False,
+        "matchingNodeIds": ["a"],
+        "sequence": 1,
+        "topologyRevision": 2,
+        "presentationRevision": 3,
+    } | overrides
+    result = parse(raw)
+    if result is not None:
+        assert set(result.matching_node_ids) <= {"a"}
+        assert all(item.field in {"high", "$label"} for item in result.criteria)

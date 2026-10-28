@@ -71,6 +71,9 @@ def test_stable_react_probe_rejects_invalid_peers_before_tests_or_build(
         run_compatibility.frontend_lane(args, run_compatibility.load_policy(root))
     assert args.stage == "dependency-validation"
     assert calls == [["npm", "install", "--legacy-peer-deps"]]
+    requested = json.loads(args.output.read_text())["requested"]
+    assert "@vitest/coverage-v8" not in requested
+    assert "vitest" in requested
 
 
 def test_fresh_approved_baseline_does_not_block_or_downgrade_candidates():

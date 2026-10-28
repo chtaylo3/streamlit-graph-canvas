@@ -151,3 +151,22 @@ def test_edge_emphasis_and_optional_are_presentation_only() -> None:
         edge["emphasized"] and edge["optional"]
         for edge in b.envelope["presentation"]["edges"]
     )
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"edge_type": ""},
+        {"edge_type": 3},
+        {"threshold": 0},
+        {"threshold": -1},
+        {"threshold": True},
+        {"threshold": 2.0},
+        {"display": "cutoff"},
+        {"collapsed": 1},
+        {"direction": "right"},
+    ],
+)
+def test_child_group_invariants_reject_loose_types(options: dict[str, object]) -> None:
+    with pytest.raises(ValueError, match="ChildGroup"):
+        ChildGroup(**{"edge_type": "resolves", **options})  # type: ignore[arg-type]

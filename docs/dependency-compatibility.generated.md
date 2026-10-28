@@ -48,6 +48,10 @@ Compatibility lanes use locked tools; advisory probes can test newer tools.
 | Build | `vite` | High |
 | Build | `prettier` | Low |
 | Build | `vitest` | Medium |
+| Build | `@vitest/coverage-v8` | Low |
+| Build | `happy-dom` | Medium |
+| Build | `@testing-library/react` | Medium |
+| Build | `@testing-library/dom` | Low |
 | Test | `@playwright/test` | High |
 | Test | `@axe-core/playwright` | Medium |
 | Test | `@types/node` | Low |

@@ -39,6 +39,14 @@ testpaths = ["tests", "packages/core/tests", "packages/contrib/tests"]
 pythonpath = ["."]
 addopts = "--strict-config --strict-markers --ignore=tests/e2e/"
 
+[tool.coverage.run]
+branch = true
+source_pkgs = ["streamlit_graph_canvas", "streamlit_graph_canvas_contrib"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"

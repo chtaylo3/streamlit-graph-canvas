@@ -38,7 +38,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createRoot, type Root } from "react-dom/client";
 import {
   loadCanvasState,
   sameViewport,
@@ -48,7 +47,12 @@ import {
   type ServerCanvasState,
 } from "./canvas-state";
 import { requireCodecVersion } from "./codec";
-import { appendPendingAction, clickAction, type CanvasAction } from "./events";
+import {
+  appendPendingAction,
+  clickAction,
+  reconcileActionQueue,
+  type CanvasAction,
+} from "./events";
 import {
   acquireBrowserAtlasCache,
   releaseBrowserAtlasCache,
@@ -56,7 +60,6 @@ import {
   type AtlasPageDelta,
 } from "./atlas-cache";
 import {
-  cleanupJavascriptRenderer,
   RENDERER_REGISTRATION_EVENT,
   requireJavascriptRenderer,
   type JavascriptRendererRegistration,
@@ -78,6 +81,8 @@ import "./react-flow-compat.css";
 import { observeHostTheme } from "./host-theme";
 import { useSceneTransition } from "./use-scene-transition";
 import { tone, type Palette } from "./palette";
+import { JavascriptBadge } from "./javascript-badge";
+import { acquireManagedRoot, releaseManagedRoot } from "./managed-root";
 import { createTelemetry, type BrowserTelemetry } from "./telemetry";
 import {
   imageLayerLocation,
@@ -286,60 +291,6 @@ const portPositions = {
   bottom: Position.Bottom,
   left: Position.Left,
 };
-
-function JavascriptBadge({
-  badge,
-  palette,
-  registration,
-}: {
-  badge: BadgeView;
-  palette: Palette;
-  registration: JavascriptRendererRegistration;
-}) {
-  const target = useRef<SVGSVGElement>(null);
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    if (!target.current) return;
-    const element = target.current;
-    element.replaceChildren();
-    try {
-      const cleanup = registration.render({
-        target: element,
-        data: badge.data,
-        options: badge.options ?? {},
-        palette: Object.fromEntries(
-          Object.keys(palette).map((name) => [name, tone(palette, name)]),
-        ),
-        region: badge.region,
-      });
-      setError(false);
-      return () => {
-        cleanupJavascriptRenderer(cleanup, element);
-      };
-    } catch {
-      element.replaceChildren();
-      setError(true);
-      return undefined;
-    }
-  }, [badge, palette, registration]);
-  return (
-    <svg
-      ref={target}
-      className="sgc-badge"
-      data-sgc-badge={badge.name}
-      data-sgc-transport="javascript"
-      data-sgc-render-error={error ? "true" : undefined}
-      aria-hidden="true"
-      style={{
-        left: badge.region.x,
-        top: badge.region.y,
-        width: badge.region.width,
-        height: badge.region.height,
-      }}
-      viewBox={`0 0 ${badge.region.width} ${badge.region.height}`}
-    />
-  );
-}
 
 function SpriteBadge({
   badge,
@@ -673,35 +624,6 @@ type SetTriggerValue = FrontendRendererArgs<
   State,
   CanvasData
 >["setTriggerValue"];
-type ManagedRoot = { root: Root; generation: number };
-const managedRoots = new WeakMap<HTMLElement, ManagedRoot>();
-
-function acquireManagedRoot(host: HTMLElement): {
-  entry: ManagedRoot;
-  generation: number;
-} {
-  let entry = managedRoots.get(host);
-  if (!entry) {
-    entry = { root: createRoot(host), generation: 0 };
-    managedRoots.set(host, entry);
-  }
-  entry.generation += 1;
-  return { entry, generation: entry.generation };
-}
-
-function releaseManagedRoot(
-  host: HTMLElement,
-  entry: ManagedRoot,
-  generation: number,
-): boolean {
-  if (managedRoots.get(host) !== entry || entry.generation !== generation)
-    return false;
-  host.dataset.sgcStatus = "unmounted";
-  entry.root.unmount();
-  managedRoots.delete(host);
-  return true;
-}
-
 const telemetryByKey = new Map<string, BrowserTelemetry>();
 
 function acquireTelemetry(
@@ -961,13 +883,12 @@ function CanvasContents({
   );
 
   useEffect(() => {
-    actionSequence.current = Math.max(
-      actionSequence.current,
+    const reconciled = reconcileActionQueue(
+      { nextSeq: actionSequence.current, pending: pendingActions.current },
       data.state.acknowledgedSeq,
     );
-    pendingActions.current = pendingActions.current.filter(
-      (action) => action.seq > data.state.acknowledgedSeq,
-    );
+    actionSequence.current = reconciled.nextSeq;
+    pendingActions.current = reconciled.pending;
     persist({
       acknowledgedSeq: data.state.acknowledgedSeq,
       nextSeq: actionSequence.current,

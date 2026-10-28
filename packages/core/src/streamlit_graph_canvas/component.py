@@ -167,7 +167,9 @@ def _mount_javascript_bootstraps(
 
 def _browser_atlas_state(result: Any) -> tuple[str, float, list[str]]:
     theme = getattr(result, "atlas_theme", "light")
-    if theme not in {"light", "dark"}:
+    # Browser state is untrusted JSON: check the type before set membership so
+    # an unhashable value (list/object) falls back instead of raising TypeError.
+    if not isinstance(theme, str) or theme not in {"light", "dark"}:
         theme = "light"
     raw_resolution = getattr(result, "atlas_resolution", 1.0)
     if isinstance(raw_resolution, bool) or not isinstance(raw_resolution, (int, float)):
