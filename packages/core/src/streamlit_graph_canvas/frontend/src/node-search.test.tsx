@@ -64,7 +64,7 @@ describe("NodeSearchPanel", () => {
     const previous = screen.getByRole("button", { name: "Previous match" });
     expect(next).toHaveProperty("disabled", true);
     fireEvent.change(nameInput(), { target: { value: "a" } });
-    expect(status()).toBe("3 matches among 3 active nodes");
+    expect(status()).toBe("3 match(es) among 3 active nodes");
     fireEvent.click(next);
     expect(screen.getByTestId("current").textContent).toBe("a");
     fireEvent.click(next);
@@ -101,14 +101,14 @@ describe("NodeSearchPanel", () => {
       target: { value: "silver" },
     });
     // count >= 3 AND tier == silver matches nothing; OR matches gamma and beta.
-    expect(status()).toBe("0 matches among 3 active nodes");
+    expect(status()).toBe("0 match(es) among 3 active nodes");
     fireEvent.change(screen.getByRole("combobox", { name: "Filter combination" }), {
       target: { value: "any" },
     });
-    expect(status()).toBe("2 matches among 3 active nodes");
+    expect(status()).toBe("2 match(es) among 3 active nodes");
     fireEvent.click(screen.getByRole("button", { name: "Remove filter 2" }));
     expect(screen.queryByRole("combobox", { name: "Filter 2 field" })).toBeNull();
-    expect(status()).toBe("1 matches among 3 active nodes");
+    expect(status()).toBe("1 match(es) among 3 active nodes");
   });
 
   it("switches operators and reports incomplete filters as invalid", () => {
@@ -121,7 +121,7 @@ describe("NodeSearchPanel", () => {
       target: { value: "known" },
     });
     expect(screen.queryByRole("spinbutton", { name: "Filter 1 value" })).toBeNull();
-    expect(status()).toBe("3 matches among 3 active nodes");
+    expect(status()).toBe("3 match(es) among 3 active nodes");
     fireEvent.click(screen.getByRole("button", { name: "Apply search" }));
     expect(onApply).toHaveBeenCalledTimes(1);
   });

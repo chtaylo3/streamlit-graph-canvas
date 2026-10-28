@@ -48,6 +48,9 @@
 .sgc-search-root > summary { cursor: pointer; font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; padding: 5px 8px; border: 1px solid var(--st-border-color, #aaa); border-radius: 5px; color: var(--st-text-color, #222); background: var(--st-background-color, white); }
 .sgc-budget-notice { top: auto; bottom: 48px; left: 48px; }
 
+/* At phone widths the minimap would cover a large share of the canvas. */
+@container (max-width: 480px) { .react-flow__minimap { display: none; } }
+
 .sgc-node-label { display:block; min-width:0; width:100%; overflow:hidden; }
 .sgc-node-label > span { display:block; white-space:pre; overflow:hidden; }
 .sgc-label-reveal { position:absolute; bottom:2px; left:6px; z-index:4; padding:0 4px; line-height:14px; border:0; border-radius:3px; background:var(--st-background-color,white); color:var(--st-text-color,black); cursor:pointer; }

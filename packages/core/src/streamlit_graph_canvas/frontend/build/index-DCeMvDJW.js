@@ -1163,7 +1163,7 @@ function Ce({ search: e, config: t, onNavigate: n, onSubmit: r, onApply: i, onCl
 				/* @__PURE__ */ (0, S.jsx)("div", {
 					role: "status",
 					className: "sgc-search-count",
-					children: l.valid ? l.active ? `${u.length} matches among ${l.scopeCount} ${o.includeContext ? "displayed" : "active"} nodes` : `${l.scopeCount} ${o.includeContext ? "displayed" : "active"} nodes` : "Complete each filter with a valid value."
+					children: l.valid ? l.active ? `${u.length} match(es) among ${l.scopeCount} ${o.includeContext ? "displayed" : "active"} nodes` : `${l.scopeCount} ${o.includeContext ? "displayed" : "active"} nodes` : "Complete each filter with a valid value."
 				}),
 				/* @__PURE__ */ (0, S.jsxs)("div", {
 					className: "sgc-search-row",

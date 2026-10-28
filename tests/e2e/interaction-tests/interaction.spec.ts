@@ -33,6 +33,7 @@ async function chooseMode(page: Page, mode: "single" | "multiple" | "none") {
 
 test("single selection replaces the selection on each click", async ({ page }) => {
   await open(page);
+  await expect(page.locator(".react-flow__minimap")).toBeVisible();
   await node(page, "API").click();
   await expect(selected(page)).toHaveText("Selected: api");
   await node(page, "Worker").click({ modifiers: ["Shift"] });
@@ -197,6 +198,8 @@ test("canvas renders, fits, and selects by tap at phone width @mobile", async ({
   const frame = await canvas.boundingBox();
   const viewport = page.viewportSize()!;
   expect(frame!.width).toBeLessThanOrEqual(viewport.width);
+  // Canvases at most 480px wide drop the minimap so it cannot cover nodes.
+  await expect(canvas.locator(".react-flow__minimap")).toBeHidden();
   for (const label of ["API", "Worker"]) {
     const box = await node(page, label).boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(frame!.x - 1);

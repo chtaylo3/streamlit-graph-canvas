@@ -20,7 +20,7 @@ async function open(page: Page, scene: string) {
 async function openSearch(page: Page, query: string) {
   await page.getByText("Find in this view", { exact: true }).click();
   await page.getByRole("textbox", { name: "Find node names" }).fill(query);
-  await expect(page.getByRole("status").filter({ hasText: "matches" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "match(es)" })).toBeVisible();
   await page.getByRole("textbox", { name: "Find node names" }).blur();
 }
 
