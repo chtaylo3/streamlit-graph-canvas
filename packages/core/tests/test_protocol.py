@@ -84,6 +84,9 @@ def test_actions_are_validated_deduplicated_and_topology_authoritative() -> None
     ("updates", "code"),
     [
         ({"protocolVersion": 99}, "SGC_ACTION_PROTOCOL"),
+        ({"protocolVersion": True}, "SGC_ACTION_PROTOCOL"),
+        ({"protocolVersion": 1.0}, "SGC_ACTION_PROTOCOL"),
+        ({"protocolVersion": "1"}, "SGC_ACTION_PROTOCOL"),
         ({"seq": 0}, "SGC_ACTION_SEQUENCE"),
         ({"operationId": "nope"}, "SGC_ACTION_OPERATION_ID"),
         ({"gesture": "double-click"}, "SGC_ACTION_GESTURE"),

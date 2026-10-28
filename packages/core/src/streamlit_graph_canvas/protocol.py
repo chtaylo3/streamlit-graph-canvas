@@ -163,10 +163,15 @@ def _parse_action(value: Any) -> CanvasAction:
             "Browser action fields do not match the v1 click protocol.",
             "Use the documented v1 action envelope.",
         )
-    if raw["protocolVersion"] != PROTOCOL_VERSION:
+    protocol_version = raw["protocolVersion"]
+    if (
+        isinstance(protocol_version, bool)
+        or not isinstance(protocol_version, int)
+        or protocol_version != PROTOCOL_VERSION
+    ):
         _fail(
             "SGC_ACTION_PROTOCOL",
-            f"Unsupported browser action protocol {raw['protocolVersion']!r}.",
+            f"Unsupported browser action protocol {protocol_version!r}.",
             f"Send protocol version {PROTOCOL_VERSION}.",
         )
     seq = raw["seq"]
