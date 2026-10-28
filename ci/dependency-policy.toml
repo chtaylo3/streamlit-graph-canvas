@@ -188,4 +188,4 @@ required_contrib_sets = [
   "javascript-adversarial",
   "multi-canvas",
 ]
-release_required_workflows = ["ci.yml", "codeql.yml"]
+release_required_workflows = ["ci.yml", "codeql.yml", "visual-regression.yml"]

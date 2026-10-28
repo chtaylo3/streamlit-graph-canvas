@@ -1,0 +1,70 @@
+name: Visual regression
+
+# Kept out of ci.yml so pixel differences never block a pull request. The
+# release gate requires this workflow to succeed on the tagged SHA
+# (ci/dependency-policy.toml release_required_workflows).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  UV_CACHE_DIR: ${{ github.workspace }}/.uv-cache
+
+jobs:
+  playwright-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.lock.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: tests/e2e/package-lock.json
+          sparse-checkout-cone-mode: false
+      - id: lock
+        run: >-
+          echo "version=$(jq -r '.packages["node_modules/@playwright/test"].version'
+          tests/e2e/package-lock.json)" >> "$GITHUB_OUTPUT"
+
+  visual-regression:
+    # Baselines are rendered in this image; see tests/e2e/update_visual_baselines.py.
+    needs: playwright-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+      - run: npm ci
+        working-directory: tests/e2e
+      - run: npm run test:visual
+        working-directory: tests/e2e
+        env:
+          CI: "true"
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-regression
+          path: |
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
+            tests/e2e/artifacts/
+          if-no-files-found: warn
+          retention-days: 14

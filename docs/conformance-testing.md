@@ -160,7 +160,9 @@ rewrite the baselines and review each changed image before you commit it:
 python tests/e2e/update_visual_baselines.py
 ```
 
-The `visual-regression` CI job runs the same suite in the same image.
+The `visual-regression.yml` workflow runs the same suite in the same image on
+pull requests and on `main`. It is advisory on pull requests, but the release
+gate requires it to succeed for the tagged SHA.
 
 ## Test the example application
 

@@ -69,7 +69,8 @@ For each prerelease:
    uv run python -m ci.sync_versions --check
    uv run python -m ci.sync_renderer_assets --check
    ```
-3. Confirm `ci.yml` and `codeql.yml` succeeded for the exact merge SHA.
+3. Confirm `ci.yml`, `codeql.yml`, and `visual-regression.yml` succeeded for
+   the exact merge SHA.
 4. Create an unsigned lightweight tag and push it. Use `--no-sign`
    explicitly so a maintainer's local `tag.gpgsign` setting cannot silently
    turn the prerelease into a signed annotated tag:
