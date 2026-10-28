@@ -138,6 +138,30 @@ The `--with-deps` operation needs package-manager privileges on Linux. It works
 on GitHub-hosted Ubuntu runners; a restricted local environment may be able to
 download Chromium but still lack its shared libraries.
 
+### Visual regression snapshots
+
+The visual suite in `tests/e2e/visual-tests` compares screenshots of a few
+static canvas scenes, in light and dark host themes and at phone width, with
+committed baselines. Font rendering differs between operating systems, so the
+baselines come from the official Playwright Linux image, and the suite skips
+itself on other platforms. The image tag follows the `@playwright/test` version
+in `tests/e2e/package-lock.json`.
+
+Docker is required. From the repository root, compare against the baselines:
+
+```bash
+python tests/e2e/update_visual_baselines.py --check
+```
+
+After an intended visual change, or a Playwright upgrade that moves the image,
+rewrite the baselines and review each changed image before you commit it:
+
+```bash
+python tests/e2e/update_visual_baselines.py
+```
+
+The `visual-regression` CI job runs the same suite in the same image.
+
 ## Test the example application
 
 The dependency explorer owns its application integration tests in
